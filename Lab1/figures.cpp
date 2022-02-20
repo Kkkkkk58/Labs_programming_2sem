@@ -1,5 +1,5 @@
 #include "figures.hpp"
-
+#include <string>
 CPoint::CPoint(double const& x, double const& y) : x_(x), y_(y) {}
 CPoint::CPoint(CPoint const& other) : x_(other.x_), y_(other.y_) {}
 CPoint::CPoint(CPoint && other) { swap(other); }
@@ -53,3 +53,21 @@ std::ostream& operator<<(std::ostream &os, CPoint const &p) {
     os << '(' << p.x() << ", " << p.y() << ')'; 
     return os; 
 }
+
+std::ostream& operator<<(std::ostream &os, Polygonal_chain const &p) { 
+    for (size_t i = 0; i < p.size(); ++i) {
+        os << p[i] << " ";
+    }
+    return os; 
+}
+
+std::ostream& operator<<(std::ostream &os, Polygon const &p) { 
+    std::string polygon_type = typeid(p).name();
+    polygon_type.erase(0,1);
+    os << polygon_type << " ";
+    for (size_t i = 0; i < p.size(); ++i) {
+        os << p[i] << " ";
+    }
+    return os; 
+}
+
