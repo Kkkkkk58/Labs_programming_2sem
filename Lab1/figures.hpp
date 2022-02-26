@@ -4,10 +4,13 @@
 #include <vector>
 #include <iostream>
 #include <math.h>
+#include <cmath>
 #include <memory>
 #include <typeinfo>
 #include <utility>
 #include <fstream>
+
+
 class CPoint {
 public:
     CPoint(double const& x = 0, double const& y = 0);
@@ -43,12 +46,12 @@ public:
     virtual ~ILine() {};
 };
 
-class Vector : public ILine {
+class CVector : public ILine {
 public:
-    Vector(CPoint const& start, CPoint const& end) : start_(start), end_(end) {}
-    ~Vector() = default;
-    Vector(Vector const& other) : start_(other.start_), end_(other.end_) {}
-    Vector &operator=(Vector const& other) {
+    CVector(CPoint const& start, CPoint const& end) : start_(start), end_(end) {}
+    ~CVector() = default;
+    CVector(CVector const& other) : start_(other.start_), end_(other.end_) {}
+    CVector &operator=(CVector const& other) {
         if (this != &other) {
             start_ = other.start_;
             end_ = other.end_;
@@ -64,10 +67,10 @@ public:
     double length() const {
         return std::sqrt(x() * x() + y() * y());
     }
-    double operator*(Vector const& other) {
+    double operator*(CVector const& other) {
         return x() * other.x() + y() * other.y();
     }
-    friend double cross_prod_val(Vector const& a, Vector const& b) {
+    friend double cross_prod_val(CVector const& a, CVector const& b) {
         //first_side.x() * second_side.y() - second_side.x() * first_side.y()
         return a.x() * b.y() - b.x() * a.y();
     }
@@ -77,9 +80,9 @@ private:
 };
 
 
-class Polygonal_chain : public ILine {
+class CPolygonal_chain : public ILine {
 public:
-    Polygonal_chain(std::vector<CPoint> const& vertices = std::vector<CPoint>()) 
+    CPolygonal_chain(std::vector<CPoint> const& vertices = std::vector<CPoint>()) 
     : vertices_(std::vector<CPoint>(vertices)) {
         if (vertices_.size() > 1) {
             for (auto adj_finder = std::adjacent_find(vertices_.begin(), vertices_.end());\
@@ -104,23 +107,23 @@ public:
         }
     }
     virtual size_t size() const { return vertices_.size(); }
-    Polygonal_chain(Polygonal_chain const& other) 
+    CPolygonal_chain(CPolygonal_chain const& other) 
     : vertices_(other.vertices_) {}
-    Polygonal_chain &operator=(Polygonal_chain const& other) {
+    CPolygonal_chain &operator=(CPolygonal_chain const& other) {
         if (this != &other) {
             vertices_ = other.vertices_;
         }
         return *this;
     }
-    Polygonal_chain(Polygonal_chain && other) {
+    CPolygonal_chain(CPolygonal_chain && other) {
         swap(other);
     }
-    Polygonal_chain &operator=(Polygonal_chain && other) {
+    CPolygonal_chain &operator=(CPolygonal_chain && other) {
         swap(other);
         return *this;
     }
-    void swap(Polygonal_chain &other) { std::swap(vertices_, other.vertices_); }
-    ~Polygonal_chain() = default;
+    void swap(CPolygonal_chain &other) { std::swap(vertices_, other.vertices_); }
+    ~CPolygonal_chain() = default;
     virtual double length() const override {
         double length = 0;
         if (size() > 1) {
@@ -152,12 +155,12 @@ protected:
     std::vector<CPoint> vertices_;
 };
 
-std::ostream& operator<<(std::ostream &os, Polygonal_chain const &p);
+std::ostream& operator<<(std::ostream &os, CPolygonal_chain const &p);
 
-class Closed_polygonal_chain : public Polygonal_chain {
+class CClosed_polygonal_chain : public CPolygonal_chain {
 public:
-    Closed_polygonal_chain(std::vector<CPoint> const& vertices = std::vector<CPoint>()) 
-    : Polygonal_chain(vertices) {
+    CClosed_polygonal_chain(std::vector<CPoint> const& vertices = std::vector<CPoint>()) 
+    : CPolygonal_chain(vertices) {
         if (vertices_.size() >= 3) {
             auto first_vertex = vertices_.begin();
             for (auto third_vertex = vertices_.end() - 1; third_vertex != vertices_.begin(); ) {
@@ -173,16 +176,16 @@ public:
             }
         }
     }
-    ~Closed_polygonal_chain() = default;
-    Closed_polygonal_chain(Closed_polygonal_chain const &other) 
-    : Polygonal_chain(other) {}
-    Closed_polygonal_chain(Closed_polygonal_chain && other) : Polygonal_chain(std::move(other)) {}
-    Closed_polygonal_chain &operator=(Closed_polygonal_chain && other) {
-        Polygonal_chain::operator=(std::move(other));
+    ~CClosed_polygonal_chain() = default;
+    CClosed_polygonal_chain(CClosed_polygonal_chain const &other) 
+    : CPolygonal_chain(other) {}
+    CClosed_polygonal_chain(CClosed_polygonal_chain && other) : CPolygonal_chain(std::move(other)) {}
+    CClosed_polygonal_chain &operator=(CClosed_polygonal_chain && other) {
+        CPolygonal_chain::operator=(std::move(other));
         return *this;
     };
-    Closed_polygonal_chain &operator=(Closed_polygonal_chain const& other) {
-        Polygonal_chain::operator=(other);
+    CClosed_polygonal_chain &operator=(CClosed_polygonal_chain const& other) {
+        CPolygonal_chain::operator=(other);
         return *this;
     }
     CPoint const& operator[](size_t const& i) const override {
@@ -200,8 +203,8 @@ public:
     double length() const override {
         double length = 0;
         if (size() > 1) {
-            length = Polygonal_chain::length() + \
-            Vector(vertices_[vertices_.size() - 1], vertices_[0]).length();
+            length = CPolygonal_chain::length() + \
+            CVector(vertices_[vertices_.size() - 1], vertices_[0]).length();
         }
         return length;
     }
@@ -271,9 +274,9 @@ public:
 };
 
 
-class Polygon : public IShape {
+class CPolygon : public IShape {
 public:
-    Polygon(std::vector<CPoint> const& vertices = std::vector<CPoint>()) 
+    CPolygon(std::vector<CPoint> const& vertices = std::vector<CPoint>()) 
     : edges_(vertices) {
         try {
             if (edges_.has_self_intersections()) {
@@ -285,7 +288,7 @@ public:
             throw;
         }
     }
-    Polygon(std::initializer_list<CPoint> const& points) 
+    CPolygon(std::initializer_list<CPoint> const& points) 
     : edges_(points) {
         try {
             if (edges_.has_self_intersections()) {
@@ -297,7 +300,7 @@ public:
             throw;
         }
     }
-    Polygon(Closed_polygonal_chain const& contour)
+    CPolygon(CClosed_polygonal_chain const& contour)
     : edges_(contour) {
         try {
             if (edges_.has_self_intersections()) {
@@ -309,20 +312,21 @@ public:
             throw;
         }
     }
-    ~Polygon() = default;
-    Polygon(Polygon const& other) : edges_(other.edges_) {}
-    Polygon(Polygon && other) : edges_(std::move(other.edges_)) {}
-    Polygon &operator=(Polygon const& other) {
+    ~CPolygon() = default;
+    CPolygon(CPolygon const& other) : edges_(other.edges_) {}
+    CPolygon(CPolygon && other) : edges_(std::move(other.edges_)) {}
+    CPolygon &operator=(CPolygon const& other) {
         edges_ = other.edges_;
         return *this;
     }
-    Polygon &operator=(Polygon && other) {
+    CPolygon &operator=(CPolygon && other) {
         edges_ = std::move(other.edges_);
         return *this;
     }
     CPoint const& operator[](size_t const& i) const {
         return edges_[i];
     }
+    void swap(CPolygon &other) { edges_.swap(other.edges_); }
     double perimeter() const override {
         return edges_.length();
     }
@@ -341,8 +345,8 @@ public:
     }
     bool is_convex() const {
         if (size() > 2) {
-            Vector first_side(edges_[0], edges_[1]);
-            Vector second_side(edges_[1], edges_[2]);
+            CVector first_side(edges_[0], edges_[1]);
+            CVector second_side(edges_[1], edges_[2]);
             double prev_val = cross_prod_val(first_side, second_side);
             for (size_t i = 2; i < size(); ++i) {
                 first_side = second_side;
@@ -359,7 +363,7 @@ public:
     virtual std::vector<double> sides() const {
         std::vector<double> sides(size());
         for (size_t i = 0; i < size(); ++i) {
-            Vector side(edges_[i], edges_[i + 1]);
+            CVector side(edges_[i], edges_[i + 1]);
             sides[i] = side.length();
         }
         return sides;
@@ -367,10 +371,10 @@ public:
     virtual std::vector<double> angles() const {
         std::vector<double> angles(size());
         for (size_t i = 0; i < 3; ++i) {
-            Vector first_side(edges_[i], edges_[i + 1]);
-            Vector second_side(edges_[i], edges_[i + 2]);
+            CVector first_side(edges_[i], edges_[i + 1]);
+            CVector second_side(edges_[i], edges_[i + 2]);
             angles[i] = std::acos((first_side * second_side) / (first_side.length() * second_side.length()))\
-            * 180 / std::acos(-1.);
+            * 180 / M_PI;
         }
         return angles;
     }
@@ -395,12 +399,12 @@ public:
         return false;
     }
 protected:
-    Closed_polygonal_chain edges_;
+    CClosed_polygonal_chain edges_;
 };
 
-std::ostream& operator<<(std::ostream &os, Polygon const &p);
+std::ostream& operator<<(std::ostream &os, CPolygon const &p);
 
-class Triangle : public Polygon {
+class CTriangle : public CPolygon {
 public:
 enum class Triangle_Types_Angle {
     RIGHT,
@@ -412,8 +416,8 @@ enum class Triangle_Types_Sides {
     ISOSCELES,
     SCALENE
 };
-    Triangle(std::vector<CPoint> const& vertices = {CPoint(0,0), CPoint(0,1), CPoint(1,0)}) 
-    : Polygon(vertices) {
+    CTriangle(std::vector<CPoint> const& vertices = {CPoint(0,0), CPoint(0,1), CPoint(1,0)}) 
+    : CPolygon(vertices) {
         try {
             if (size() != 3) {
                 throw std::logic_error("Invalid triangle!");
@@ -424,7 +428,7 @@ enum class Triangle_Types_Sides {
             throw;
         }
     }
-    Triangle(std::initializer_list<CPoint> const& vertices) : Polygon(vertices) {
+    CTriangle(std::initializer_list<CPoint> const& vertices) : CPolygon(vertices) {
         try {
             if (size() != 3) {
                 throw std::logic_error("Invalid triangle!");
@@ -435,7 +439,7 @@ enum class Triangle_Types_Sides {
             throw;
         }
     }
-    Triangle(CPoint const& a, CPoint const& b, CPoint const& c) : Polygon({a, b, c}) {
+    CTriangle(CPoint const& a, CPoint const& b, CPoint const& c) : CPolygon({a, b, c}) {
         try {
             if (size() != 3) {
                 throw std::logic_error("Invalid triangle!");
@@ -446,15 +450,15 @@ enum class Triangle_Types_Sides {
             throw;
         }
     }
-    Triangle(Triangle const& other) : Polygon(other) {}
-    Triangle(Triangle && other) : Polygon(std::move(other)) {}
-    ~Triangle() = default;
-    Triangle &operator=(Triangle const &other) {
-        Polygon::operator=(other);
+    CTriangle(CTriangle const& other) : CPolygon(other) {}
+    CTriangle(CTriangle && other) : CPolygon(std::move(other)) {}
+    ~CTriangle() = default;
+    CTriangle &operator=(CTriangle const &other) {
+        CPolygon::operator=(other);
         return *this;
     }
-    Triangle &operator=(Triangle && other) {
-        Polygon::operator=(std::move(other));
+    CTriangle &operator=(CTriangle && other) {
+        CPolygon::operator=(std::move(other));
         return *this;
     }
     double area() const override {
@@ -496,7 +500,7 @@ enum class Triangle_Types_Sides {
         / (sides_len[i % 3] + sides_len[(i + 1) % 3]);
     }
     double height(size_t const& i) const {
-        Vector side(edges_[i - 1], edges_[i % 3]);
+        CVector side(edges_[i - 1], edges_[i % 3]);
         return (2 * area()) / side.length();
     }
     double incircle_radius() const {
@@ -512,39 +516,39 @@ enum class Triangle_Types_Sides {
         return result;
     }
 };
-inline std::ostream& operator<<(std::ostream &os, Triangle::Triangle_Types_Angle const& type) { 
+inline std::ostream& operator<<(std::ostream &os, CTriangle::Triangle_Types_Angle const& type) { 
     switch(type) {
-        case Triangle::Triangle_Types_Angle::RIGHT:
+        case CTriangle::Triangle_Types_Angle::RIGHT:
             os << "right";
             break;
-        case Triangle::Triangle_Types_Angle::OBTUSE:
+        case CTriangle::Triangle_Types_Angle::OBTUSE:
             os << "obtuse";
             break;
-        case Triangle::Triangle_Types_Angle::ACUTE:
+        case CTriangle::Triangle_Types_Angle::ACUTE:
             os << "acute";
             break;
     } 
     return os; 
 }
-inline std::ostream& operator<<(std::ostream &os, Triangle::Triangle_Types_Sides const &type) { 
+inline std::ostream& operator<<(std::ostream &os, CTriangle::Triangle_Types_Sides const &type) { 
     switch(type) {
-        case Triangle::Triangle_Types_Sides::EQUILATERAL:
+        case CTriangle::Triangle_Types_Sides::EQUILATERAL:
             os << "equilateral";
             break;
-        case Triangle::Triangle_Types_Sides::ISOSCELES:
+        case CTriangle::Triangle_Types_Sides::ISOSCELES:
             os << "isosceles";
             break;
-        case Triangle::Triangle_Types_Sides::SCALENE:
+        case CTriangle::Triangle_Types_Sides::SCALENE:
             os << "scalene";
             break;
     } 
     return os; 
 }
 
-class Trapezoid : public Polygon {
+class CTrapezoid : public CPolygon {
 public:
-    Trapezoid(std::vector<CPoint> const& vertices = {CPoint(-2,0), CPoint(-1,1), CPoint(1,1), CPoint(2,0)})
-    : Polygon(vertices) {
+    CTrapezoid(std::vector<CPoint> const& vertices = {CPoint(-2,0), CPoint(-1,1), CPoint(1,1), CPoint(2,0)})
+    : CPolygon(vertices) {
         try {
             if (!is_trapezoid()) {
                 throw std::logic_error("Invalid trapezoid!");
@@ -555,8 +559,8 @@ public:
             throw;
         }
     }
-    Trapezoid(CPoint const& a, CPoint const& b, CPoint const& c, CPoint const& d) 
-    : Polygon({a, b, c, d}) {
+    CTrapezoid(CPoint const& a, CPoint const& b, CPoint const& c, CPoint const& d) 
+    : CPolygon({a, b, c, d}) {
         try {
             if (!is_trapezoid()) {
                 throw std::logic_error("Invalid trapezoid!");
@@ -567,15 +571,15 @@ public:
             throw;
         }
     }
-    Trapezoid(Trapezoid const& other) : Polygon(other) {}
-    Trapezoid(Trapezoid && other) : Polygon(std::move(other)) {}
-    ~Trapezoid() = default;
-    Trapezoid &operator=(Trapezoid const& other) {
-        Polygon::operator=(other);
+    CTrapezoid(CTrapezoid const& other) : CPolygon(other) {}
+    CTrapezoid(CTrapezoid && other) : CPolygon(std::move(other)) {}
+    ~CTrapezoid() = default;
+    CTrapezoid &operator=(CTrapezoid const& other) {
+        CPolygon::operator=(other);
         return *this;
     } 
-    Trapezoid &operator=(Trapezoid && other) {
-        Polygon::operator=(std::move(other));
+    CTrapezoid &operator=(CTrapezoid && other) {
+        CPolygon::operator=(std::move(other));
         return *this;
     }
     double area() const override {
@@ -625,30 +629,30 @@ public:
     }
 private:
     std::pair<double, double> bases() const {
-        Vector first_side(edges_[0], edges_[1]);
-        Vector third_side(edges_[2], edges_[3]);
+        CVector first_side(edges_[0], edges_[1]);
+        CVector third_side(edges_[2], edges_[3]);
         if (first_side.y() * third_side.x() == first_side.x() * third_side.y()) {
             return std::make_pair(first_side.length(), third_side.length());
         }
         else {
-            return std::make_pair(Vector(edges_[1], edges_[2]).length(), Vector(edges_[3], edges_[0]).length());
+            return std::make_pair(CVector(edges_[1], edges_[2]).length(), CVector(edges_[3], edges_[0]).length());
         }
     }
     std::pair<double, double> legs() const {
-        Vector first_side(edges_[0], edges_[1]);
-        Vector third_side(edges_[2], edges_[3]);
+        CVector first_side(edges_[0], edges_[1]);
+        CVector third_side(edges_[2], edges_[3]);
         if (first_side.y() * third_side.x() != first_side.x() * third_side.y()) {
             return std::make_pair(first_side.length(), third_side.length());
         }
         else {
-            return std::make_pair(Vector(edges_[1], edges_[2]).length(), Vector(edges_[3], edges_[0]).length());
+            return std::make_pair(CVector(edges_[1], edges_[2]).length(), CVector(edges_[3], edges_[0]).length());
         }
     }
     bool is_trapezoid() const {
-        Vector first_side(edges_[0], edges_[1]);
-        Vector second_side(edges_[1], edges_[2]);
-        Vector third_side(edges_[2], edges_[3]);
-        Vector fourth_side(edges_[3], edges_[0]);
+        CVector first_side(edges_[0], edges_[1]);
+        CVector second_side(edges_[1], edges_[2]);
+        CVector third_side(edges_[2], edges_[3]);
+        CVector fourth_side(edges_[3], edges_[0]);
         if (first_side.y() * third_side.x() == first_side.x() * third_side.y()) {
             return second_side.y() * fourth_side.x() != second_side.x() * fourth_side.y();
         }
@@ -657,12 +661,12 @@ private:
 };
 
 
-class Regular_polygon : public Polygon {
+class CRegular_polygon : public CPolygon {
 public:
-    Regular_polygon(std::vector<CPoint> const& vertices = {CPoint(-1,-1), CPoint(-1,1), CPoint(1,1), CPoint(1,-1)})
-    : Polygon(vertices) {
+    CRegular_polygon(std::vector<CPoint> const& vertices = {CPoint(-1,-1), CPoint(-1,1), CPoint(1,1), CPoint(1,-1)})
+    : CPolygon(vertices) {
         try {
-            if (!(static_cast<Polygon>(*this).is_regular())) {
+            if (!(static_cast<CPolygon>(*this).is_regular())) {
                 throw std::logic_error("Given polygon is irregular");
             }
         }
@@ -671,12 +675,12 @@ public:
             throw;
         }
     }
-    Regular_polygon(size_t const& n, size_t const& radius, \
+    CRegular_polygon(size_t const& n, size_t const& radius, \
     double const& angle, CPoint const& center = {0,0}) {
         if (n >= 3) {
             std::vector<CPoint> edges;
             for (size_t i = 0; i < n; ++i) {
-                double radian_angle = (angle + (360 * i) / n) * (std::acos(-1.) / 180);
+                double radian_angle = (angle + (360 * i) / n) * (M_PI / 180);
                 double x_i = center.x() + radius * std::cos(radian_angle);
                 double y_i = center.y() + radius * std::sin(radian_angle);
                 edges.push_back(CPoint(x_i, y_i));
@@ -692,19 +696,19 @@ public:
             }
         }
     }
-    Regular_polygon(Regular_polygon const& other) : Polygon(other) {}
-    Regular_polygon(Regular_polygon && other) : Polygon(std::move(other)) {}
-    ~Regular_polygon() = default;
-    Regular_polygon &operator=(Regular_polygon const& other) {
-        Polygon::operator=(other);
+    CRegular_polygon(CRegular_polygon const& other) : CPolygon(other) {}
+    CRegular_polygon(CRegular_polygon && other) : CPolygon(std::move(other)) {}
+    ~CRegular_polygon() = default;
+    CRegular_polygon &operator=(CRegular_polygon const& other) {
+        CPolygon::operator=(other);
         return *this;
     } 
-    Regular_polygon &operator=(Regular_polygon && other) {
-        Polygon::operator=(std::move(other));
+    CRegular_polygon &operator=(CRegular_polygon && other) {
+        CPolygon::operator=(std::move(other));
         return *this;
     }
     double side() const {
-        return Vector(edges_[0], edges_[1]).length();
+        return CVector(edges_[0], edges_[1]).length();
     }
     std::vector<double> sides() const override {
         return std::vector<double>(size(), side());
@@ -713,7 +717,7 @@ public:
         return side() * size();
     }
     double area() const override {
-        return (perimeter() * side()) / (4 * std::tan(std::acos(-1.) / size()));
+        return (perimeter() * side()) / (4 * std::tan(M_PI / size()));
     }
     double angle() const {
         return (static_cast<double>((size() - 2)) / size()) * 180;
@@ -722,10 +726,10 @@ public:
         return std::vector<double>(size(), angle());
     }
     double incircle_radius() const {
-        return side() / (2 * std::tan(std::acos(-1.) / size()));
+        return side() / (2 * std::tan(M_PI / size()));
     }
     double circumscribed_radius() const {
-        return side() / (2 * std::sin(std::acos(-1.) / size()));
+        return side() / (2 * std::sin(M_PI / size()));
     }
 };
 
