@@ -342,7 +342,7 @@ std::vector<double> CPolygon::angles() const {
     for (size_t i = 0; i < size(); ++i) {
         CVector first_side(edges_[i], edges_[i + 1]);
         CVector second_side(edges_[i], edges_[i + 2]);
-        angles[i] = std::acos((first_side * second_side) / (first_side.length() * second_side.length())) * 180 / M_PI;
+        angles[i] = std::acos((first_side * second_side) / (first_side.length() * second_side.length())) * 180 / std::acos(-1.L);
     }
     return angles;
 }
@@ -403,7 +403,6 @@ CTriangle::CTriangle(CPoint const &a, CPoint const &b, CPoint const &c) : CPolyg
         }
     }
     catch (const std::exception &e) {
-        // std::cerr << e.what() << '\n';
         throw;
     }
 }
@@ -625,7 +624,7 @@ CRegular_polygon::CRegular_polygon(size_t const &n, size_t const &radius,
     if (n >= 3) {
         std::vector<CPoint> edges;
         for (size_t i = 0; i < n; ++i) {
-            double radian_angle = (angle + (360 * i) / n) * (M_PI / 180);
+            double radian_angle = (angle + (360 * i) / n) * (std::acos(-1.L) / 180);
             double x_i = center.x() + radius * std::cos(radian_angle);
             double y_i = center.y() + radius * std::sin(radian_angle);
             edges.push_back(CPoint(x_i, y_i));
@@ -661,7 +660,7 @@ double CRegular_polygon::perimeter() const {
     return side() * size();
 }
 double CRegular_polygon::area() const {
-    return (perimeter() * side()) / (4 * std::tan(M_PI / size()));
+    return (perimeter() * side()) / (4 * std::tan(std::acos(-1.L) / size()));
 }
 double CRegular_polygon::angle() const {
     return (static_cast<double>((size() - 2)) / size()) * 180;
@@ -670,8 +669,8 @@ std::vector<double> CRegular_polygon::angles() const {
     return std::vector<double>(size(), angle());
 }
 double CRegular_polygon::incircle_radius() const {
-    return side() / (2 * std::tan(M_PI / size()));
+    return side() / (2 * std::tan(std::acos(-1.L) / size()));
 }
 double CRegular_polygon::circumscribed_radius() const {
-    return side() / (2 * std::sin(M_PI / size()));
+    return side() / (2 * std::sin(std::acos(-1.L) / size()));
 }

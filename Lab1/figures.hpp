@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <vector>
 #include <iostream>
-#include <math.h>
 #include <cmath>
 #include <memory>
 #include <typeinfo>
@@ -211,5 +210,6 @@ public:
     double incircle_radius() const;
     double circumscribed_radius() const;
 };
+
 
 #endif
