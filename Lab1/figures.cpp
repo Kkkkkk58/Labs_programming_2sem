@@ -1,6 +1,18 @@
 #include "figures.hpp"
 #include <string>
+#include <algorithm>
+#include <vector>
+#include <iostream>
+#include <cmath>
+#include <memory>
+#include <typeinfo>
+#include <utility>
+#include <fstream>
 
+constexpr double EPS = 1e-9;
+const double PI = std::acos(-1.L);
+const double TO_DEGREES = 180 / PI;
+const double TO_RADIANS = PI / 180;
 
 CPoint::CPoint(double const& x, double const& y) : x_(x), y_(y) {}
 CPoint::CPoint(CPoint const& other) : x_(other.x_), y_(other.y_) {}
@@ -16,9 +28,13 @@ CPoint & CPoint::operator=(CPoint && other) {
     swap(other);
     return *this;
 }
-CPoint CPoint::operator+(CPoint const& other) const { return CPoint(x_ + other.x_, y_ + other.y_); }
+CPoint operator+(CPoint lhs, CPoint const& rhs) {
+     return lhs += rhs; 
+}
 CPoint CPoint::operator-() const { return CPoint(-x_, -y_); }
-CPoint CPoint::operator-(CPoint const& other) const { return CPoint(x_ - other.x_, y_ - other.y_); }
+CPoint operator-(CPoint lhs, CPoint const& rhs) {
+     return lhs -= rhs;
+}
 CPoint & CPoint::operator+=(CPoint const &other) {
     x_ += other.x_;
     y_ += other.y_;
@@ -40,7 +56,9 @@ CPoint CPoint::operator++(int) {
     return tmp;
 }
 double CPoint::operator[](size_t i) const { return (i == 0 ? x_ : y_); }
-bool CPoint::operator==(CPoint const& other) const { return x_ == other.x_ && y_ == other.y_; }
+bool CPoint::operator==(CPoint const& other) const { 
+    return std::abs(x_ - other.x_) <= EPS && std::abs(y_ - other.y_) <= EPS; 
+}
 bool CPoint::operator!=(CPoint const& other) const { return !(*this == other); }
 void CPoint::swap(CPoint &other) {
     std::swap(x_, other.x_);
@@ -49,7 +67,10 @@ void CPoint::swap(CPoint &other) {
 
 double CPoint::x() const { return x_; }
 double CPoint::y() const { return y_; }
-
+bool on_the_same_line(CPoint const& a, CPoint const& b, CPoint const& c) {
+    return std::abs(((c.x() - a.x()) * (b.y() - a.y())) - \
+    ((c.y() - a.y()) * (b.x() - a.x()))) <= EPS;
+}
 
 std::ostream& operator<<(std::ostream &os, CPoint const &p) { 
     os << '(' << p.x() << ", " << p.y() << ')'; 
@@ -58,12 +79,21 @@ std::ostream& operator<<(std::ostream &os, CPoint const &p) {
 
 CVector::CVector(CPoint const &start, CPoint const &end) : start_(start), end_(end) {}
 CVector::CVector(CVector const &other) : start_(other.start_), end_(other.end_) {}
+CVector::CVector(CVector && other) { swap(other); }
 CVector & CVector::operator=(CVector const &other) {
     if (this != &other) {
         start_ = other.start_;
         end_ = other.end_;
     }
     return *this;
+}
+CVector & CVector::operator=(CVector && other) {
+    swap(other);
+    return *this;
+}
+void CVector::swap(CVector &other) {
+    std::swap(start_, other.start_);
+    std::swap(end_, other.end_);
 }
 double CVector::x() const {
     return end_.x() - start_.x();
@@ -78,8 +108,11 @@ double CVector::operator*(CVector const &other) {
     return x() * other.x() + y() * other.y();
 }
 double cross_prod_val(CVector const &a, CVector const &b) {
-    // first_side.x() * second_side.y() - second_side.x() * first_side.y()
     return a.x() * b.y() - b.x() * a.y();
+}
+bool CVector::includes_point(CPoint const &p) const {
+    return ((start_.x() < p.x() && p.x() < end_.x() || start_.x() > p.x() && p.x() > end_.x()) && 
+             (start_.y() < p.y() && p.y() < end_.y() || start_.y() > p.y() && p.y() > end_.y()));
 }
 
 CPolygonal_chain::CPolygonal_chain(std::vector<CPoint> const &vertices)
@@ -110,11 +143,9 @@ double CPolygonal_chain::length() const {
         double first_x = iter->x();
         double first_y = iter->y();
         while (++iter != vertices_.end()) {
-            double second_x = iter->x();
-            double second_y = iter->y();
-            length += std::sqrt(std::pow((second_x - first_x), 2) + std::pow((second_y - first_y), 2));
-            first_x = second_x;
-            first_y = second_y;
+            length += CVector({first_x, first_y}, *iter).length();
+            first_x = iter->x();
+            first_y = iter->y();
         }
     }
     return length;
@@ -141,7 +172,7 @@ void CPolygonal_chain::correct_line() {
         {
             auto first_vertex = third_vertex - 2;
             auto second_vertex = third_vertex - 1;
-            if (((third_vertex->x() - first_vertex->x()) * (second_vertex->y() - first_vertex->y())) == ((third_vertex->y() - first_vertex->y()) * (second_vertex->x() - first_vertex->x()))) {
+            if (on_the_same_line(*first_vertex, *second_vertex, *third_vertex)) {
                 third_vertex = vertices_.erase(third_vertex);
             }
             else {
@@ -178,7 +209,7 @@ CPoint const & CClosed_polygonal_chain::operator[](size_t const &i) const {
         if (size()) {
             return vertices_.at(i % vertices_.size());
         }
-        throw std::logic_error("Divide by zero");
+        throw std::logic_error("Division by zero");
     }
     catch (const std::exception &e) {
         throw;
@@ -187,42 +218,37 @@ CPoint const & CClosed_polygonal_chain::operator[](size_t const &i) const {
 double CClosed_polygonal_chain::length() const {
     double length = 0;
     if (size() > 1) {
-        length = CPolygonal_chain::length() +
+        length = CPolygonal_chain::length() +\
                  CVector(vertices_[vertices_.size() - 1], vertices_[0]).length();
     }
     return length;
 }
-bool CClosed_polygonal_chain::has_self_intersections() const
-{
+bool CClosed_polygonal_chain::has_self_intersections() const {
     if (size() > 3) {
         for (auto first_point = vertices_.begin(); first_point != vertices_.end() - 2; ++first_point) {
             auto second_point = first_point + 1;
+            CVector first_segment(*first_point, *second_point);
             for (auto third_point = second_point + 1; third_point != vertices_.end(); ++third_point) {
                 auto fourth_point = (third_point == vertices_.end() - 1) ? vertices_.begin() : third_point + 1;
-                double a1 = second_point->y() - first_point->y();
-                double b1 = first_point->x() - second_point->x();
+                CVector second_segment(*third_point, *fourth_point);
+                double a1 = first_segment.y();
+                double b1 = -first_segment.x();
                 double c1 = first_point->y() * (-b1) - first_point->x() * a1;
-                double a2 = fourth_point->y() - third_point->y();
-                double b2 = third_point->x() - fourth_point->x();
+                double a2 = second_segment.y();
+                double b2 = -second_segment.x();
                 double c2 = third_point->y() * (-b2) - third_point->x() * a2;
-                double zn = a1 * b2 - b1 * a2;
-                if (zn != 0) {
-                    double x = static_cast<double>(-(c1 * b2 - b1 * c2) / zn);
-                    double y = static_cast<double>(-(a1 * c2 - c1 * a2) / zn);
-                    if ((first_point->x() < x && x < second_point->x() ||
-                         first_point->x() > x && x > second_point->x()) &&
-                        (third_point->x() < x && x > fourth_point->x() ||
-                         third_point->x() > x && x > fourth_point->x()) &&
-                        (first_point->y() < y && y < second_point->y() ||
-                         first_point->y() > y && y > second_point->y()) &&
-                        (third_point->y() < y && y < fourth_point->y() ||
-                         third_point->y() > y && y > fourth_point->y())) {
+                double determinant = a1 * b2 - b1 * a2;
+                if (determinant != 0) {
+                    double intersection_x = static_cast<double>(-(c1 * b2 - b1 * c2) / determinant);
+                    double intersection_y = static_cast<double>(-(a1 * c2 - c1 * a2) / determinant);
+                    CPoint intersection_point(intersection_x, intersection_y);
+                    if (first_segment.includes_point(intersection_point) && second_segment.includes_point(intersection_point)) {
                         return true;
                     }
                 }
                 else {
                     double k = static_cast<double>(a1 / a2);
-                    if (b1 == k * b2 && c1 == k * c2) {
+                    if (std::abs(b1 - k * b2) <= EPS && std::abs(c1 - k * c2) <= EPS) {
                         return true;
                     }
                 }
@@ -237,7 +263,7 @@ void CClosed_polygonal_chain::correct_closed_line() {
         auto first_vertex = vertices_.begin();
         for (auto third_vertex = vertices_.end() - 1; third_vertex != vertices_.begin();) {
             auto second_vertex = third_vertex - 1;
-            if (((third_vertex->x() - first_vertex->x()) * (second_vertex->y() - first_vertex->y())) == ((third_vertex->y() - first_vertex->y()) * (second_vertex->x() - first_vertex->x()))) {
+            if (on_the_same_line(*first_vertex, *second_vertex, *third_vertex)) {
                 third_vertex = vertices_.erase(third_vertex);
                 --third_vertex;
             }
@@ -278,7 +304,6 @@ CPolygon::CPolygon(CClosed_polygonal_chain const &contour)
         }
     }
     catch (const std::exception &e) {
-        // std::cerr << e.what() << '\n';
         throw;
     }
 }
@@ -319,9 +344,9 @@ bool CPolygon::is_convex() const {
         double prev_val = cross_prod_val(first_side, second_side);
         for (size_t i = 2; i < size(); ++i) {
             first_side = second_side;
-            second_side = {edges_[i], edges_[i + 1]};
+            second_side = CVector(edges_[i], edges_[i + 1]);
             double curr_val = cross_prod_val(first_side, second_side);
-            if (curr_val * prev_val < 0) {
+            if (curr_val * prev_val < -EPS) {
                 return false;
             }
             prev_val = curr_val;
@@ -342,7 +367,7 @@ std::vector<double> CPolygon::angles() const {
     for (size_t i = 0; i < size(); ++i) {
         CVector first_side(edges_[i], edges_[i + 1]);
         CVector second_side(edges_[i], edges_[i + 2]);
-        angles[i] = std::acos((first_side * second_side) / (first_side.length() * second_side.length())) * 180 / std::acos(-1.L);
+        angles[i] = std::acos((first_side * second_side) / (first_side.length() * second_side.length())) * TO_DEGREES;
     }
     return angles;
 }
@@ -351,12 +376,12 @@ bool CPolygon::is_regular() const {
         std::vector<double> sides_len = sides();
         std::vector<double> angles_val = angles();
         for (double const &side : sides_len) {
-            if (side != sides_len[0]) {
+            if (std::abs(side - sides_len[0]) > EPS) {
                 return false;
             }
         }
         for (double const &angle : angles_val) {
-            if (angle != angles_val[0]) {
+            if (std::abs(angle - angles_val[0]) > EPS) {
                 return false;
             }
         }
@@ -367,7 +392,7 @@ bool CPolygon::is_regular() const {
 
 std::ostream& operator<<(std::ostream &os, CPolygon const &p) { 
     std::string polygon_type = typeid(p).name();
-    polygon_type.erase(0,1);
+    polygon_type.erase(0,2);
     os << polygon_type << " ";
     for (size_t i = 0; i < p.size(); ++i) {
         os << p[i] << " ";
@@ -424,10 +449,10 @@ double CTriangle::area() const {
 CTriangle::Triangle_types_angle CTriangle::angle_type() const {
     std::vector<double> angles_ = angles();
     for (auto angle : angles_) {
-        if (angle == 90) {
+        if (std::abs(angle - 90) <= EPS) {
             return Triangle_types_angle::RIGHT;
         }
-        if (angle > 90) {
+        if (angle - 90 > EPS) {
             return Triangle_types_angle::OBTUSE;
         }
     }
@@ -435,10 +460,11 @@ CTriangle::Triangle_types_angle CTriangle::angle_type() const {
 }
 CTriangle::Triangle_types_sides CTriangle::side_type() const {
     std::vector<double> sides_len = sides();
-    if (sides_len[0] == sides_len[1] && sides_len[0] == sides_len[2]) {
+    if (std::abs(sides_len[0] - sides_len[1]) <= EPS && std::abs(sides_len[0] - sides_len[2]) <= EPS) {
         return Triangle_types_sides::EQUILATERAL;
     }
-    if (sides_len[0] == sides_len[1] || sides_len[0] == sides_len[2] || sides_len[1] == sides_len[2]) {
+    if (std::abs(sides_len[0] - sides_len[1]) <= EPS || std::abs(sides_len[0] - sides_len[2]) <= EPS || 
+         std::abs(sides_len[1] - sides_len[2]) <= EPS){
         return Triangle_types_sides::ISOSCELES;
     }
     return Triangle_types_sides::SCALENE;
@@ -451,13 +477,14 @@ double CTriangle::median(size_t const &i) const {
 double CTriangle::bisector(size_t const &i) const {
     double per_half = perimeter() / 2;
     std::vector<double> sides_len = sides();
-    return (2 * std::sqrt(sides_len[i % 3] * sides_len[(i + 1) % 3] * per_half * (per_half - sides_len[i - 1]))) / (sides_len[i % 3] + sides_len[(i + 1) % 3]);
+    return (2 * std::sqrt(sides_len[i % 3] * sides_len[(i + 1) % 3] * per_half * (per_half - sides_len[i - 1]))) 
+             / (sides_len[i % 3] + sides_len[(i + 1) % 3]);
 }
 double CTriangle::height(size_t const &i) const {
     CVector side(edges_[i - 1], edges_[i % 3]);
     return (2 * area()) / side.length();
 }
-double CTriangle::incircle_radius() const {
+double CTriangle::inscribed_radius() const {
     return (2 * area()) / perimeter();
 }
 double CTriangle::circumscribed_radius() const {
@@ -537,17 +564,18 @@ double CTrapezoid::area() const {
     std::pair<double, double> legs_v = legs();
     double a = std::min(bases_v.first, bases_v.second);
     double b = std::max(bases_v.first, bases_v.second);
-    return (a + b) / (4 * (b - a)) * std::sqrt((a + legs_v.first + legs_v.second - b) * (a + legs_v.second - b - legs_v.first) * (a + legs_v.first - b - legs_v.second) * (b + legs_v.first + legs_v.second - a));
+    return (a + b) / (4 * (b - a)) * std::sqrt((a + legs_v.first + legs_v.second - b) * (a + legs_v.second - b - legs_v.first) 
+             * (a + legs_v.first - b - legs_v.second) * (b + legs_v.first + legs_v.second - a));
 }
 
 bool CTrapezoid::is_isosceles() const {
     std::pair<double, double> legs_v = legs();
-    return (legs_v.first == legs_v.second);
+    return (std::abs(legs_v.first - legs_v.second) <= EPS);
 }
 bool CTrapezoid::is_right() const {
     std::vector<double> angles_val = angles();
     return std::any_of(angles_val.begin(), angles_val.end(), [](double const &angle)
-                       { return angle == 90; });
+                       { return (std::abs(angle - 90) <= EPS); });
 }
 double CTrapezoid::midsegment() const {
     std::pair<double, double> bases_v = bases();
@@ -560,7 +588,8 @@ double CTrapezoid::circumscribed_radius() const {
     if (is_isosceles()) {
         std::pair<double, double> bases_v = bases();
         std::pair<double, double> legs_v = legs();
-        return std::sqrt((bases_v.first * bases_v.second + legs_v.first * legs_v.second) / (4 - std::pow((bases_v.first - bases_v.second) / legs_v.first, 2)));
+        return std::sqrt((bases_v.first * bases_v.second + legs_v.first * legs_v.second) 
+                 / (4 - std::pow((bases_v.first - bases_v.second) / legs_v.first, 2)));
     }
     else {
         return 0;
@@ -569,7 +598,7 @@ double CTrapezoid::circumscribed_radius() const {
 double CTrapezoid::inscribed_radius() const {
     std::pair<double, double> bases_v = bases();
     std::pair<double, double> legs_v = legs();
-    if (bases_v.first + bases_v.second == legs_v.first + legs_v.second) {
+    if (std::abs(bases_v.first + bases_v.second - legs_v.first + legs_v.second) <= EPS) {
         return height() / 2;
     }
     else {
@@ -580,7 +609,7 @@ double CTrapezoid::inscribed_radius() const {
 std::pair<double, double> CTrapezoid::bases() const {
     CVector first_side(edges_[0], edges_[1]);
     CVector third_side(edges_[2], edges_[3]);
-    if (first_side.y() * third_side.x() == first_side.x() * third_side.y()) {
+    if (std::abs(cross_prod_val(third_side, first_side)) <= EPS) {
         return std::make_pair(first_side.length(), third_side.length());
     }
     else {
@@ -590,7 +619,7 @@ std::pair<double, double> CTrapezoid::bases() const {
 std::pair<double, double> CTrapezoid::legs() const {
     CVector first_side(edges_[0], edges_[1]);
     CVector third_side(edges_[2], edges_[3]);
-    if (first_side.y() * third_side.x() != first_side.x() * third_side.y()) {
+    if (std::abs(cross_prod_val(third_side, first_side)) > EPS) {
         return std::make_pair(first_side.length(), third_side.length());
     }
     else {
@@ -602,10 +631,10 @@ bool CTrapezoid::is_trapezoid() const {
     CVector second_side(edges_[1], edges_[2]);
     CVector third_side(edges_[2], edges_[3]);
     CVector fourth_side(edges_[3], edges_[0]);
-    if (first_side.y() * third_side.x() == first_side.x() * third_side.y()) {
-        return second_side.y() * fourth_side.x() != second_side.x() * fourth_side.y();
+    if (std::abs(cross_prod_val(third_side, first_side)) <= EPS) {
+        return std::abs(cross_prod_val(fourth_side, second_side)) > EPS;
     }
-    return second_side.y() * fourth_side.x() == second_side.x() * fourth_side.y();
+    return (std::abs(cross_prod_val(fourth_side, second_side)) <= EPS);
 }
 
 CRegular_polygon::CRegular_polygon(std::vector<CPoint> const &vertices)
@@ -624,12 +653,12 @@ CRegular_polygon::CRegular_polygon(size_t const &n, size_t const &radius,
     if (n >= 3) {
         std::vector<CPoint> edges;
         for (size_t i = 0; i < n; ++i) {
-            double radian_angle = (angle + (360 * i) / n) * (std::acos(-1.L) / 180);
+            double radian_angle = (angle + (360 * i) / n) * TO_RADIANS;
             double x_i = center.x() + radius * std::cos(radian_angle);
             double y_i = center.y() + radius * std::sin(radian_angle);
             edges.push_back(CPoint(x_i, y_i));
         }
-        edges_ = edges;
+        edges_ = CClosed_polygonal_chain(edges);
     }
     else {
         try {
@@ -660,7 +689,7 @@ double CRegular_polygon::perimeter() const {
     return side() * size();
 }
 double CRegular_polygon::area() const {
-    return (perimeter() * side()) / (4 * std::tan(std::acos(-1.L) / size()));
+    return (perimeter() * side()) / (4 * std::tan(PI / size()));
 }
 double CRegular_polygon::angle() const {
     return (static_cast<double>((size() - 2)) / size()) * 180;
@@ -668,9 +697,9 @@ double CRegular_polygon::angle() const {
 std::vector<double> CRegular_polygon::angles() const {
     return std::vector<double>(size(), angle());
 }
-double CRegular_polygon::incircle_radius() const {
-    return side() / (2 * std::tan(std::acos(-1.L) / size()));
+double CRegular_polygon::inscribed_radius() const {
+    return side() / (2 * std::tan(PI / size()));
 }
 double CRegular_polygon::circumscribed_radius() const {
-    return side() / (2 * std::sin(std::acos(-1.L) / size()));
+    return side() / (2 * std::sin(PI / size()));
 }

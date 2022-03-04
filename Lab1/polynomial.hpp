@@ -10,103 +10,249 @@
 #include <type_traits>
 #include <regex>
 
-namespace {
+constexpr double EPS = 1e-9;
+template <class T, class E = void>
+class CPolynomial;
+
+
+namespace Polynomial_helper {
     template<class T>
     struct is_complex : public std::false_type {};
 
     template<class T>
     struct is_complex<std::complex<T>> : public std::true_type {};
 
-    void multiply(std::vector<std::complex<double>> & first, std::vector<std::complex<double>> const& second) {
-        for (size_t i = 0; i < first.size(); ++i) {
-            first[i] *= second[i];
-        }
+    template<class T>
+    bool equals_zero(T const& value) {
+        return (std::is_floating_point<T>::value && std::abs(value) <= EPS) ||\
+        (!std::is_floating_point<T>::value && value == T(0));
     }
 
     void fft(std::vector<std::complex<double>> &vec, bool const& invert) {
+        size_t n = vec.size();
+        if (n <= 1) {
+            return;
+        }
+        std::vector<std::complex<double>> a0(n / 2), a1(n / 2);
+        for (int i = 0, j = 0; i < n; i += 2, ++j) {
+            a0[j] = vec[i];
+            a1[j] = vec[i + 1];
+        }
+        fft(a0, invert);
+        fft(a1, invert);
+        double ang = 2 * std::acos(-1.L) / n * (invert ? -1 : 1);
+        std::complex<double> w(1), wn(std::cos(ang), std::sin(ang));
+        for (int i = 0; i < n / 2; ++i) {
+            vec[i] = a0[i] + w * a1[i];
+            vec[i + n / 2] = a0[i] - w * a1[i];
+            if (invert) {
+                vec[i] /= 2;
+                vec[i + n / 2] /= 2;
+            }
+            w *= wn;
+        }
+    }
 
-        //EMAXX
-        // size_t n = vec.size();
-        // if (n <= 1) {
-        //     return;
-        // }
-        // std::vector<std::complex<double>> a0(n / 2), a1(n / 2);
-        // for (size_t i = 0, j = 0; i < n; i += 2, ++j) {
-        //     a0[j] = vec[i];
-        //     a1[j] = vec[i + 1];
-        // }
-        // fft(a0, invert);
-        // fft(a1, invert);
+    template<class T>
+    typename std::enable_if<std::is_integral<T>::value, std::map<size_t, T>>::type
+    from_string(std::string const& str) {
+        std::regex poly_template("\\+|\\-?(\\d+)?\\*?[a-zA-Z]?\\^?(\\d+)?");
+        std::sregex_iterator rit(str.begin(),\
+        str.end(), poly_template);
+        std::sregex_iterator rend;
+        std::map<size_t, T> coefficients;
+        while (rit != rend) {
+            if (std::string((*rit)[0]) != "+" && std::string((*rit)[0]).length()) {
+                T value;
+                int sign = 1;
+                size_t degree;
+                if (std::string((*rit)[0])[0] == '-') {
+                    sign = -1;
+                }
+                if (std::string((*rit)[1]).length()) {
+                    value = sign * std::stoi(std::string((*rit)[1]));
+                }
+                else {
+                    value = sign * T(1);
+                }
+                if (value == T(0)) {
+                    continue;
+                }
+                if (std::string((*rit)[2]).length()) {
+                    degree = stoi(std::string((*rit)[2]));
+                }
+                else {
+                    if (std::string((*rit)[0]) != std::string((*rit)[1])) {
+                        degree = 1;
+                    }
+                    else {
+                        degree = 0;
+                    }
+                }
+                if (coefficients.find(degree) != coefficients.end()) {
+                    coefficients[degree] += value;
+                }
+                else {
+                    coefficients[degree] = value;
+                }
+            }
+            ++rit;
+        }
+        return coefficients;
+    }
 
-        // double ang = 2 * std::acos(-1.L) / n * (invert ? -1 : 1);
-        // std::complex<double> w(1), wn(std::cos(ang), std::sin(ang));
-        // for (size_t i = 0; i < n / 2; ++i) {
-        //     vec[i] = a0[i] + w * a1[i];
-        //     vec[i + n / 2] = a0[i] - w * a1[i];
-        //     if (invert) {
-        //         vec[i] /= 2;
-        //         vec[i + n / 2] /= 2;
-        //     }
-        //     w *= wn;
-        // }
+    template<class T>
+    typename std::enable_if<std::is_floating_point<T>::value, std::map<size_t, T>>::type
+    from_string(std::string const& str) {
+        std::regex poly_template("\\+|\\-?(\\d*\\.)?(\\d+)?\\*?[a-zA-Z]?\\^?(\\d+)?");
+        std::sregex_iterator rit(str.begin(),\
+        str.end(), poly_template);
+        std::sregex_iterator rend;
+        std::map<size_t, T> coefficients;
+        while (rit != rend) {
+            if (std::string((*rit)[0]) != "+" && std::string((*rit)[0]).length()) {
+                T value;
+                int sign = 1;
+                size_t degree;
+                if (std::string((*rit)[0])[0] == '-') {
+                    sign = -1;
+                }
+                std::string num = std::string((*rit)[1]) + std::string((*rit)[2]);
+                if (num.length()) {
+                    value = sign * std::stod(num);
+                }
+                else {
+                    value = sign * T(1);
+                }
+                if (value == T(0)) {
+                    continue;
+                }
+                if (std::string((*rit)[3]).length()) {
+                    degree = stoi(std::string((*rit)[3]));
+                }
+                else {
+                    if (std::string((*rit)[0]) != num) {
+                        degree = 1;
+                    }
+                    else {
+                        degree = 0;
+                    }
+                }
+                if (coefficients.find(degree) != coefficients.end()) {
+                    coefficients[degree] += value;
+                }
+                else {
+                    coefficients[degree] = value;
+                }
+            }
+            ++rit;
+        }
+        return coefficients;
+    }
 
-        // HABR
-        // size_t n = vec.size();
-        // if (n <= 1) {
-        //     return;
-        // }
-        // std::vector<std::complex<double>> w(n);
-        // for (size_t i = 0; i < n; ++i) {
-        //     double alpha = 2 * std::acos(-1.L) * i / n;
-        //     w[i] = std::complex<double>(std::cos(alpha), std::sin(alpha));
-        // }
-        // std::vector<std::complex<double>> a0(n / 2), a1(n / 2);
-        // for (size_t i = 0; i < n / 2; ++i) {
-        //     a0[i] = vec[2 * i];
-        //     a1[i] = vec[2 * i + 1];
-        // }
-        // fft(a0, invert);
-        // fft(a1, invert);
-        // for (size_t i = 0; i < n; ++i) {
-        //     vec[i] = a0[i % (n / 2)] + w[i] * a1[i % (n / 2)];
-        //     if (invert) {
-        //         vec[i] /= 2;
-        //     }
-        // }
-
+    template<class T>
+    typename std::enable_if<is_complex<T>::value, std::map<size_t, T>>::type
+    from_string(std::string const& str) {
+        std::regex poly_template("\\+|\\-?(\\((\\d*\\.)?(\\d+)?\\,?(\\d*\\.)?(\\d+)?\\))?\\*?[a-zA-Z]?\\^?(\\d+)?");
+        std::sregex_iterator rit(str.begin(),\
+        str.end(), poly_template);
+        std::sregex_iterator rend;
+        std::map<size_t, T> coefficients;
+        while (rit != rend) {
+            if (std::string((*rit)[0]) != "+" && std::string((*rit)[0]).length()) {
+                T value;
+                int sign = 1;
+                size_t degree;
+                if (std::string((*rit)[0])[0] == '-') {
+                    sign = -1;
+                }
+                if (std::string((*rit)[1]).length()) {
+                    std::string re_str = std::string((*rit)[2]) + std::string((*rit)[3]);
+                    double re = 0;
+                    if (re_str.length()) {
+                        re = std::stod(re_str);
+                    }
+                    std::string im_str = std::string((*rit)[4]) + std::string((*rit)[5]);
+                    double im = 0;
+                    if (im_str.length()) {
+                        im = std::stod(im_str);
+                    }
+                    value = T(re, im);
+                    value *= sign;
+                }
+                else {
+                    value = T(1);
+                    value *= sign;
+                }
+                if (value == T(0)) {
+                    continue;
+                }
+                if (std::string((*rit)[6]).length()) {
+                    degree = stoi(std::string((*rit)[6]));
+                }
+                else {
+                    if (std::string((*rit)[0]) != std::string((*rit)[1])) {
+                        degree = 1;
+                    }
+                    else {
+                        degree = 0;
+                    }
+                }
+                if (coefficients.find(degree) != coefficients.end()) {
+                    coefficients[degree] += value;
+                }
+                else {
+                    coefficients[degree] = value;
+                }
+            }
+            ++rit;
+        }
+        return coefficients;
     }
 }
 
-template <class T, class E = void>
-class CPolynomial;
-
 template <class T>
 class CPolynomial<T, typename std::enable_if<std::is_arithmetic<T>::value || \
-is_complex<T>::value>::type> {
+Polynomial_helper::is_complex<T>::value>::type> {
 public:
-    CPolynomial(std::vector<T> const& coefficients = std::vector<T>()) {
+    explicit CPolynomial(std::vector<T> const& coefficients = std::vector<T>()) {
         for (size_t i = 0; i < coefficients.size(); ++i) {
-            if (coefficients[i] != T(0)) {
+            if (!Polynomial_helper::equals_zero(coefficients[i])) {
                 coefficients_[i] = coefficients[i];
             }
         }
     }
-    CPolynomial(std::map<size_t, T> const& coefficients) : coefficients_(coefficients) {}
+    explicit CPolynomial(std::map<size_t, T> const& coefficients) : coefficients_(coefficients) {
+        auto iter = coefficients_.begin();
+        while (iter != coefficients_.end()) {
+            if (Polynomial_helper::equals_zero(iter->second)) {
+                iter = coefficients_.erase(iter);
+            }
+            else {
+                ++iter;
+            }
+        }
+    }
     ~CPolynomial() = default;
-    CPolynomial(std::initializer_list<T> const& coefficients) {
+    explicit CPolynomial(std::initializer_list<T> const& coefficients) {
         size_t i = 0;
         for (auto iter = coefficients.begin(); iter != coefficients.end(); ++iter, ++i) {
-            if (*iter != T(0)) {
+            if (!Polynomial_helper::equals_zero(*iter)) {
                 coefficients_[i] = *iter;
             }
         }
     }
-    CPolynomial(size_t size, T value) {
-        if (value) {
-            for (size_t i = 0; i < size; ++i) {
+    explicit CPolynomial(size_t size, T const& value = T(0)) {
+        if (!Polynomial_helper::equals_zero(value)) {
+            for (size_t i = 0; i < size - 1; ++i) {
                 coefficients_[i] = value;
             }
         }
+        coefficients_[size] = T(1);
+    }
+    explicit CPolynomial(std::string str) : coefficients_(std::map<size_t, T>()) {
+        str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+        coefficients_ = Polynomial_helper::from_string<T>(str);
     }
     CPolynomial(CPolynomial const& other) : coefficients_(other.coefficients_) {}
     void swap(CPolynomial &other) {
@@ -150,7 +296,7 @@ public:
         return !(*this < other);
     }
     CPolynomial operator+() const {
-        return CPolynomial(*this);
+        return *this;
     }
     CPolynomial operator-() const {
         std::map<size_t, T> new_coefficients;
@@ -167,7 +313,7 @@ public:
             auto this_finder = coefficients_.find(i);
             auto other_finder = other.coefficients_.find(i);
             if (this_finder != coefficients_.end() && other_finder != other.coefficients_.end()) {
-                if (this_finder->second != -(other_finder->second)) {
+                if (!Polynomial_helper::equals_zero(this_finder->second + other_finder->second)) {
                     coefficients_[i] = this_finder->second + other_finder->second;
                 }
                 else {
@@ -198,16 +344,16 @@ public:
         return *this;
     }
     CPolynomial &operator*=(CPolynomial const& other) {
-        std::vector<std::complex<double>> vec_first(deg());
-        for (size_t i = 0; i < deg(); ++i) {
+        std::vector<std::complex<double>> vec_first(deg() + 1);
+        for (size_t i = 0; i <= deg(); ++i) {
             if (coefficients_.find(i) != coefficients_.end()) {
-                vec_first[i] = coefficients_[i];
+                vec_first[i] = std::complex<double>(coefficients_.at(i));
             }
         }
-        std::vector<std::complex<double>> vec_second(other.deg());
-        for (size_t i = 0; i < other.deg(); ++i) {
+        std::vector<std::complex<double>> vec_second(other.deg() + 1);
+        for (size_t i = 0; i <= other.deg(); ++i) {
             if (other.coefficients_.find(i) != other.coefficients_.end()) {
-                vec_second[i] = other.coefficients_.at(i);
+                vec_second[i] = std::complex<double>(other.coefficients_.at(i));
             }
         }
         size_t n = 1;
@@ -217,16 +363,16 @@ public:
         n <<= 1;
         vec_first.resize(n);
         vec_second.resize(n);
-        fft(vec_first, false);
-        fft(vec_second, false);
-        multiply(vec_first, vec_second);
-        fft(vec_first, true);
+        Polynomial_helper::fft(vec_first, false);
+        Polynomial_helper::fft(vec_second, false);
+        for (size_t i = 0; i < n; ++i) {
+            vec_first[i] *= vec_second[i];
+        }
+        Polynomial_helper::fft(vec_first, true);
         std::vector<T> res(n); 
         for (size_t i = 0; i < n; ++i) {
             res[i] = vec_first[i].real();
-            //std::cout << res[i] << " ";
         }
-        //std::cout << "\n";
         *this = CPolynomial(res);
         return *this;
     }
@@ -235,10 +381,23 @@ public:
         return *this;
     }
     CPolynomial &operator/=(CPolynomial const& other) {
-        //
+        CPolynomial res;
+        while (deg() >= other.deg()) {
+            size_t res_deg = deg() - other.deg();
+            CPolynomial sub = other * CPolynomial(res_deg);
+            res += CPolynomial(res_deg);
+            *this -= sub;
+        }
+        *this = res;
+        return *this;
     }
     CPolynomial &operator%=(CPolynomial const& other) {
-        //
+        while (deg() >= other.deg()) {
+            size_t res_deg = deg() - other.deg();
+            CPolynomial sub = other * CPolynomial(res_deg);
+            *this -= sub;
+        }
+        return *this;
     }
     T operator[](size_t const& i) const {
         auto coef = coefficients_.find(i);
@@ -281,7 +440,7 @@ public:
         T coef;
         is >> coef;
         while (is.good()) {
-            if (coef != T(0)) {
+            if (!Polynomial_helper::equals_zero(coef)) {
                 p.coefficients_[i] = coef;
             }
             ++i;
@@ -309,7 +468,7 @@ public:
             if (poly.deg() != -1) {
                 auto curr = poly.coefficients_.erase(poly.coefficients_.find(0));
                 while (curr != poly.coefficients_.end()) {
-                    poly.coefficients_[curr->first - 1] = curr->first * curr->second;
+                    poly.coefficients_[curr->first - 1] = static_cast<T>(curr->first) * curr->second;
                     curr = poly.coefficients_.erase(poly.coefficients_.find(curr->first));
                 }
             }
@@ -319,10 +478,6 @@ public:
         }  
         return poly;
     }
-    // CPolynomial(std::string const& str_representation) : coefficients_(std::map<size_t, T>()) {
-    //     // *this = from_string(str_representation);
-    // }
-    // CPolynomial from_string(std::string const& str_representation) const;
 private:
     std::map<size_t, T> coefficients_;
 };
@@ -368,100 +523,4 @@ CPolynomial<T> operator%(CPolynomial<T> lhs, CPolynomial<T> const& rhs) {
     return lhs %= rhs;
 }
 
-// template <class T>
-// std::ostream& operator<<(std::ostream &os, CPolynomial<T> const &p);
-
 #endif
-
-//     CPolynomial(std::string const& str_representation) : coefficients_(std::map<size_t, T>()) {
-//         std::string copy(str_representation);
-//         copy.erase(std::remove(copy.begin(), copy.end(), ' '), copy.end());
-//         std::regex poly_template("\\+|\\-?(\\d+)?\\*?[a-zA-Z]?\\^?(\\d+)?");
-//         std::sregex_iterator rit(copy.begin(),\
-//          copy.end(), poly_template);
-//         std::sregex_iterator rend;
-//         while (rit != rend) {
-//             // std::string reg((*rit)[0]);
-//             // if (reg.length() > 1 || reg != "+") {
-//             //     size_t reg_pos = 0;
-//             //     char sign = '+';
-//             //     if (reg[0] == '-' || reg[0] == '+') {
-//             //         ++reg_pos;
-//             //         if (reg[0]) == '-' {
-//             //             sign = '-';
-//             //         }
-//             //     }
-
-
-//             // }
-//             if (std::string((*rit)[0]) != "+") {
-//                 T value;
-//                 int sign = 1;
-//                 size_t degree;
-//                 if (std::string((*rit)[0])[0] == '-') {
-//                     sign = -1;
-//                 }
-//                 if (std::string((*rit)[1]).length()) {
-//                     if (std::is_integral<T>::value) {
-//                         value = sign * std::stoi(std::string((*rit)[1]));
-//                     }
-//                     else if (std::is_floating_point<T>::value) {
-//                         value = sign * std::stof(std::string((*rit)[1]));
-//                     }
-//                     else {
-
-//                     }
-//                 }
-//                 else {
-//                     value = sign * T(1);
-//                 }
-//                 if (value == T(0)) {
-//                     continue;
-//                 }
-//                 if (std::string((*rit)[2]).length()) {
-//                     degree = stoi(std::string((*rit)[2]));
-//                 }
-//                 else {
-//                     if (std::string((*rit)[0]) != std::string((*rit)[1])) {
-//                         degree = 1;
-//                     }
-//                     else {
-//                         degree = 0;
-//                     }
-//                 }
-//                 if (coefficients_.find(degree) != coefficients_.end()) {
-//                     coefficients_[degree] += value;
-//                 }
-//                 else {
-//                     coefficients_[degree] = value;
-//                 }
-//             }
-//             std::cout << "\n HERE " << (*rit)[0] << ' ' << (*rit)[1] << ' ' <<    (*rit)[2] << "\n";
-//             ++rit;
-//         }
-//    }
-
-
-    // CPolynomial operator+(CPolynomial const& other) const {
-    //     std::map<size_t, T> new_coefficients;
-    //     for (size_t i = 0; i <= std::max(deg(), other.deg()); ++i) {
-    //         auto this_finder = coefficients_.find(i);
-    //         auto other_finder = other.coefficients_.find(i);
-    //         if (this_finder != coefficients_.end() || other_finder != other.coefficients_.end()) {
-    //             if (this_finder != coefficients_.end() && other_finder != other.coefficients_.end() \
-    //             && this_finder->second != -(other_finder->second)) {
-    //                 new_coefficients[i] = this_finder->second + other_finder->second;
-    //             }
-    //             else if (this_finder != coefficients_.end() && other_finder == other.coefficients_.end()) {
-    //                 new_coefficients[i] = this_finder->second;
-    //             }
-    //             else if (this_finder == coefficients_.end() && other_finder != other.coefficients_.end()) {
-    //                 new_coefficients[i] = other_finder->second;
-    //             }
-    //         }
-    //     }
-    //     return CPolynomial(new_coefficients);
-    // }
-    // CPolynomial operator-(CPolynomial const& other) {
-    //     return CPolynomial(*this + (-other));
-    // }

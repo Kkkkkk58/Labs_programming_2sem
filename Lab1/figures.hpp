@@ -1,14 +1,7 @@
 #ifndef FIGURES_HPP
 #define FIGURES_HPP
-#include <algorithm>
 #include <vector>
 #include <iostream>
-#include <cmath>
-#include <memory>
-#include <typeinfo>
-#include <utility>
-#include <fstream>
-
 
 class CPoint {
 public:
@@ -17,9 +10,7 @@ public:
     CPoint(CPoint &&);
     CPoint &operator=(CPoint const&);
     CPoint &operator=(CPoint &&);
-    CPoint operator+(CPoint const&) const;
     CPoint operator-() const;
-    CPoint operator-(CPoint const&) const;
     CPoint &operator+=(CPoint const&);
     CPoint &operator-=(CPoint const&);
     CPoint &operator++();
@@ -36,7 +27,10 @@ private:
     double y_;
 };
 
+CPoint operator+(CPoint, CPoint const&);
+CPoint operator-(CPoint, CPoint const&);
 std::ostream& operator<<(std::ostream &, CPoint const&);
+bool on_the_same_line(CPoint const&, CPoint const&, CPoint const&);
 
 class ILine {
 public:
@@ -47,24 +41,28 @@ public:
 
 class CVector : public ILine {
 public:
-    CVector(CPoint const&, CPoint const&);
+    explicit CVector(CPoint const& = {0, 0}, CPoint const& = {0, 1});
     ~CVector() = default;
     CVector(CVector const&);
+    CVector(CVector &&);
     CVector &operator=(CVector const&);
+    CVector &operator=(CVector &&);
     double x() const;
     double y() const;
     double length() const;
     double operator*(CVector const&);
-    friend double cross_prod_val(CVector const&, CVector const&);
+    bool includes_point(CPoint const&) const;
 private:
+    void swap(CVector &);
     CPoint start_;
     CPoint end_;
 };
 
+double cross_prod_val(CVector const&, CVector const&);
 
 class CPolygonal_chain : public ILine {
 public:
-    CPolygonal_chain(std::vector<CPoint> const& = std::vector<CPoint>());
+    explicit CPolygonal_chain(std::vector<CPoint> const& = std::vector<CPoint>());
     virtual size_t size() const;
     CPolygonal_chain(CPolygonal_chain const&);
     CPolygonal_chain &operator=(CPolygonal_chain const&);
@@ -84,7 +82,7 @@ std::ostream& operator<<(std::ostream &, CPolygonal_chain const &);
 
 class CClosed_polygonal_chain : public CPolygonal_chain {
 public:
-    CClosed_polygonal_chain(std::vector<CPoint> const& = std::vector<CPoint>());
+    explicit CClosed_polygonal_chain(std::vector<CPoint> const& = std::vector<CPoint>());
     ~CClosed_polygonal_chain() = default;
     CClosed_polygonal_chain(CClosed_polygonal_chain const &other);
     CClosed_polygonal_chain(CClosed_polygonal_chain && other);
@@ -112,8 +110,8 @@ public:
 
 class CPolygon : public IShape {
 public:
-    CPolygon(std::vector<CPoint> const& = std::vector<CPoint>());
-    CPolygon(std::initializer_list<CPoint> const&);
+    explicit CPolygon(std::vector<CPoint> const& = std::vector<CPoint>());
+    explicit CPolygon(std::initializer_list<CPoint> const&);
     CPolygon(CClosed_polygonal_chain const&);
     ~CPolygon() = default;
     CPolygon(CPolygon const&);
@@ -147,8 +145,8 @@ public:
         ISOSCELES,
         SCALENE
     };
-    CTriangle(std::vector<CPoint> const& = {CPoint(0,0), CPoint(0,1), CPoint(1,0)});
-    CTriangle(std::initializer_list<CPoint> const&);
+    explicit CTriangle(std::vector<CPoint> const& = {CPoint(0,0), CPoint(0,1), CPoint(1,0)});
+    explicit CTriangle(std::initializer_list<CPoint> const&);
     CTriangle(CPoint const&, CPoint const&, CPoint const&);
     CTriangle(CTriangle const&);
     CTriangle(CTriangle &&);
@@ -161,7 +159,7 @@ public:
     double median(size_t const&) const;
     double bisector(size_t const&) const;
     double height(size_t const&) const;
-    double incircle_radius() const;
+    double inscribed_radius() const;
     double circumscribed_radius() const;
 };
 
@@ -170,7 +168,7 @@ std::ostream& operator<<(std::ostream &os, CTriangle::Triangle_types_sides const
 
 class CTrapezoid : public CPolygon {
 public:
-    CTrapezoid(std::vector<CPoint> const& = {CPoint(-2,0), CPoint(-1,1), CPoint(1,1), CPoint(2,0)});
+    explicit CTrapezoid(std::vector<CPoint> const& = {CPoint(-2,0), CPoint(-1,1), CPoint(1,1), CPoint(2,0)});
     CTrapezoid(CPoint const&, CPoint const&, CPoint const&, CPoint const&);
     CTrapezoid(CTrapezoid const&);
     CTrapezoid(CTrapezoid &&);
@@ -193,7 +191,7 @@ private:
 
 class CRegular_polygon : public CPolygon {
 public:
-    CRegular_polygon(std::vector<CPoint> const& = {CPoint(-1,-1), CPoint(-1,1), CPoint(1,1), CPoint(1,-1)});
+    explicit CRegular_polygon(std::vector<CPoint> const& = {CPoint(-1,-1), CPoint(-1,1), CPoint(1,1), CPoint(1,-1)});
     CRegular_polygon(size_t const&, size_t const&, \
     double const&, CPoint const& = {0,0});
     CRegular_polygon(CRegular_polygon const&);
@@ -207,9 +205,8 @@ public:
     double area() const override;
     double angle() const;
     std::vector<double> angles() const override;
-    double incircle_radius() const;
+    double inscribed_radius() const;
     double circumscribed_radius() const;
 };
-
 
 #endif
