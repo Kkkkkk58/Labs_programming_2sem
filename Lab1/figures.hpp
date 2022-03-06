@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 
+// Класс "точка"
 class CPoint {
 public:
     CPoint(double const& = 0, double const& = 0);
@@ -15,7 +16,8 @@ public:
     CPoint &operator-=(CPoint const&);
     CPoint &operator++();
     CPoint operator++(int);
-    double operator[](size_t) const;
+    CPoint &operator--();
+    CPoint operator--(int);
     bool operator==(CPoint const&) const;
     bool operator!=(CPoint const&) const;
     void swap(CPoint &);
@@ -32,6 +34,8 @@ CPoint operator-(CPoint, CPoint const&);
 std::ostream& operator<<(std::ostream &, CPoint const&);
 bool on_the_same_line(CPoint const&, CPoint const&, CPoint const&);
 
+
+// Интерфейс "линейных" объектов (имеющих длину, но не имеющих площади)
 class ILine {
 public:
     ILine() {}
@@ -39,6 +43,8 @@ public:
     virtual ~ILine() {};
 };
 
+
+// Класс "вектор" (напрямую в лабораторной не требуется, используется как вспомогательный)
 class CVector : public ILine {
 public:
     explicit CVector(CPoint const& = {0, 0}, CPoint const& = {0, 1});
@@ -60,41 +66,49 @@ private:
 
 double cross_prod_val(CVector const&, CVector const&);
 
+
+// Класс "ломаная", отвечающий интерфейсу "линейных" объектов
 class CPolygonal_chain : public ILine {
 public:
     explicit CPolygonal_chain(std::vector<CPoint> const& = std::vector<CPoint>());
-    virtual size_t size() const;
     CPolygonal_chain(CPolygonal_chain const&);
     CPolygonal_chain &operator=(CPolygonal_chain const&);
     CPolygonal_chain(CPolygonal_chain &&);
     CPolygonal_chain &operator=(CPolygonal_chain &&);
-    void swap(CPolygonal_chain &);
     ~CPolygonal_chain() = default;
+    virtual size_t size() const;
     virtual double length() const override;
     virtual CPoint const& operator[](size_t const&) const;
 private:
     void correct_line();
 protected:
     std::vector<CPoint> vertices_;
+    void swap(CPolygonal_chain &);
 };
 
-std::ostream& operator<<(std::ostream &, CPolygonal_chain const &);
 
+std::ostream& operator<<(std::ostream &, CPolygonal_chain const&);
+
+
+// Класс "замкнутая ломаная", унаследованный от класса "ломаная"
 class CClosed_polygonal_chain : public CPolygonal_chain {
 public:
     explicit CClosed_polygonal_chain(std::vector<CPoint> const& = std::vector<CPoint>());
     ~CClosed_polygonal_chain() = default;
-    CClosed_polygonal_chain(CClosed_polygonal_chain const &other);
-    CClosed_polygonal_chain(CClosed_polygonal_chain && other);
-    CClosed_polygonal_chain &operator=(CClosed_polygonal_chain && other);
-    CClosed_polygonal_chain &operator=(CClosed_polygonal_chain const& other);
+    CClosed_polygonal_chain(CClosed_polygonal_chain const&);
+    CClosed_polygonal_chain(CClosed_polygonal_chain &&);
+    CClosed_polygonal_chain &operator=(CClosed_polygonal_chain &&);
+    CClosed_polygonal_chain &operator=(CClosed_polygonal_chain const&);
     CPoint const& operator[](size_t const& i) const override;
     double length() const override;
     bool has_self_intersections() const;
+    void swap(CClosed_polygonal_chain &);
 private:
     void correct_closed_line();
 };
 
+
+// Интерфейс для "плоских" объектов (имеющих периметр и площадь)
 class IShape {
 public:
     IShape() {}
@@ -108,6 +122,7 @@ public:
 };
 
 
+// Класс "многоугольник", отвечающий интерфейсу "плоских" объектов
 class CPolygon : public IShape {
 public:
     explicit CPolygon(std::vector<CPoint> const& = std::vector<CPoint>());
@@ -119,7 +134,6 @@ public:
     CPolygon &operator=(CPolygon const&);
     CPolygon &operator=(CPolygon &&);
     CPoint const& operator[](size_t const&) const;
-    void swap(CPolygon &);
     double perimeter() const override;
     size_t size() const override;
     virtual double area() const;
@@ -127,12 +141,16 @@ public:
     virtual std::vector<double> sides() const;
     virtual std::vector<double> angles() const;
     bool is_regular() const;
+    friend std::ostream& operator<<(std::ostream &, CPolygon const&);
 protected:
-    CClosed_polygonal_chain edges_;
+    CClosed_polygonal_chain vertices_;
+private:
+    void swap(CPolygon &);
 };
 
-std::ostream& operator<<(std::ostream &os, CPolygon const &p);
 
+
+// Класс "треугольник", унаследованный от "многоугольника"
 class CTriangle : public CPolygon {
 public:
     enum class Triangle_types_angle {
@@ -151,7 +169,7 @@ public:
     CTriangle(CTriangle const&);
     CTriangle(CTriangle &&);
     ~CTriangle() = default;
-    CTriangle &operator=(CTriangle const &);
+    CTriangle &operator=(CTriangle const&);
     CTriangle &operator=(CTriangle &&);
     double area() const override;
     Triangle_types_angle angle_type() const;
@@ -163,12 +181,15 @@ public:
     double circumscribed_radius() const;
 };
 
-std::ostream& operator<<(std::ostream &os, CTriangle::Triangle_types_angle const& type);
-std::ostream& operator<<(std::ostream &os, CTriangle::Triangle_types_sides const &type);
+std::ostream& operator<<(std::ostream &, CTriangle::Triangle_types_angle const&);
+std::ostream& operator<<(std::ostream &, CTriangle::Triangle_types_sides const&);
 
+
+// Класс "трапеция", унаследованный от "многоугольника"
 class CTrapezoid : public CPolygon {
 public:
     explicit CTrapezoid(std::vector<CPoint> const& = {CPoint(-2,0), CPoint(-1,1), CPoint(1,1), CPoint(2,0)});
+    explicit CTrapezoid(std::initializer_list<CPoint> const&);
     CTrapezoid(CPoint const&, CPoint const&, CPoint const&, CPoint const&);
     CTrapezoid(CTrapezoid const&);
     CTrapezoid(CTrapezoid &&);
@@ -189,11 +210,12 @@ private:
 };
 
 
+// Класс "правильный многоугольник", унаследованный от "многоугольника"
 class CRegular_polygon : public CPolygon {
 public:
     explicit CRegular_polygon(std::vector<CPoint> const& = {CPoint(-1,-1), CPoint(-1,1), CPoint(1,1), CPoint(1,-1)});
-    CRegular_polygon(size_t const&, size_t const&, \
-    double const&, CPoint const& = {0,0});
+    explicit CRegular_polygon(std::initializer_list<CPoint> const&);
+    CRegular_polygon(size_t const&, size_t const&, double const&, CPoint const& = {0,0});
     CRegular_polygon(CRegular_polygon const&);
     CRegular_polygon(CRegular_polygon &&);
     ~CRegular_polygon() = default;
