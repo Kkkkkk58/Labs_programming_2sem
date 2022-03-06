@@ -119,6 +119,7 @@ public:
     virtual std::vector<double> sides() const = 0;
     virtual std::vector<double> angles() const = 0;
     virtual bool is_convex() const = 0;
+    virtual bool is_regular() const = 0;
 };
 
 
@@ -137,10 +138,10 @@ public:
     double perimeter() const override;
     size_t size() const override;
     virtual double area() const;
-    bool is_convex() const;
+    virtual bool is_convex() const;
     virtual std::vector<double> sides() const;
     virtual std::vector<double> angles() const;
-    bool is_regular() const;
+    virtual bool is_regular() const;
     friend std::ostream& operator<<(std::ostream &, CPolygon const&);
 protected:
     CClosed_polygonal_chain vertices_;
@@ -179,6 +180,7 @@ public:
     double height(size_t const&) const;
     double inscribed_radius() const;
     double circumscribed_radius() const;
+    bool is_convex() const override;
 };
 
 std::ostream& operator<<(std::ostream &, CTriangle::Triangle_types_angle const&);
@@ -203,6 +205,7 @@ public:
     double height() const;
     double circumscribed_radius() const;
     double inscribed_radius() const;
+    bool is_convex() const override;
 private:
     std::pair<double, double> bases() const;
     std::pair<double, double> legs() const;
@@ -229,6 +232,8 @@ public:
     std::vector<double> angles() const override;
     double inscribed_radius() const;
     double circumscribed_radius() const;
+    bool is_convex() const override;
+    bool is_regular() const override;
 };
 
 #endif

@@ -4,144 +4,119 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <cassert>
 
-int main() {
+
+void test_figures() {
+    std::cout << "TESTING FIGURES IN PROGRESS...\n\n";
     CPolygonal_chain a({CPoint(1,2), CPoint(3,5)});
-    std::cout << a.length() << "\n";
-    //std::cout << a[4] << "\n"; //ERR
+    std::cout << "Polyline length - " << a.length() << "\n";
+    //std::cout << a[4] << "\n"; // ERR OUT_OF_RANGE
     CClosed_polygonal_chain b({CPoint(1,2), CPoint(3,5), CPoint(7,-2)});
     CClosed_polygonal_chain c(b);
-    std::cout << c.length() << "\n";
+    std::cout << "Copy constructed from " << b << " is " << c << "\n";
     CPolygon k({CPoint(1,2), CPoint(3,5), CPoint(7, 2)});
-    std::cout << k.perimeter() << " " << k.area() << "\n";
-    b.swap(c);
-    std::cout << k.area() << "\n";
+    std::cout << "Polygon perimeter = " << k.perimeter() << ", area = " << k.area() << "\n";
     CTriangle f({CPoint(1,2), CPoint(3,5), CPoint(7,-2)});
     CTriangle l = f;
-    std::cout << f.area() << "\n";
+    std::cout << "Assigned from " << f << " is " << l << "\n";
     std::vector<double> angles = l.angles();
+    std::cout << "Angles: ";
     for (size_t i = 0; i < 3; ++i) {
         std::cout << angles[i] << ' ';
     }
     std::cout << '\n';
     CRegular_polygon sq;
-    std::cout << sq << " " << sq.perimeter() << ' ' << sq.area() << " " << sq.side() << '\n';
+    std::cout << sq << " perimeter: " << sq.perimeter() << " area: " \
+                << sq.area() << " side: " << sq.side() << '\n';
     CRegular_polygon oq = sq;
-    std::cout << "OQ" << oq << "\n";
     CTrapezoid trap;
-    std::vector<CPolygon> polys{k, f, sq, trap};
-    for (CPolygon const& it : polys) {
-        std::cout << it.area() << ' ';
-    }
-    std::cout << "\n";
+    std::cout << "Dynamic polymorphism: calling methods for base class pointers\n";
     std::vector<CPolygon *> polys_ptr{&k, &f, &sq, &trap};
     for (CPolygon const* it: polys_ptr) {
-        std::cout << it->area() << ' ';
+        std::cout << *it << " perimeter: " << it->perimeter() <<\
+                    " area: " << it->area() << std::boolalpha << " is convex: " << it->is_convex() \
+                    << " is regular: " << it->is_regular() << "\n";
+        std::cout << "Sides: ";
+        std::vector<double> sides_v = it->sides();
+        for (size_t i = 0; i < it->size(); ++i) {
+            std::cout << sides_v[i] << " ";
+        }
+        std::cout << "\nAngles: ";
+        std::vector<double> angles_v = it->angles();
+        for (size_t i = 0; i < it->size(); ++i) {
+            std::cout << angles_v[i] << " ";
+        }
+        std::cout << "\n\n";
     }
-    std::cout << '\n';
-    CPolygonal_chain bq({{1,2}, {2,5}, {2,5}, {2,5}, {1,2}});
-    std::cout << bq.size() << " " << bq[1] << "\n";
-    CTriangle pipa({CPoint(-1,2), CPoint(-1,5), CPoint(12,58)});
-    std::cout << pipa.size() << " " << pipa.perimeter() << " " << pipa.area() << " " << pipa.is_convex() << "\n";
-    CPolygon biba({{5,10}, {7,5}, {10,3}, {7,1}, {5,-5}, {3,1}, {0,3}, {3,5}});
-    std::cout << biba.perimeter() << " " << biba.area() << " " << biba.is_convex() << "\n";
-    CPolygon boba({{5,10}, {7,7}, {6,5}, {3,5}, {6,7}});
-    std::cout << boba.is_convex() << "\n";
-    CPolygon hihihi({{5,10}, {7,7}, {6,5}, {3,5}, {1,7}});
-    std::cout << hihihi.is_convex() << "\n";
-    std::vector<CPoint> vec = {CPoint(12,11), CPoint(12,111), CPoint(8712,19)};
-    CPolygon kkkk(vec);
-    CPolygon h;
     CTriangle tria{{0,3}, {-2,-3}, {-6,1}};
-    std::cout << tria.angle_type() << " " << tria.side_type();
-    //CTrapezoid area({2,5}, {6,5}, {3,0}, {5,0});  // SELF INTERSECTS
-    // std::cout << area.size() << "\n";
-    // std::cout << area.area();
-    //CTriangle kk{{1,1}};    //INVALID TRIANGLE
-    //CRegular_polygon asl({{1,12},{1,15},{12,11111},{10,0}});    //IRREGULAR
-    //std::cout << asl.is_regular();
-    CClosed_polygonal_chain v({{12,10},{15,27}, {98,2222}});
-    CPolygonal_chain *ooo = &v;
-    std::cout << *ooo;
-    CPolygon ahahahh({{-3,4},{1,2},{2,-1},{-1,-3},{-4,-1},{-4,2}});
-    CTrapezoid example({1,1}, {10,1}, {8,6}, {5,6});
-    std::cout << example.area() << "\n" << example << "\n";
-    std::cout << "HI\n";
+    std::cout << tria << " is " << tria.angle_type() << ", " << tria.side_type() << "\n\n";
+    std::cout << "TESTING FIGURES DONE\n\n";
+}
 
-    {
-        std::vector<double> coefs{1, 12};
-        CPolynomial<double> x(coefs);
-        std::cout << x <<"\n";
-        std::vector<std::complex<int>> ocoefs{{1,0}, {98,2006}, {}, {0,0}};
-        CPolynomial<std::complex<int>> y(ocoefs);
-        std::cout << y << "\n";
-        std::cout << y.deg() << "\n";
-        CPolynomial<double> new_x{1, 98};
-        CPolynomial<double> damn = x + new_x;
-        std:: cout << damn << " " << x << "\n";
-        CPolynomial<double> kkk = x;
-        std::cout << kkk << "\n";
-        x += kkk;
-        std::cout << x << "\n";
-        std::cout << x / 2 << "\n";
-        x /= 2;
-        std::cout << x << "\n";
-        x *= 2;
-        std::cout << x << "\n";
-        std::cout << x - 2 * kkk << "\n";
-        CPolynomial<int> a({1, 1, 1, 1});
-        CPolynomial<int> b(4, 1);
-        std::cout << (a == b) << " " << (a != b) << "\n";
-        std::cout<< a[5] << "\n";
-        std::map<size_t, std::complex<int>> cmap{{1,{12,53}}, {15, {98, 2006}}};
-        CPolynomial<std::complex<int>> cm(cmap);
-        std::cout << cm.deg() << "\n";
-        CPolynomial<double> yy;
-        std::cout << yy << " " << yy.deg() << "\n";
-        std::cout << cm << "\n";
-        CPolynomial<double> var;
-        std::cout << var << "\n";
-        std::ofstream fout("log");
-        fout << cm << "\n";
-        std::map<size_t, std::complex<double>> complmap{{1, {12,53}}, {15,{98,2006}}, {63, {0,0}}};
-        CPolynomial<std::complex<double>> com(complmap);
-        std::cout << com << "\n";
-        CPolynomial<float> inputted;
-        std::ifstream fin("test.txt");
-        fin >> inputted;
-        CPolynomial<float> other({12, 56, -48, 56, 98});
-        //other *= derivative(other, 2);
-        std::cout << other * other << "HERE \n";
-        CPolynomial<int> numerator({-4, 0, -2, 1});
-        CPolynomial<int> denominator({-3, 1});
-        CPolynomial<int> denominator1(numerator);
-        std::cout << "CRINGE\n";
-        std::cout << numerator / 2 << "\n";
-        std::cout << CPolynomial<int>({12, 98, 45, 50}) + CPolynomial<int>({-1, -98, 100, -50}) << "\n";
-        std::cout << numerator % denominator << "\n";
-        std::cout << "\n WOW" << inputted << "\n";
-        std::cout << (inputted == other) << (inputted  < other) << (inputted > other) << \
-        (inputted != other) << (inputted <= other) << (inputted >= other);
-        std::string st(" (11.45,98.15) + x + -(100,56)x ^2");
-        CPolynomial<std::complex<double>> str_tr(st);
-        std::cout << str_tr;
-        std::cout << "\nHI\n";
-        std::cout << other.evaluation(1) << "\n";
-        std::cout << derivative(other, 2) << "\n";
-        CPolynomial<double> basic({1, 1});
-        std::cout << derivative(basic, 1) << " " << derivative(basic, 2) << "\n";
-        CPolynomial<std::complex<int>> wow({{12, 48}, {54, 11}, {4, 4}});
-        std::cout << wow << "\n";
-        std::cout << derivative(wow, 1) << "\n";
-        CPolynomial<int> extra(5, 43);
-        std::cout << "LESSSSS " << (extra < numerator) << "\n";
-        std::cout << extra << "\n";
-        std::cout << derivative(CPolynomial<int>({1,1}),1) << "\n";
-        //CPolynomial<unsigned> dddddd{{12,48}};
-    }
-    CClosed_polygonal_chain salad({{1,1}, {2,2}, {98, 45}, {-1,-1}, {0,0}, {1,1}});
-    std::cout << salad << "\n";
-    CPolynomial<int> sdlkf("12x^3 + 12x^2 - 12x^2 + 98x^3 - 55 x  + 12 + 95*x - 98x^3");
-    std::cout << sdlkf;
+void test_polynomials() {
+    std::cout << "TESTING POLYNOMIAL IN PROGRESS...\n\n";
+    std::vector<int> coefs_vector{1, 98, 12, 45, 0, 0, 0, -54, 0, 0, 0};
+    CPolynomial<int> from_vector(coefs_vector);
+    std::cout << "Constructed from vector: " << from_vector << "\n";
+    std::map<size_t, int> coefs_map{{0, 1}, {1, 98}, {2, 12}, {3, 45}, {4, 0}, {7, -54}, {98, 0}};
+    CPolynomial<int> from_map(coefs_map);
+    std::cout << "Constructed from map: " << from_map << "\n";
+    std::string coefs_string("1 + 98    x + 12x ^2 + 45x^3 + 5x^5   -54x^7 + 0*x^4 + -5x^5");
+    CPolynomial<int> from_string(coefs_string);
+    std::cout << "Constructed from string: " << from_string << "\n";
+    std::ifstream coefs_file("test.txt");
+    CPolynomial<int> from_file;
+    coefs_file >> from_file;
+    std::cout << "Constucted from input: " << from_file << "\n";
+    assert(("Listed polygons are equal", \
+            from_string == from_map && from_map == from_vector && from_vector == from_file));
+    assert(("Same checking", from_string <= from_vector && from_string >= from_vector));
+    std::cout << "All of listed polynomials are equal\n";
+    assert(("Multiplication, minus operations and plus work",
+            +from_map - (-from_string) + from_file == 3 * from_vector));
+    std::cout << "Multiplication, minus operations and plus work\n" << \
+                from_map + from_string + from_file << " equals " << 3 * from_vector << "\n";
+    from_vector *= 54;
+    assert(("Divison by number works", from_vector / 54 == from_map));
+    std::cout << "Division by number works\n";
+    from_vector /= 54;
+    std::cout << "Degree of polynomials is " << from_string.deg() << "\n";
+    std::cout << "Basic polynomial of 1000-th degree is " << CPolynomial<int>(1000) << "\n";
+    std::map<size_t, std::complex<float>> complex_map{{1, {12.54, 53.19}}, {15, {98.2, 2006.11}}};
+    CPolynomial<std::complex<float>> complex_example(complex_map);
+    std::cout << "Example of complex polynomial: " << complex_example << "\n";
+    std::ifstream compl_input("complex.txt");
+    CPolynomial<std::complex<float>> second_complex;
+    compl_input >> second_complex;
+    std::cout << "Complex from file: " << second_complex << "\n";
+    assert(("They are equal", !(complex_example != second_complex)));
+    CPolynomial<int> numerator({-42, 0, -12, 1});
+    CPolynomial<int> denominator({-3, 1});
+    assert(("Division works", numerator / denominator == CPolynomial<int>({-27, -9, 1}), \
+            numerator % denominator == CPolynomial<int>({-123})));
+    std::cout << numerator << " divided by " << denominator << " equals " << \
+                numerator / denominator << ". Remainder is " << numerator % denominator << "\n";
+    assert(("Division and multiplication work", \
+            (numerator / denominator) * denominator + (numerator % denominator) == numerator));
+    std::cout << "(" << numerator / denominator << ") * (" << denominator << ") + " \
+                << numerator % denominator << " = " << numerator << "\n";
+    CPolynomial<int> derivation({11, 45, 98, -12, 22, 56});
+    assert(("Derivative is correct", \
+            derivative(derivation, 3) == CPolynomial<int>({-72, 528, 3360})));
+    std::cout << "Derivative of 3rd order from " << derivation << " is " \
+                << derivative(derivation, 3) << "\n";
+    CPolynomial<std::complex<int>> evaluated({{0, 7}, 3, 1, {5, 3}, 7, 4, 3});
+    assert(("Evaluation is correct", \
+            evaluated.evaluation({1, 1}) == std::complex<int>(-57, -24)));
+    std::cout << "Evalution of " << evaluated << " in point (1,1) is " \
+                << evaluated.evaluation({1, 1}) << "\n";
+    std::cout << "TESTING POLYNOMIAL DONE\n\n";
+}
+
+int main() {
+    test_figures();
+    test_polynomials();
+    std::cout << "\nTESTS PASSED SUCCESFULLY\n";
     return 0;
 }

@@ -35,6 +35,13 @@ namespace Polynomial_helper {
          (!std::is_floating_point<T>::value && value == T(0));
     }
 
+    // Шаблонная функция проверки на отрицательность
+    template<class T>
+    bool less_than_zero(T const &value) {
+        // Если передано число с плавающей точкой - сравниваем с "эпсилон", иначе с T(0)
+        return (std::is_floating_point<T>::value && value < EPS) ||
+        (!std::is_floating_point<T>::value && value < T(0));
+    }
     // Рекурсивная версия быстрого преобразования Фурье для перемножения двух полиномов
     void fft(std::vector<std::complex<double>> &compl_coefs, bool const &invert) {
         size_t degree = compl_coefs.size();
@@ -130,6 +137,7 @@ namespace Polynomial_helper {
                     value = sign * T(1);
                 }
                 if (value == T(0)) {
+                    ++rit;
                     continue;
                 }
                 // Получение степени
@@ -168,7 +176,8 @@ namespace Polynomial_helper {
                 else {
                     value = sign * T(1);
                 }
-                if (value == T(0)) {
+                if (value <= EPS) {
+                    ++rit;
                     continue;
                 }
                 // Получение степени
@@ -219,6 +228,7 @@ namespace Polynomial_helper {
                     value *= sign;
                 }
                 if (value == T(0)) {
+                    ++rit;
                     continue;
                 }
                 // Получение степени
@@ -347,7 +357,7 @@ public:
     CPolynomial operator+() const {
         return *this;
     }
-    // Унарный оператор "="
+    // Унарный оператор "-"
     CPolynomial operator-() const {
         std::map<size_t, T> new_coefficients;
         for (size_t i = 0; i <= deg(); ++i) {
@@ -452,7 +462,6 @@ public:
                 // Если коэффициент, полученный в результате деления не будет преобразован к нулю - записываем его
                 if (!Polynomial_helper::equals_zero(coef->second / value)) {
                     coef->second /= value;
-                    std::cout << coefficients_[coef->first] << "\n";
                     ++coef;
                 }
                 // Иначе удаляем
@@ -475,8 +484,14 @@ public:
         // Деление полиномов "в столбик"
         while (deg() >= other.deg()) {
             size_t res_deg = deg() - other.deg();
-            CPolynomial sub = other * CPolynomial(res_deg);
-            res += CPolynomial(res_deg);
+            CPolynomial multiplier(res_deg);
+            CPolynomial sub = other * multiplier;
+            // Если старшие коэффициенты различны по знаку - не вычитаем, а складываем
+            if (Polynomial_helper::less_than_zero<T>(other[other.deg()] * operator[](deg()))) {
+                    sub *= -1;
+                    multiplier *= -1;
+                }
+            res += multiplier;
             *this -= sub;
         }
         *this = res;
@@ -488,6 +503,10 @@ public:
         while (deg() >= other.deg()) {
             size_t res_deg = deg() - other.deg();
             CPolynomial sub = other * CPolynomial(res_deg);
+            // Если старшие коэффициенты различны по знаку - не вычитаем, а складываем
+            if (Polynomial_helper::less_than_zero<T>(other[other.deg()] * operator[](deg()))) {
+                sub *= -1;
+            }
             *this -= sub;
         }
         return *this;

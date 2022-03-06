@@ -629,6 +629,10 @@ double CTriangle::circumscribed_radius() const {
     result /= (4 * area());
     return result;
 }
+// Треугольник всегда выпуклый
+bool CTriangle::is_convex() const {
+    return true;
+}
 
 // Перегрузка оператора вывода типа треугольника (по углу)
 std::ostream& operator<<(std::ostream &os, CTriangle::Triangle_types_angle const &type) { 
@@ -768,6 +772,10 @@ double CTrapezoid::inscribed_radius() const {
         return 0;
     }
 }
+// Трапеция всегда выпкула
+bool CTrapezoid::is_convex() const {
+    return true;
+}
 // Метод получения длин оснований трапеции
 std::pair<double, double> CTrapezoid::bases() const {
     CVector first_side(vertices_[0], vertices_[1]);
@@ -902,4 +910,12 @@ double CRegular_polygon::inscribed_radius() const {
 // Метод получения радиуса описанной окружности
 double CRegular_polygon::circumscribed_radius() const {
     return side() / (2 * std::sin(PI / size()));
+}
+// Правильный многоугольник всегда выпуклый
+bool CRegular_polygon::is_convex() const {
+    return true;
+}
+// Правильный многоугольник всегда правильный
+bool CRegular_polygon::is_regular() const {
+    return true;
 }
