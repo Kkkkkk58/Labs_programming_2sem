@@ -49,7 +49,7 @@ namespace Polynomial_helper {
         if (degree <= 1) {
             return;
         }
-        // Деление полинома на две части и заполнение соответствующими копмлексными значениями
+        // Деление полинома на две части (с четными и нечетными коэффициентами) и заполнение соответствующими копмлексными значениями
         std::vector<std::complex<double>> first_part(degree / 2);
         std::vector<std::complex<double>> second_part(degree / 2);
         for (int i = 0; i < degree; i += 2) {
