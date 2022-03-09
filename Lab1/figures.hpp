@@ -75,7 +75,7 @@ public:
     CPolygonal_chain &operator=(CPolygonal_chain const&);
     CPolygonal_chain(CPolygonal_chain &&);
     CPolygonal_chain &operator=(CPolygonal_chain &&);
-    ~CPolygonal_chain() = default;
+    virtual ~CPolygonal_chain() = default;
     virtual size_t size() const;
     virtual double length() const override;
     virtual CPoint const& operator[](size_t const&) const;
@@ -129,7 +129,7 @@ public:
     explicit CPolygon(std::vector<CPoint> const& = std::vector<CPoint>());
     explicit CPolygon(std::initializer_list<CPoint> const&);
     CPolygon(CClosed_polygonal_chain const&);
-    ~CPolygon() = default;
+    virtual ~CPolygon() = default;
     CPolygon(CPolygon const&);
     CPolygon(CPolygon &&);
     CPolygon &operator=(CPolygon const&);
