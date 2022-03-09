@@ -78,7 +78,7 @@ public:
     virtual ~CPolygonal_chain() = default;
     virtual size_t size() const;
     virtual double length() const override;
-    virtual CPoint const& operator[](size_t const&) const;
+    virtual CPoint const& operator[](size_t) const;
 private:
     void correct_line();
 protected:
@@ -99,7 +99,7 @@ public:
     CClosed_polygonal_chain(CClosed_polygonal_chain &&);
     CClosed_polygonal_chain &operator=(CClosed_polygonal_chain &&);
     CClosed_polygonal_chain &operator=(CClosed_polygonal_chain const&);
-    CPoint const& operator[](size_t const& i) const override;
+    CPoint const& operator[](size_t) const override;
     double length() const override;
     bool has_self_intersections() const;
     void swap(CClosed_polygonal_chain &);
@@ -175,9 +175,9 @@ public:
     double area() const override;
     Triangle_types_angle angle_type() const;
     Triangle_types_sides side_type() const;
-    double median(size_t const&) const;
-    double bisector(size_t const&) const;
-    double height(size_t const&) const;
+    double median(size_t) const;
+    double bisector(size_t) const;
+    double height(size_t) const;
     double inscribed_radius() const;
     double circumscribed_radius() const;
     bool is_convex() const override;

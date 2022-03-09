@@ -203,7 +203,7 @@ double CPolygonal_chain::length() const {
     return length;
 }
 // Оператор [] для получения точки по индексу. Завершает программу при попытке доступа к несуществующей вершине
-CPoint const & CPolygonal_chain::operator[](size_t const &i) const {
+CPoint const & CPolygonal_chain::operator[](size_t i) const {
     try {
         return vertices_.at(i);
     }
@@ -267,7 +267,7 @@ void CClosed_polygonal_chain::swap(CClosed_polygonal_chain &other) {
     CPolygonal_chain::swap(other);
 }
 // Оператор [] для получения точки замкнутой ломаной - завершает программу в случае попытки нахождения точки в пустой ломаной
-CPoint const & CClosed_polygonal_chain::operator[](size_t const &i) const {
+CPoint const & CClosed_polygonal_chain::operator[](size_t i) const {
     try {
         if (size()) {
             return vertices_.at(i % vertices_.size());
@@ -598,20 +598,20 @@ CTriangle::Triangle_types_sides CTriangle::side_type() const {
     return Triangle_types_sides::SCALENE;
 }
 // Метод получения длины медианы, проведённой к заданной стороне
-double CTriangle::median(size_t const &i) const {
+double CTriangle::median(size_t i) const {
     std::vector<double> sides_len = sides();
     return std::sqrt(2 * std::pow(sides_len[i % 3], 2) +
                      2 * std::pow(sides_len[(i + 1) % 3], 2) - std::pow(sides_len[i - 1], 2)) / 2;
 }
 // Метод получения длины биссектрисы, проведённой к заданной стороне
-double CTriangle::bisector(size_t const &i) const {
+double CTriangle::bisector(size_t i) const {
     double per_half = perimeter() / 2;
     std::vector<double> sides_len = sides();
     return (2 * std::sqrt(sides_len[i % 3] * sides_len[(i + 1) % 3] * per_half * (per_half - sides_len[i - 1]))) 
              / (sides_len[i % 3] + sides_len[(i + 1) % 3]);
 }
 // Метод получения длины высоты, проведённой к заданной стороне
-double CTriangle::height(size_t const &i) const {
+double CTriangle::height(size_t i) const {
     CVector side(vertices_[i - 1], vertices_[i % 3]);
     return (2 * area()) / side.length();
 }

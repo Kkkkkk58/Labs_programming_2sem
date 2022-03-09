@@ -29,7 +29,7 @@ namespace Polynomial_helper {
 
     // Шаблонная функция проверки на равенство нулю
     template<class T>
-    bool equals_zero(T const &value) {
+    bool equals_zero(T value) {
         // Если передано число с плавающей точкой - сравниваем с "эпсилон", иначе с T(0)
         return (std::is_floating_point<T>::value && std::abs(value) <= EPS) ||
          (!std::is_floating_point<T>::value && value == T(0));
@@ -37,13 +37,13 @@ namespace Polynomial_helper {
 
     // Шаблонная функция проверки на отрицательность
     template<class T>
-    bool less_than_zero(T const &value) {
+    bool less_than_zero(T value) {
         // Если передано число с плавающей точкой - сравниваем с "эпсилон", иначе с T(0)
         return (std::is_floating_point<T>::value && value < EPS) ||
         (!std::is_floating_point<T>::value && value < T(0));
     }
     // Рекурсивная версия быстрого преобразования Фурье для перемножения двух полиномов
-    void fft(std::vector<std::complex<double>> &compl_coefs, bool const &invert) {
+    void fft(std::vector<std::complex<double>> &compl_coefs, bool invert) {
         size_t degree = compl_coefs.size();
         // Если полученная на одном из шагов степень части полинома опускается до 1, выходим из рекурсии
         if (degree <= 1) {
@@ -79,7 +79,7 @@ namespace Polynomial_helper {
 
     // Функция, заполняющая соответствующий степени коэффициент
     template<class T>
-    void fill_coefficient(std::map<size_t, T> &coefficients, size_t const &degree, T const &value) {
+    void fill_coefficient(std::map<size_t, T> &coefficients, size_t degree, T value) {
         // Если при заданной степени уже есть коэффициент - складываем
         if (coefficients.find(degree) != coefficients.end()) {
             // Если сумма не равна нулю, записываем
@@ -280,7 +280,7 @@ public:
         }
     }
     // Конструктор класса CPolynomial от количества коэффициентов, равных второму передаваемому аргументу
-    explicit CPolynomial(size_t size, T const &value = T(0)) {
+    explicit CPolynomial(size_t size, T value = T(0)) {
         if (!Polynomial_helper::equals_zero(value)) {
             for (size_t i = 0; i <= size; ++i) {
                 coefficients_[i] = value;
@@ -306,7 +306,7 @@ public:
         std::swap(coefficients_, other.coefficients_);
     } 
     // Конструктор перемещения класса CPolynomial
-    CPolynomial(CPolynomial && other) { swap(other); }
+    CPolynomial(CPolynomial &&other) { swap(other); }
     // Оператор присваивания класса CPolynomial
     CPolynomial &operator=(CPolynomial const &other) {
         if (this != &other) {
@@ -398,7 +398,7 @@ public:
         return *this;
     }
     // Оператор "*=" на число типа T
-    CPolynomial &operator*=(T const &value) {
+    CPolynomial &operator*=(T value) {
         // Если число не равно нулю, честно умножаем
         if (!Polynomial_helper::equals_zero(value)) {
             for (auto coef : coefficients_) {
@@ -455,7 +455,7 @@ public:
         return *this;
     }
     // Оператор "/=" на число типа T
-    CPolynomial &operator/=(T const &value) {
+    CPolynomial &operator/=(T value) {
         // Если число не равно нулю
         if (!Polynomial_helper::equals_zero(value)) {
             for (auto coef = coefficients_.begin(); coef != coefficients_.end(); ) {
@@ -512,7 +512,7 @@ public:
         return *this;
     }
     // Оператор [] для получения значения коэффициента при определённой степени
-    T operator[](size_t const &i) const {
+    T operator[](size_t i) const {
         auto coef = coefficients_.find(i);
         if (coef != coefficients_.end()) {
             return coef->second;
@@ -571,7 +571,7 @@ public:
         return is;
     }
     // Функция для получения значения полинома в какой-то точке
-    T evaluation(T const &argument) const {
+    T evaluation(T argument) const {
         if (!coefficients_.empty()) {
             // Алгоритм использует схему Горнера
             T eval = coefficients_.rbegin()->second;
@@ -624,7 +624,7 @@ CPolynomial<T> operator-(CPolynomial<T> lhs, CPolynomial<T> const &rhs) {
 
 // Бинарный оператор умножения на число справа для класса CPolynomial
 template<class T>
-CPolynomial<T> operator*(CPolynomial<T> lhs, double const &rhs) {
+CPolynomial<T> operator*(CPolynomial<T> lhs, double rhs) {
     return lhs *= rhs;
 }
 
@@ -636,7 +636,7 @@ CPolynomial<T> operator*(double const &lhs, CPolynomial<T> rhs) {
 
 // Бинарный оператор деления на число для класса CPolynomial
 template<class T>
-CPolynomial<T> operator/(CPolynomial<T> lhs, double const &rhs) {
+CPolynomial<T> operator/(CPolynomial<T> lhs, double rhs) {
     return lhs /= rhs;
 }
 
