@@ -29,7 +29,7 @@ namespace Polynomial_helper {
 
     // Шаблонная функция проверки на равенство нулю
     template<class T>
-    bool equals_zero(T value) {
+    bool equals_zero(T const &value) {
         // Если передано число с плавающей точкой - сравниваем с "эпсилон", иначе с T(0)
         return (std::is_floating_point<T>::value && std::abs(value) <= EPS) ||
          (!std::is_floating_point<T>::value && value == T(0));
@@ -37,7 +37,7 @@ namespace Polynomial_helper {
 
     // Шаблонная функция проверки на отрицательность
     template<class T>
-    bool less_than_zero(T value) {
+    bool less_than_zero(T const &value) {
         // Если передано число с плавающей точкой - сравниваем с "эпсилон", иначе с T(0)
         return (std::is_floating_point<T>::value && value < EPS) ||
         (!std::is_floating_point<T>::value && value < T(0));
@@ -79,7 +79,7 @@ namespace Polynomial_helper {
 
     // Функция, заполняющая соответствующий степени коэффициент
     template<class T>
-    void fill_coefficient(std::map<size_t, T> &coefficients, size_t degree, T value) {
+    void fill_coefficient(std::map<size_t, T> &coefficients, size_t degree, T const &value) {
         // Если при заданной степени уже есть коэффициент - складываем
         if (coefficients.find(degree) != coefficients.end()) {
             // Если сумма не равна нулю, записываем
@@ -280,7 +280,7 @@ public:
         }
     }
     // Конструктор класса CPolynomial от количества коэффициентов, равных второму передаваемому аргументу
-    explicit CPolynomial(size_t size, T value = T(0)) {
+    explicit CPolynomial(size_t size, T const &value = T(0)) {
         if (!Polynomial_helper::equals_zero(value)) {
             for (size_t i = 0; i <= size; ++i) {
                 coefficients_[i] = value;
@@ -398,7 +398,7 @@ public:
         return *this;
     }
     // Оператор "*=" на число типа T
-    CPolynomial &operator*=(T value) {
+    CPolynomial &operator*=(T const &value) {
         // Если число не равно нулю, честно умножаем
         if (!Polynomial_helper::equals_zero(value)) {
             for (auto coef : coefficients_) {
@@ -455,7 +455,7 @@ public:
         return *this;
     }
     // Оператор "/=" на число типа T
-    CPolynomial &operator/=(T value) {
+    CPolynomial &operator/=(T const &value) {
         // Если число не равно нулю
         if (!Polynomial_helper::equals_zero(value)) {
             for (auto coef = coefficients_.begin(); coef != coefficients_.end(); ) {
@@ -571,7 +571,7 @@ public:
         return is;
     }
     // Функция для получения значения полинома в какой-то точке
-    T evaluation(T argument) const {
+    T evaluation(T const &argument) const {
         if (!coefficients_.empty()) {
             // Алгоритм использует схему Горнера
             T eval = coefficients_.rbegin()->second;
