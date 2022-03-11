@@ -658,4 +658,10 @@ const CPolynomial<T> operator%(CPolynomial<T> lhs, CPolynomial<T> const &rhs) {
     return lhs %= rhs;
 }
 
+// Реализация свободной функции swap с использованием открытого метода класса CPolynomial
+template<class T>
+void swap(CPolynomial<T> &lhs, CPolynomial<T> &rhs) {
+    lhs.swap(rhs);
+}
+
 #endif
