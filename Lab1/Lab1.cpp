@@ -17,6 +17,7 @@ void test_figures() {
     std::cout << "Copy constructed from " << b << " is " << c << "\n";
     CPolygon k({CPoint(1,2), CPoint(3,5), CPoint(7, 2)});
     std::cout << "Polygon perimeter = " << k.perimeter() << ", area = " << k.area() << "\n";
+    //CPolygon self_intersects({{0, 2}, {5, 2}, {0, 0}, {5, 0}});  // ERR SELF_INTERSECTIONS
     CTriangle f({CPoint(1,2), CPoint(3,5), CPoint(7,-2)});
     CTriangle l = f;
     std::cout << "Assigned from " << f << " is " << l << "\n";
@@ -30,7 +31,9 @@ void test_figures() {
     std::cout << sq << " perimeter: " << sq.perimeter() << " area: " \
                 << sq.area() << " side: " << sq.side() << '\n';
     CRegular_polygon oq = sq;
+    //CRegular_polygon irregular({{1, 2}, {98, 2006}, {56, 19}, {12, 17}});  // ERR IRREGULAR
     CTrapezoid trap;
+    //CTrapezoid wrong_trap({0, 0}, {0, 12}, {12, 12}, {12, 0});  // ERR INVALID
     std::cout << "Dynamic polymorphism: calling methods for base class pointers\n";
     std::vector<CPolygon *> polys_ptr{&k, &f, &sq, &trap};
     for (CPolygon const* it: polys_ptr) {

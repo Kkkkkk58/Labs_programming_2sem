@@ -821,7 +821,7 @@ CRegular_polygon::CRegular_polygon(std::vector<CPoint> const &vertices)
     : CPolygon(vertices) {
     try {
         // Многоугольник не является правильным - ошибка
-        if (!((static_cast<CPolygon>(*this)).is_regular())) {
+        if (!CPolygon::is_regular()) {
             throw std::logic_error("Given polygon is irregular");
         }
     }
