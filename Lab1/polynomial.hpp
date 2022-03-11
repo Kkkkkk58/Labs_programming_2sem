@@ -612,49 +612,49 @@ private:
 
 // Бинарный оператор сложения для класса CPolynomial
 template<class T>
-CPolynomial<T> operator+(CPolynomial<T> lhs, CPolynomial<T> const &rhs) {
+const CPolynomial<T> operator+(CPolynomial<T> lhs, CPolynomial<T> const &rhs) {
     return lhs += rhs;
 }
 
 // Бинарный оператор вычитания для класса CPolynomial
 template<class T>
-CPolynomial<T> operator-(CPolynomial<T> lhs, CPolynomial<T> const &rhs) {
+const CPolynomial<T> operator-(CPolynomial<T> lhs, CPolynomial<T> const &rhs) {
     return lhs -= rhs;
 }
 
 // Бинарный оператор умножения на число справа для класса CPolynomial
 template<class T>
-CPolynomial<T> operator*(CPolynomial<T> lhs, double rhs) {
+const CPolynomial<T> operator*(CPolynomial<T> lhs, double rhs) {
     return lhs *= rhs;
 }
 
 // Бинарный оператор умножения на число слева для класса CPolynomial
 template<class T>
-CPolynomial<T> operator*(double const &lhs, CPolynomial<T> rhs) {
+const CPolynomial<T> operator*(double const &lhs, CPolynomial<T> rhs) {
     return rhs *= lhs;
 }
 
 // Бинарный оператор деления на число для класса CPolynomial
 template<class T>
-CPolynomial<T> operator/(CPolynomial<T> lhs, double rhs) {
+const CPolynomial<T> operator/(CPolynomial<T> lhs, double rhs) {
     return lhs /= rhs;
 }
 
 // Бинарный оператор умножения на полином для класса CPolynomial
 template<class T>
-CPolynomial<T> operator*(CPolynomial<T> lhs, CPolynomial<T> const &rhs) {
+const CPolynomial<T> operator*(CPolynomial<T> lhs, CPolynomial<T> const &rhs) {
     return lhs *= rhs;
 }
 
 // Бинарный оператор целочисленного деления на полином для класса CPolynomial
 template<class T>
-CPolynomial<T> operator/(CPolynomial<T> lhs, CPolynomial<T> const &rhs) {
+const CPolynomial<T> operator/(CPolynomial<T> lhs, CPolynomial<T> const &rhs) {
     return lhs /= rhs;
 }
 
 // Бинарный оператор взятия остатка от деления на полином для класса CPolynomial
 template<class T>
-CPolynomial<T> operator%(CPolynomial<T> lhs, CPolynomial<T> const &rhs) {
+const CPolynomial<T> operator%(CPolynomial<T> lhs, CPolynomial<T> const &rhs) {
     return lhs %= rhs;
 }
 

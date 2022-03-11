@@ -29,8 +29,8 @@ private:
     double y_;
 };
 
-CPoint operator+(CPoint, CPoint const&);
-CPoint operator-(CPoint, CPoint const&);
+const CPoint operator+(CPoint, CPoint const&);
+const CPoint operator-(CPoint, CPoint const&);
 std::ostream& operator<<(std::ostream &, CPoint const&);
 bool on_the_same_line(CPoint const&, CPoint const&, CPoint const&);
 
@@ -56,7 +56,7 @@ public:
     double x() const;
     double y() const;
     double length() const;
-    double operator*(CVector const&);
+    const double operator*(CVector const&);
     bool includes_point(CPoint const&) const;
 private:
     void swap(CVector &);

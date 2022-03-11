@@ -42,7 +42,7 @@ CPoint & CPoint::operator+=(CPoint const &other) {
     return *this;
 }
 // Бинарный оператор сложения класса CPoint
-CPoint operator+(CPoint lhs, CPoint const &rhs) {
+const CPoint operator+(CPoint lhs, CPoint const &rhs) {
      return lhs += rhs; 
 }
 // Оператор "-=" класса CPoint
@@ -52,7 +52,7 @@ CPoint & CPoint::operator-=(CPoint const &other) {
     return *this;
 }
 // Бинарный оператор вычитания класса CPoint
-CPoint operator-(CPoint lhs, CPoint const &rhs) {
+const CPoint operator-(CPoint lhs, CPoint const &rhs) {
      return lhs -= rhs;
 }
 // Префиксный инкремент класса CPoint
@@ -145,7 +145,7 @@ double CVector::length() const {
     return std::sqrt(x() * x() + y() * y());
 }
 // Скалярное умножение векторов
-double CVector::operator*(CVector const &other) {
+const double CVector::operator*(CVector const &other) {
     return x() * other.x() + y() * other.y();
 }
 // Векторное произведение векторов
