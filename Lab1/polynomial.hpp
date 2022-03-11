@@ -32,7 +32,7 @@ namespace Polynomial_helper {
     bool equals_zero(T const &value) {
         // Если передано число с плавающей точкой - сравниваем с "эпсилон", иначе с T(0)
         return (std::is_floating_point<T>::value && std::abs(value) <= EPS) ||
-         (!std::is_floating_point<T>::value && value == T(0));
+         (!std::is_floating_point<T>::value && value == static_cast<T>(0));
     }
 
     // Шаблонная функция проверки на отрицательность
@@ -40,7 +40,7 @@ namespace Polynomial_helper {
     bool less_than_zero(T const &value) {
         // Если передано число с плавающей точкой - сравниваем с "эпсилон", иначе с T(0)
         return (std::is_floating_point<T>::value && value < EPS) ||
-        (!std::is_floating_point<T>::value && value < T(0));
+        (!std::is_floating_point<T>::value && value < static_cast<T>(0));
     }
     // Рекурсивная версия быстрого преобразования Фурье для перемножения двух полиномов
     void fft(std::vector<std::complex<double>> &compl_coefs, bool invert) {
@@ -134,9 +134,9 @@ namespace Polynomial_helper {
                     value = sign * std::stoi(std::string((*rit)[1]));
                 }
                 else {
-                    value = sign * T(1);
+                    value = sign * static_cast<T>(1);
                 }
-                if (value == T(0)) {
+                if (value == static_cast<T>(0)) {
                     ++rit;
                     continue;
                 }
@@ -174,7 +174,7 @@ namespace Polynomial_helper {
                     value = sign * std::stod(num);
                 }
                 else {
-                    value = sign * T(1);
+                    value = sign * static_cast<T>(1);
                 }
                 if (value <= EPS) {
                     ++rit;
@@ -224,10 +224,10 @@ namespace Polynomial_helper {
                     value *= sign;
                 }
                 else {
-                    value = T(1);
+                    value = static_cast<T>(1);
                     value *= sign;
                 }
-                if (value == T(0)) {
+                if (value == static_cast<T>(0)) {
                     ++rit;
                     continue;
                 }
@@ -280,7 +280,7 @@ public:
         }
     }
     // Конструктор класса CPolynomial от количества коэффициентов, равных второму передаваемому аргументу
-    explicit CPolynomial(size_t size, T const &value = T(0)) {
+    explicit CPolynomial(size_t size, T const &value = static_cast<T>(0)) {
         if (!Polynomial_helper::equals_zero(value)) {
             for (size_t i = 0; i <= size; ++i) {
                 coefficients_[i] = value;
@@ -288,7 +288,7 @@ public:
         }
         // Полином степени size не может иметь size-тым коэффициентом ноль
         else {
-            coefficients_[size] = T(1);
+            coefficients_[size] = static_cast<T>(1);
         }
     }
     // Констуктор класса CPolynomial от строки
@@ -518,13 +518,13 @@ public:
             return coef->second;
         }
         // Если коэффициента при степени i в полиноме не нашлось, то он равен нулю
-        return T(0);
+        return static_cast<T>(0);
     }
     // Перегрузка оператора вывода в поток для класса CPolynomial
     friend std::ostream& operator<<(std::ostream &os, CPolynomial const &p) { 
         // Если имеем полином степени -1
         if (p.coefficients_.size() == 0) {
-            os << T(0);
+            os << static_cast<T>(0);
         }
         else {
             for (auto degree : p.coefficients_) {
