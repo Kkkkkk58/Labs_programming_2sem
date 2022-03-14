@@ -55,30 +55,6 @@ CPoint & CPoint::operator-=(CPoint const &other) {
 const CPoint operator-(CPoint lhs, CPoint const &rhs) {
      return lhs -= rhs;
 }
-// Префиксный инкремент класса CPoint
-CPoint & CPoint::operator++() {
-    ++x_;
-    ++y_;
-    return *this;
-}
-// Постфиксный инкремент класса CPoint
-CPoint CPoint::operator++(int) {
-    CPoint tmp(*this);
-    ++(*this);
-    return tmp;
-}
-// Префиксный декремент класса CPoint
-CPoint & CPoint::operator--() {
-    --x_;
-    --y_;
-    return *this;
-}
-// Постфиксный декремент класса CPoint
-CPoint CPoint::operator--(int) {
-    CPoint tmp(*this);
-    --(*this);
-    return tmp;
-}
 // Оператор проверки на равенство класса CPoint
 bool CPoint::operator==(CPoint const &other) const { 
     return std::abs(x_ - other.x_) <= EPS && std::abs(y_ - other.y_) <= EPS; 

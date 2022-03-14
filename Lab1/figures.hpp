@@ -14,10 +14,6 @@ public:
     CPoint operator-() const;
     CPoint &operator+=(CPoint const&);
     CPoint &operator-=(CPoint const&);
-    CPoint &operator++();
-    CPoint operator++(int);
-    CPoint &operator--();
-    CPoint operator--(int);
     bool operator==(CPoint const&) const;
     bool operator!=(CPoint const&) const;
     void swap(CPoint &);
