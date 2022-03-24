@@ -16,17 +16,69 @@
 #include "sqlite3/sqlite3.h"
 #include "fort/fort.hpp"
 
+
+static int callback(void* not_used, int argc, char** argv, char** az_col_name) {
+	for (int i = 0; i < argc; i++) {
+		printf("%s = %s\n", az_col_name[i], argv[i] ? argv[i] : "NULL");
+	}
+	printf("\n");
+	return SQLITE_OK;
+}
+
+class Database {
+public:
+	static Database& get_instance(std::string const& db_name) {
+		std::lock_guard<std::mutex> lock(mutex_);
+		static Database db_wrapper;
+		int response = sqlite3_open(db_name.c_str(), &db_);
+		if (response != SQLITE_OK) {
+			throw std::logic_error("Unable to open the database");
+		}
+		return db_wrapper;
+	}
+	Database(Database const& other) = delete;
+	Database& operator=(Database const& other) = delete;
+	Database(Database&& other) = default;
+	Database& operator=(Database&& other) = default;
+	~Database() {
+		std::lock_guard<std::mutex> lock(mutex_);
+		std::cout << "CLOSING";
+		int response = sqlite3_close_v2(db_);
+		if (response != SQLITE_OK) {
+			std::cerr << sqlite3_errmsg(db_);
+		}
+	}
+	operator sqlite3* () const {
+		return db_;
+	}
+	void query(std::string const& sql, std::function<int (void *, int, char **, char**)> &func) {
+		char* err_msg;
+		int response = sqlite3_exec(db_, sql.c_str(), func, nullptr, &err_msg);
+		if (response != SQLITE_OK) {
+			std::string err(err_msg);
+			sqlite3_free(err_msg);
+			throw std::logic_error(err);
+		}
+	}
+	void query(sqlite3_stmt* stmt, std::string const& sql, bool final) {
+		int response = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+		if (response != SQLITE_OK) {
+			throw std::logic_error("Unable to do the query");
+		}
+		sqlite3_step(stmt);
+	}
+private:
+	static sqlite3 *db_;
+	Database() {}
+	static std::mutex mutex_;
+};
+sqlite3* Database::db_;
+std::mutex Database::mutex_;
+
 std::vector<std::string> columns;
 int rows_number;
 
-static int callback(void* NotUsed, int argc, char** argv, char** azColName) {
-	int i;
-	for (i = 0; i < argc; i++) {
-		printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-	}
-	printf("\n");
-	return 0;
-}
+
 
 sqlite3* db;
 char time_buf[26];
@@ -90,7 +142,7 @@ struct Currency_info {
 class Currency_holder {
 public:
 	Currency_holder(Currency_holder const& other) = delete;
-	void operator=(Currency_holder const& other) = delete;
+	Currency_holder &operator=(Currency_holder const& other) = delete;
 	static Currency_holder* get_instance(std::map<const std::string, Currency_info> const& map);
 	static void release_instance();
 	std::map<const std::string, Currency_info> const& value() const {
@@ -490,7 +542,6 @@ int main() {
 				if (launch_settings.specific_values.size()) {
 					for (auto const& iter : launch_settings.specific_values) {
 						std::cout << iter << "\n";
-						//table << iter;
 						if (holder->contains(iter)) {
 							Currency_info found = holder->value(iter);
 							if (launch_settings.type == Currency_type::ALL || launch_settings.type == found.type) {
@@ -537,7 +588,7 @@ int main() {
 			}
 			//Sleep(1000000);
 			system("cls");
-			std::cout << "ALIVE\n";
+			//std::cout << "ALIVE\n";
 		}
 	}
 	catch (std::exception const& e) {
