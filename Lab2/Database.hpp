@@ -6,6 +6,7 @@
 
 int callback(void*, int, char**, char**);
 
+// Класс для работы с базой данный SQLite3, реализованный по принципу Singleton
 class Database {
 public:
 	static Database& get_instance(std::string const&);
@@ -14,7 +15,7 @@ public:
 	Database(Database&&) = default;
 	Database& operator=(Database&&) = default;
 	~Database();
-	operator sqlite3* () const { return db_; }
+	operator sqlite3* () const;
 	void query(std::string const&, auto const);
 	void query(sqlite3_stmt**, std::string const&);
 private:
@@ -27,5 +28,5 @@ private:
 
 extern std::vector<std::string> columns;
 extern int rows_number;
-Database& open_table(bool);
+Database& open_table(bool &);
 #endif
