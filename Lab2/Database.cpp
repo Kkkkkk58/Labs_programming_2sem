@@ -2,7 +2,7 @@
 #include <iostream>
 #include <regex>
 
-// Функция для обработки SQL-запросов, не требующих возврата значения
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё SQL-Р·Р°РїСЂРѕСЃРѕРІ, РЅРµ С‚СЂРµР±СѓСЋС‰РёС… РІРѕР·РІСЂР°С‚Р° Р·РЅР°С‡РµРЅРёСЏ
 int callback(void* not_used, int argc, char** argv, char** az_col_name) {
 	for (int i = 0; i < argc; i++) {
 		std::cout << az_col_name[i] << " = " << (argv[i] ? argv[i] : "NULL");
@@ -10,48 +10,48 @@ int callback(void* not_used, int argc, char** argv, char** az_col_name) {
 	std::cout << "\n";
 	return SQLITE_OK;
 }
-// Вектор с названиями колонок базы данных
+// Р’РµРєС‚РѕСЂ СЃ РЅР°Р·РІР°РЅРёСЏРјРё РєРѕР»РѕРЅРѕРє Р±Р°Р·С‹ РґР°РЅРЅС‹С…
 std::vector<std::string> columns;
-// Количество строк в базе данных
+// РљРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє РІ Р±Р°Р·Рµ РґР°РЅРЅС‹С…
 int rows_number;
 
-// Конструктор класса Database с указанным названием базы данных
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° Database СЃ СѓРєР°Р·Р°РЅРЅС‹Рј РЅР°Р·РІР°РЅРёРµРј Р±Р°Р·С‹ РґР°РЅРЅС‹С…
 Database::Database(std::string const& db_name) {
 	int response = sqlite3_open(db_name.c_str(), &db_);
-	// Если возникла ошибка при открытии
+	// Р•СЃР»Рё РІРѕР·РЅРёРєР»Р° РѕС€РёР±РєР° РїСЂРё РѕС‚РєСЂС‹С‚РёРё
 	if (response != SQLITE_OK) {
 		throw std::logic_error("Unable to open the database");
 	}
 }
 
-// Функция для получения объекта типа Singleton класса Database
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ РѕР±СЉРµРєС‚Р° С‚РёРїР° Singleton РєР»Р°СЃСЃР° Database
 Database& Database::get_instance(std::string const& db_name) {
 	std::lock_guard<std::mutex> lock(mutex_);
 	try {
 		static Database db_wrapper(db_name);
 		return db_wrapper;
 	}
-	// Если возникли ошибки при создании экземпляра класса
+	// Р•СЃР»Рё РІРѕР·РЅРёРєР»Рё РѕС€РёР±РєРё РїСЂРё СЃРѕР·РґР°РЅРёРё СЌРєР·РµРјРїР»СЏСЂР° РєР»Р°СЃСЃР°
 	catch (std::exception const& err) {
 		throw std::logic_error(err.what() + std::string(" : ") + sqlite3_errmsg(db_));
 	}
 }
 
-// Деструктор класса Database, закрывающий базу данных при разрушении объекта
+// Р”РµСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° Database, Р·Р°РєСЂС‹РІР°СЋС‰РёР№ Р±Р°Р·Сѓ РґР°РЅРЅС‹С… РїСЂРё СЂР°Р·СЂСѓС€РµРЅРёРё РѕР±СЉРµРєС‚Р°
 Database::~Database() {
 	std::lock_guard<std::mutex> lock(mutex_);
 	int response = sqlite3_close_v2(db_);
-	// Если разорвать соединение не удалось
+	// Р•СЃР»Рё СЂР°Р·РѕСЂРІР°С‚СЊ СЃРѕРµРґРёРЅРµРЅРёРµ РЅРµ СѓРґР°Р»РѕСЃСЊ
 	if (response != SQLITE_OK) {
 		std::cerr << sqlite3_errmsg(db_);
 	}
 }
 
-// Функция для обработки SQL-запросов без возвращаемых значений
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё SQL-Р·Р°РїСЂРѕСЃРѕРІ Р±РµР· РІРѕР·РІСЂР°С‰Р°РµРјС‹С… Р·РЅР°С‡РµРЅРёР№
 void Database::query(std::string const& sql, auto const func) {
 	char* err_msg;
 	int response = sqlite3_exec(db_, sql.c_str(), func, nullptr, &err_msg);
-	// Если выполнить запрос не удалось
+	// Р•СЃР»Рё РІС‹РїРѕР»РЅРёС‚СЊ Р·Р°РїСЂРѕСЃ РЅРµ СѓРґР°Р»РѕСЃСЊ
 	if (response != SQLITE_OK) {
 		std::string err(err_msg);
 		sqlite3_free(err_msg);
@@ -59,40 +59,40 @@ void Database::query(std::string const& sql, auto const func) {
 	}
 }
 
-// Функция для обработки запросов типа sqlite3_stmt, возвращающих значения
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё Р·Р°РїСЂРѕСЃРѕРІ С‚РёРїР° sqlite3_stmt, РІРѕР·РІСЂР°С‰Р°СЋС‰РёС… Р·РЅР°С‡РµРЅРёСЏ
 void Database::query(sqlite3_stmt** stmt, std::string const& sql) {
 	int response = sqlite3_prepare_v2(db_, sql.c_str(), -1, stmt, nullptr);
-	// Если возникли проблемы при подготовке SQL-запроса
+	// Р•СЃР»Рё РІРѕР·РЅРёРєР»Рё РїСЂРѕР±Р»РµРјС‹ РїСЂРё РїРѕРґРіРѕС‚РѕРІРєРµ SQL-Р·Р°РїСЂРѕСЃР°
 	if (response != SQLITE_OK) {
 		throw std::logic_error("Unable to do the query");
 	}
 	sqlite3_step(*stmt);
 }
 
-// Функция явного преобразования в sqlite3*
+// Р¤СѓРЅРєС†РёСЏ РЅРµСЏРІРЅРѕРіРѕ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ РІ sqlite3*
 Database::operator sqlite3* () const {
 	return db_; 
 }
 
-// Инициализация статических членов класса - указателя на sqlite3 и мьютекса
+// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ СЃС‚Р°С‚РёС‡РµСЃРєРёС… С‡Р»РµРЅРѕРІ РєР»Р°СЃСЃР° - СѓРєР°Р·Р°С‚РµР»СЏ РЅР° sqlite3 Рё РјСЊСЋС‚РµРєСЃР°
 sqlite3* Database::db_;
 std::mutex Database::mutex_;
 
-// Функция для инициализации работы с таблицей с валютами
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё СЂР°Р±РѕС‚С‹ СЃ С‚Р°Р±Р»РёС†РµР№ СЃ РІР°Р»СЋС‚Р°РјРё
 Database& open_table(bool &db_is_ok) {
-	// Отлавливаем ошибки, которые могут возникнуть на различных шагах
+	// РћС‚Р»Р°РІР»РёРІР°РµРј РѕС€РёР±РєРё, РєРѕС‚РѕСЂС‹Рµ РјРѕРіСѓС‚ РІРѕР·РЅРёРєРЅСѓС‚СЊ РЅР° СЂР°Р·Р»РёС‡РЅС‹С… С€Р°РіР°С…
 	try {
 		static Database& db = Database::get_instance("CurrenciesDB.db");
-		// Создаём таблицу (если ещё не существует) внутри базы данных
+		// РЎРѕР·РґР°С‘Рј С‚Р°Р±Р»РёС†Сѓ (РµСЃР»Рё РµС‰С‘ РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚) РІРЅСѓС‚СЂРё Р±Р°Р·С‹ РґР°РЅРЅС‹С…
 		std::string sql("CREATE TABLE IF NOT EXISTS currencies (CHARCODE VARCHAR(10) PRIMARY KEY  NOT NULL, NAME NVARCHAR(100) NOT NULL, TYPE VARCHAR(10) NOT NULL, AVERAGE FLOAT NULL, MEDIAN FLOAT NULL);");
 		db.query(sql, callback);
 		sqlite3_stmt* stmt;
-		// Получение колмчества строк в таблице
+		// РџРѕР»СѓС‡РµРЅРёРµ РєРѕР»РјС‡РµСЃС‚РІР° СЃС‚СЂРѕРє РІ С‚Р°Р±Р»РёС†Рµ
 		sql = "SELECT COUNT(*) FROM currencies";
 		db.query(&stmt, sql);
 		rows_number = sqlite3_column_int(stmt, 0);
 		sqlite3_reset(stmt);
-		// Получение имён столбцов таблицы
+		// РџРѕР»СѓС‡РµРЅРёРµ РёРјС‘РЅ СЃС‚РѕР»Р±С†РѕРІ С‚Р°Р±Р»РёС†С‹
 		sql = "SELECT sql FROM sqlite_master WHERE tbl_name = \'currencies\' AND type = \'table\';";
 		db.query(&stmt, sql);
 		std::string col_names = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));

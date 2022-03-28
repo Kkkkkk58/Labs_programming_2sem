@@ -6,7 +6,7 @@
 
 int callback(void*, int, char**, char**);
 
-// Класс для работы с базой данный SQLite3, реализованный по принципу Singleton
+// РљР»Р°СЃСЃ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ Р±Р°Р·РѕР№ РґР°РЅРЅС‹Р№ SQLite3, СЂРµР°Р»РёР·РѕРІР°РЅРЅС‹Р№ РїРѕ РїСЂРёРЅС†РёРїСѓ Singleton
 class Database {
 public:
 	static Database& get_instance(std::string const&);

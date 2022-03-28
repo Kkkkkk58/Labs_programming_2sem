@@ -4,7 +4,7 @@
 #include <map>
 #include <mutex>
 
-// Класс перечисления, задающий типы валют
+// РљР»Р°СЃСЃ РїРµСЂРµС‡РёСЃР»РµРЅРёСЏ, Р·Р°РґР°СЋС‰РёР№ С‚РёРїС‹ РІР°Р»СЋС‚
 enum class Currency_type {
 	NONE = -1,
 	ALL,
@@ -12,14 +12,14 @@ enum class Currency_type {
 	CRYPTO
 };
 
-// Структура с информацией о валюте
+// РЎС‚СЂСѓРєС‚СѓСЂР° СЃ РёРЅС„РѕСЂРјР°С†РёРµР№ Рѕ РІР°Р»СЋС‚Рµ
 struct Currency_info {
 	std::string name = "";
 	Currency_type type = Currency_type::ALL;
 	double value = 0, avg = 0, median = 0;
 };
 
-// Класс для хранения текущей информации о каждой валюте, реализованный по принципу Singleton
+// РљР»Р°СЃСЃ РґР»СЏ С…СЂР°РЅРµРЅРёСЏ С‚РµРєСѓС‰РµР№ РёРЅС„РѕСЂРјР°С†РёРё Рѕ РєР°Р¶РґРѕР№ РІР°Р»СЋС‚Рµ, СЂРµР°Р»РёР·РѕРІР°РЅРЅС‹Р№ РїРѕ РїСЂРёРЅС†РёРїСѓ Singleton
 class Currency_holder {
 public:
 	Currency_holder(Currency_holder const&) = delete;

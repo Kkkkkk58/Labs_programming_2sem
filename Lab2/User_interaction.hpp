@@ -8,7 +8,7 @@
 
 extern std::atomic<bool> keep_going;
 
-// Структура для хранения опций, с которыми исполняется программа
+// РЎС‚СЂСѓРєС‚СѓСЂР° РґР»СЏ С…СЂР°РЅРµРЅРёСЏ РѕРїС†РёР№, СЃ РєРѕС‚РѕСЂС‹РјРё РёСЃРїРѕР»РЅСЏРµС‚СЃСЏ РїСЂРѕРіСЂР°РјРјР°
 struct User_input {
 	Currency_type type = Currency_type::ALL;
 	std::set<std::string> specific_values{};

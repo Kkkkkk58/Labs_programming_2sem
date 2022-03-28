@@ -1,6 +1,6 @@
 #include "curl_config.hpp"
 
-// Конструктор класса CURL_adapter
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° CURL_adapter
 CURL_adapter::CURL_adapter() 
 	: curl_(curl_easy_init()), error_buffer_(""), status_(CURLE_OK) {
 	if (!curl_) {
@@ -8,26 +8,26 @@ CURL_adapter::CURL_adapter()
 	}
 }
 
-// Деструктор класса вызывает завершение работы с текущим экземпляром
+// Р”РµСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° РІС‹Р·С‹РІР°РµС‚ Р·Р°РІРµСЂС€РµРЅРёРµ СЂР°Р±РѕС‚С‹ СЃ С‚РµРєСѓС‰РёРј СЌРєР·РµРјРїР»СЏСЂРѕРј
 CURL_adapter::~CURL_adapter() {
 	curl_easy_cleanup(curl_);
 }
 
-// Обёртка для пяти последовательных вызовов curl_easy_setopt
-void CURL_adapter::setopt(std::string const& user_agent, std::string const& url, size_t(*func)(void* ptr, size_t size, size_t nmemb, std::string* data), std::string& response) {
-	// Определение error_buffer_ как буфера для записи ошибок при работе с CURL
+// РћР±С‘СЂС‚РєР° РґР»СЏ РїСЏС‚Рё РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅС‹С… РІС‹Р·РѕРІРѕРІ curl_easy_setopt
+void CURL_adapter::setopt(std::string const& user_agent, std::string const& url, Func func, std::string& response) {
+	// РћРїСЂРµРґРµР»РµРЅРёРµ error_buffer_ РєР°Рє Р±СѓС„РµСЂР° РґР»СЏ Р·Р°РїРёСЃРё РѕС€РёР±РѕРє РїСЂРё СЂР°Р±РѕС‚Рµ СЃ CURL
 	curl_easy_setopt(curl_, CURLOPT_ERRORBUFFER, error_buffer_);
-	// Передача User Agent
+	// РџРµСЂРµРґР°С‡Р° User Agent
 	curl_easy_setopt(curl_, CURLOPT_USERAGENT, user_agent.c_str());
-	// Передача ссылки для получения информации
+	// РџРµСЂРµРґР°С‡Р° СЃСЃС‹Р»РєРё РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ РёРЅС„РѕСЂРјР°С†РёРё
 	curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
-	// Передача указателя на функцию, предназначенную для записи результата запроса
+	// РџРµСЂРµРґР°С‡Р° СѓРєР°Р·Р°С‚РµР»СЏ РЅР° С„СѓРЅРєС†РёСЋ, РїСЂРµРґРЅР°Р·РЅР°С‡РµРЅРЅСѓСЋ РґР»СЏ Р·Р°РїРёСЃРё СЂРµР·СѓР»СЊС‚Р°С‚Р° Р·Р°РїСЂРѕСЃР°
 	curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, func);
-	// Запись результатов запроса в переменную
+	// Р—Р°РїРёСЃСЊ СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ Р·Р°РїСЂРѕСЃР° РІ РїРµСЂРµРјРµРЅРЅСѓСЋ
 	curl_easy_setopt(curl_, CURLOPT_WRITEDATA, &response);
 }
 
-// Обёртка для метода perform с проверкой на корректность
+// РћР±С‘СЂС‚РєР° РґР»СЏ РјРµС‚РѕРґР° perform СЃ РїСЂРѕРІРµСЂРєРѕР№ РЅР° РєРѕСЂСЂРµРєС‚РЅРѕСЃС‚СЊ
 void CURL_adapter::perform() {
 	status_ = curl_easy_perform(curl_);
 	if (status_ != CURLE_OK) {
@@ -35,12 +35,12 @@ void CURL_adapter::perform() {
 	}
 }
 
-// Оператор неявного приведения к bool - проверка на корректность статуса объекта
+// РћРїРµСЂР°С‚РѕСЂ РЅРµСЏРІРЅРѕРіРѕ РїСЂРёРІРµРґРµРЅРёСЏ Рє bool - РїСЂРѕРІРµСЂРєР° РЅР° РєРѕСЂСЂРµРєС‚РЅРѕСЃС‚СЊ СЃС‚Р°С‚СѓСЃР° РѕР±СЉРµРєС‚Р°
 CURL_adapter::operator bool() const {
 	return status_ == CURLE_OK;
 }
 
-// Оператор неявного приведения к CURL* - возврат указателя на объект БД
+// РћРїРµСЂР°С‚РѕСЂ РЅРµСЏРІРЅРѕРіРѕ РїСЂРёРІРµРґРµРЅРёСЏ Рє CURL* - РІРѕР·РІСЂР°С‚ СѓРєР°Р·Р°С‚РµР»СЏ РЅР° РѕР±СЉРµРєС‚ Р‘Р”
 CURL_adapter::operator CURL* () const {
 	return curl_;
 }

@@ -14,54 +14,54 @@
 #include "fort/fort.hpp"
 
 
-// Тело основной исполняемой программы
+// РўРµР»Рѕ РѕСЃРЅРѕРІРЅРѕР№ РёСЃРїРѕР»РЅСЏРµРјРѕР№ РїСЂРѕРіСЂР°РјРјС‹
 int main() {
-	// Установка кодировки для корректной работы с кириллицей
+	// РЈСЃС‚Р°РЅРѕРІРєР° РєРѕРґРёСЂРѕРІРєРё РґР»СЏ РєРѕСЂСЂРµРєС‚РЅРѕР№ СЂР°Р±РѕС‚С‹ СЃ РєРёСЂРёР»Р»РёС†РµР№
 	system("chcp 65001 > nul");
-	// Открытие базы данных
+	// РћС‚РєСЂС‹С‚РёРµ Р±Р°Р·С‹ РґР°РЅРЅС‹С…
 	bool db_is_ok = true;
 	Database &db = open_table(db_is_ok);
-	// Если соединение с базой данных не установлено - заканчиваем работу
+	// Р•СЃР»Рё СЃРѕРµРґРёРЅРµРЅРёРµ СЃ Р±Р°Р·РѕР№ РґР°РЅРЅС‹С… РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ - Р·Р°РєР°РЅС‡РёРІР°РµРј СЂР°Р±РѕС‚Сѓ
 	if (!db_is_ok) {
 		return EXIT_FAILURE;
 	}
 	std::map<const std::string, Currency_info> currency_map;
-	// Получение объекта-одиночки хранилища валют
+	// РџРѕР»СѓС‡РµРЅРёРµ РѕР±СЉРµРєС‚Р°-РѕРґРёРЅРѕС‡РєРё С…СЂР°РЅРёР»РёС‰Р° РІР°Р»СЋС‚
 	Currency_holder& holder = Currency_holder::get_instance(currency_map);
 	User_input launch_settings;
-	// Создание фонового потока, ожидающего пользовательский ввод
+	// РЎРѕР·РґР°РЅРёРµ С„РѕРЅРѕРІРѕРіРѕ РїРѕС‚РѕРєР°, РѕР¶РёРґР°СЋС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёР№ РІРІРѕРґ
 	std::future<User_input> future_input = std::async(std::launch::async, get_input);
-	// Задание изначального статуса для потока
+	// Р—Р°РґР°РЅРёРµ РёР·РЅР°С‡Р°Р»СЊРЅРѕРіРѕ СЃС‚Р°С‚СѓСЃР° РґР»СЏ РїРѕС‚РѕРєР°
 	std::future_status input_status = std::future_status::deferred;
-	// Инициализация глобального curl
+	// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РіР»РѕР±Р°Р»СЊРЅРѕРіРѕ curl
 	curl_global_init(CURL_GLOBAL_ALL);
-	// Отлавливаем исключения
+	// РћС‚Р»Р°РІР»РёРІР°РµРј РёСЃРєР»СЋС‡РµРЅРёСЏ
 	try {
-		// Пока пользователь не захотел прекратить работу
+		// РџРѕРєР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р·Р°С…РѕС‚РµР» РїСЂРµРєСЂР°С‚РёС‚СЊ СЂР°Р±РѕС‚Сѓ
 		while (keep_going) {
-			// Получение текущего времени и запись в буфер
+			// РџРѕР»СѓС‡РµРЅРёРµ С‚РµРєСѓС‰РµРіРѕ РІСЂРµРјРµРЅРё Рё Р·Р°РїРёСЃСЊ РІ Р±СѓС„РµСЂ
 			auto timenow = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			ctime_s(time_buf, sizeof time_buf, &timenow);
 			time_buf[24] = '\0';
-			// Запуск потока, получающего информацию об обычных валютах
+			// Р—Р°РїСѓСЃРє РїРѕС‚РѕРєР°, РїРѕР»СѓС‡Р°СЋС‰РµРіРѕ РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РѕР±С‹С‡РЅС‹С… РІР°Р»СЋС‚Р°С…
 			std::future<void> regular_currency_res = std::async(std::launch::async, regular_currency_parse, std::ref(holder), std::ref(db));
-			// Запуск потока, получающего информацию о криптовалютах
+			// Р—Р°РїСѓСЃРє РїРѕС‚РѕРєР°, РїРѕР»СѓС‡Р°СЋС‰РµРіРѕ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РєСЂРёРїС‚РѕРІР°Р»СЋС‚Р°С…
 			std::future<void> crypto_currency_res = std::async(std::launch::async, crypto_currency_parse, std::ref(holder), std::ref(db), std::ref(regular_currency_res));
 			crypto_currency_res.get();
-			// Очистка консоли, чтобы старая таблица оставалась на экране до появления новой
+			// РћС‡РёСЃС‚РєР° РєРѕРЅСЃРѕР»Рё, С‡С‚РѕР±С‹ СЃС‚Р°СЂР°СЏ С‚Р°Р±Р»РёС†Р° РѕСЃС‚Р°РІР°Р»Р°СЃСЊ РЅР° СЌРєСЂР°РЅРµ РґРѕ РїРѕСЏРІР»РµРЅРёСЏ РЅРѕРІРѕР№
 			system("cls");
-			// Если нужно выводить таблицу
+			// Р•СЃР»Рё РЅСѓР¶РЅРѕ РІС‹РІРѕРґРёС‚СЊ С‚Р°Р±Р»РёС†Сѓ
 			if (launch_settings.type != Currency_type::NONE) {
 				std::cout << "==== Actual currency course for " << time_buf << " ====\n";
 				fort::char_table table;
 				table << fort::header << "Charcode" << "Value" << "Average" << "Median" << "Name" << fort::endr;
-				// Если нужны только конкретные валюты
+				// Р•СЃР»Рё РЅСѓР¶РЅС‹ С‚РѕР»СЊРєРѕ РєРѕРЅРєСЂРµС‚РЅС‹Рµ РІР°Р»СЋС‚С‹
 				if (launch_settings.specific_values.size()) {
 					for (auto const& iter : launch_settings.specific_values) {
-						// Если такая валюта присутсвует
+						// Р•СЃР»Рё С‚Р°РєР°СЏ РІР°Р»СЋС‚Р° РїСЂРёСЃСѓС‚СЃРІСѓРµС‚
 						if (holder.contains(iter)) {
 							Currency_info found = holder.value(iter);
-							// Добавляем в таблицу только если валюта не относится к незапрошенному типу
+							// Р”РѕР±Р°РІР»СЏРµРј РІ С‚Р°Р±Р»РёС†Сѓ С‚РѕР»СЊРєРѕ РµСЃР»Рё РІР°Р»СЋС‚Р° РЅРµ РѕС‚РЅРѕСЃРёС‚СЃСЏ Рє РЅРµР·Р°РїСЂРѕС€РµРЅРЅРѕРјСѓ С‚РёРїСѓ
 							if (launch_settings.type == Currency_type::ALL || launch_settings.type == found.type) {
 								table << iter << found.value << found.avg << found.median << found.name << fort::endr;
 							}
@@ -71,7 +71,7 @@ int main() {
 						}
 					}
 				}
-				// Иначе печатаем информацию о всех валютах с заданным типом
+				// РРЅР°С‡Рµ РїРµС‡Р°С‚Р°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РІСЃРµС… РІР°Р»СЋС‚Р°С… СЃ Р·Р°РґР°РЅРЅС‹Рј С‚РёРїРѕРј
 				else {
 					currency_map = holder.value();
 					for (auto const& iter : currency_map) {
@@ -80,26 +80,26 @@ int main() {
 						}
 					}
 				}
-				// Печатаем таблицу с flush потока
+				// РџРµС‡Р°С‚Р°РµРј С‚Р°Р±Р»РёС†Сѓ СЃ flush РїРѕС‚РѕРєР°
 				std::cout << table.to_string() << std::endl;
 			}
-			// Если таблица не нужна - просто информируем о готовности отчёта
+			// Р•СЃР»Рё С‚Р°Р±Р»РёС†Р° РЅРµ РЅСѓР¶РЅР° - РїСЂРѕСЃС‚Рѕ РёРЅС„РѕСЂРјРёСЂСѓРµРј Рѕ РіРѕС‚РѕРІРЅРѕСЃС‚Рё РѕС‚С‡С‘С‚Р°
 			else {
 				std::cout << "=== Currency course for " << time_buf << " is ready ===\n";
  			}
-			// Если нужен отчёт в виде файла json
+			// Р•СЃР»Рё РЅСѓР¶РµРЅ РѕС‚С‡С‘С‚ РІ РІРёРґРµ С„Р°Р№Р»Р° json
 			if (launch_settings.json_enabled.first) {
 				std::cout << "Preparing json report...\n";
 				create_json(db, launch_settings.json_enabled.second);
 				std::cout << "Your json report is ready\n";
 			}
 			std::cout << "\n";
-			// Определение следующего времени запуска парсинга
+			// РћРїСЂРµРґРµР»РµРЅРёРµ СЃР»РµРґСѓСЋС‰РµРіРѕ РІСЂРµРјРµРЅРё Р·Р°РїСѓСЃРєР° РїР°СЂСЃРёРЅРіР°
 			std::chrono::system_clock::time_point offset_passed = std::chrono::system_clock::now() + OFFSET;
 			auto launch_time = std::chrono::system_clock::to_time_t(offset_passed);
 			ctime_s(time_buf, sizeof time_buf, &launch_time);
 			std::cout << "Enter options for the next launch\nNote that it wil be automatically done approximately at " << time_buf;
-			// Работа с фоновым потоком пользовательского ввода
+			// Р Р°Р±РѕС‚Р° СЃ С„РѕРЅРѕРІС‹Рј РїРѕС‚РѕРєРѕРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРіРѕ РІРІРѕРґР°
 			if (input_status == std::future_status::ready) {
 				future_input = std::async(std::launch::async, get_input);
 			}
@@ -115,7 +115,7 @@ int main() {
 	catch (std::exception const& e) {
 		std::cerr << e.what();
 	}
-	// Завершение работы с глобальным curl
+	// Р—Р°РІРµСЂС€РµРЅРёРµ СЂР°Р±РѕС‚С‹ СЃ РіР»РѕР±Р°Р»СЊРЅС‹Рј curl
 	curl_global_cleanup();
 	return EXIT_SUCCESS;
 }

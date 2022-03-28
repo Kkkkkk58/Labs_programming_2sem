@@ -5,68 +5,68 @@
 #include "json/json.hpp"
 #include <fstream>
 
-// Переменная-флаг необходимости продолжения работы
+// РџРµСЂРµРјРµРЅРЅР°СЏ-С„Р»Р°Рі РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё РїСЂРѕРґРѕР»Р¶РµРЅРёСЏ СЂР°Р±РѕС‚С‹
 std::atomic<bool> keep_going = true;
 
-// Функция для получения пользовательского ввода с опциями 
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРіРѕ РІРІРѕРґР° СЃ РѕРїС†РёСЏРјРё 
 User_input get_input() {
 	std::string input;
 	std::getline(std::cin, input);
-	// Стираем пробелы из строки
+	// РЎС‚РёСЂР°РµРј РїСЂРѕР±РµР»С‹ РёР· СЃС‚СЂРѕРєРё
 	input.erase(std::remove(input.begin(), input.end(), ' '), input.end());
-	// Регулярное выражение для разбора параметров
+	// Р РµРіСѓР»СЏСЂРЅРѕРµ РІС‹СЂР°Р¶РµРЅРёРµ РґР»СЏ СЂР°Р·Р±РѕСЂР° РїР°СЂР°РјРµС‚СЂРѕРІ
 	std::regex primary_expression("--([a-zA-Z]+)=?([a-zA-Z,]+)?");
 	std::sregex_iterator rit(input.begin(), input.end(), primary_expression);
 	std::sregex_iterator rend;
 	User_input options;
-	// Разбор параметров
+	// Р Р°Р·Р±РѕСЂ РїР°СЂР°РјРµС‚СЂРѕРІ
 	while (rit != rend) {
 		std::string key((*rit)[1]);
-		// Приведение строки с именем параметра к нижнему регистру для удобной работы
+		// РџСЂРёРІРµРґРµРЅРёРµ СЃС‚СЂРѕРєРё СЃ РёРјРµРЅРµРј РїР°СЂР°РјРµС‚СЂР° Рє РЅРёР¶РЅРµРјСѓ СЂРµРіРёСЃС‚СЂСѓ РґР»СЏ СѓРґРѕР±РЅРѕР№ СЂР°Р±РѕС‚С‹
 		std::transform(key.begin(), key.end(), key.begin(), [](unsigned char c) { return std::tolower(c); });
-		// Если пользователь хочет остановить работу программы
+		// Р•СЃР»Рё РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ С…РѕС‡РµС‚ РѕСЃС‚Р°РЅРѕРІРёС‚СЊ СЂР°Р±РѕС‚Сѓ РїСЂРѕРіСЂР°РјРјС‹
 		if (key == "stop") {
 			keep_going = false;
 		}
-		// Опция отображения валют определённого типа
+		// РћРїС†РёСЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІР°Р»СЋС‚ РѕРїСЂРµРґРµР»С‘РЅРЅРѕРіРѕ С‚РёРїР°
 		else if (key == "type") {
 			std::string type_wanted((*rit)[2]);
 			std::transform(type_wanted.begin(), type_wanted.end(), type_wanted.begin(), [](unsigned char c) { return std::tolower(c);  });
-			// Отображение только криптовалюты
+			// РћС‚РѕР±СЂР°Р¶РµРЅРёРµ С‚РѕР»СЊРєРѕ РєСЂРёРїС‚РѕРІР°Р»СЋС‚С‹
 			if (type_wanted == "crypto") {
 				options.type = Currency_type::CRYPTO;
 			}
-			// Отображение только обычной валюты
+			// РћС‚РѕР±СЂР°Р¶РµРЅРёРµ С‚РѕР»СЊРєРѕ РѕР±С‹С‡РЅРѕР№ РІР°Р»СЋС‚С‹
 			else if (type_wanted == "regular") {
 				options.type = Currency_type::REGULAR;
 			}
-			// Не отображать таблицу
+			// РќРµ РѕС‚РѕР±СЂР°Р¶Р°С‚СЊ С‚Р°Р±Р»РёС†Сѓ
 			else if (type_wanted == "none") {
 				options.type = Currency_type::NONE;
 			}
-			// Показать все валюты
+			// РџРѕРєР°Р·Р°С‚СЊ РІСЃРµ РІР°Р»СЋС‚С‹
 			else {
 				options.type = Currency_type::ALL;
 			}
 		}
-		// Опция отображения конкретных валют
+		// РћРїС†РёСЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РєРѕРЅРєСЂРµС‚РЅС‹С… РІР°Р»СЋС‚
 		else if (key == "codes") {
 			std::string codes((*rit)[2]);
 			std::transform(codes.begin(), codes.end(), codes.begin(), [](unsigned char c) { return std::toupper(c); });
-			// Разбор параметров, переданных через запятую как коды валют
+			// Р Р°Р·Р±РѕСЂ РїР°СЂР°РјРµС‚СЂРѕРІ, РїРµСЂРµРґР°РЅРЅС‹С… С‡РµСЂРµР· Р·Р°РїСЏС‚СѓСЋ РєР°Рє РєРѕРґС‹ РІР°Р»СЋС‚
 			std::regex args("([A-Z]+),?");
 			std::sregex_iterator rit_inner(codes.begin(), codes.end(), args);
 			std::sregex_iterator rend_inner;
-			// Добавление кода валюты в множество требуемых кодов
+			// Р”РѕР±Р°РІР»РµРЅРёРµ РєРѕРґР° РІР°Р»СЋС‚С‹ РІ РјРЅРѕР¶РµСЃС‚РІРѕ С‚СЂРµР±СѓРµРјС‹С… РєРѕРґРѕРІ
 			while (rit_inner != rend_inner) {
 				options.specific_values.insert(std::string((*rit_inner)[1]));
 				++rit_inner;
 			}
 		}
-		// Опция сохранения данных в json файл
+		// РћРїС†РёСЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ РґР°РЅРЅС‹С… РІ json С„Р°Р№Р»
 		else if (key == "json") {
 			options.json_enabled.first = true;
-			// Если было также предоставлено название желаемого файла
+			// Р•СЃР»Рё Р±С‹Р»Рѕ С‚Р°РєР¶Рµ РїСЂРµРґРѕСЃС‚Р°РІР»РµРЅРѕ РЅР°Р·РІР°РЅРёРµ Р¶РµР»Р°РµРјРѕРіРѕ С„Р°Р№Р»Р°
 			if (!std::string((*rit)[2]).empty()) {
 				options.json_enabled.second = std::string((*rit)[2]);
 			}
@@ -76,13 +76,13 @@ User_input get_input() {
 	return options;
 }
 
-// Функция записи данных в json файл
+// Р¤СѓРЅРєС†РёСЏ Р·Р°РїРёСЃРё РґР°РЅРЅС‹С… РІ json С„Р°Р№Р»
 void create_json(Database& db, std::string name) {
-	// Если название передано без расширения, добавляем ".json"
+	// Р•СЃР»Рё РЅР°Р·РІР°РЅРёРµ РїРµСЂРµРґР°РЅРѕ Р±РµР· СЂР°СЃС€РёСЂРµРЅРёСЏ, РґРѕР±Р°РІР»СЏРµРј ".json"
 	if (name.rfind(".json") == std::string::npos) {
 		name += ".json";
 	}
-	// Создание SQL-запроса на получение доступа к базе данных
+	// РЎРѕР·РґР°РЅРёРµ SQL-Р·Р°РїСЂРѕСЃР° РЅР° РїРѕР»СѓС‡РµРЅРёРµ РґРѕСЃС‚СѓРїР° Рє Р±Р°Р·Рµ РґР°РЅРЅС‹С…
 	std::string sql("SELECT * FROM currencies");
 	sqlite3_stmt* stmt;
 	int response = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
@@ -92,7 +92,7 @@ void create_json(Database& db, std::string name) {
 	}
 	nlohmann::ordered_json result_json;
 	int ret_code = sqlite3_step(stmt);
-	// Получаем информацию по каждой валюте и записываем в json
+	// РџРѕР»СѓС‡Р°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ РїРѕ РєР°Р¶РґРѕР№ РІР°Р»СЋС‚Рµ Рё Р·Р°РїРёСЃС‹РІР°РµРј РІ json
 	while (ret_code == SQLITE_ROW) {
 		std::string char_code(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
 		result_json["Currencies"][char_code]["Name"] = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));

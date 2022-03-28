@@ -6,18 +6,18 @@
 #include <string>
 #include <chrono>
 
-// Константа, определяющая User Agent для передачи сайтам
+// РљРѕРЅСЃС‚Р°РЅС‚Р°, РѕРїСЂРµРґРµР»СЏСЋС‰Р°СЏ User Agent РґР»СЏ РїРµСЂРµРґР°С‡Рё СЃР°Р№С‚Р°Рј
 const std::string USER_AGENT("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36");
-// Константа, хранящая ссылку на сайт с API ЦБ РФ для парсинга обычной валюты
+// РљРѕРЅСЃС‚Р°РЅС‚Р°, С…СЂР°РЅСЏС‰Р°СЏ СЃСЃС‹Р»РєСѓ РЅР° СЃР°Р№С‚ СЃ API Р¦Р‘ Р Р¤ РґР»СЏ РїР°СЂСЃРёРЅРіР° РѕР±С‹С‡РЅРѕР№ РІР°Р»СЋС‚С‹
 const std::string REGULAR_PARSE_URL("https://www.cbr-xml-daily.ru/daily_json.js");
-// Константа, хранящая ссылку на сайт с API, позволяющим получить список криптовалют
-const std::string CRYPTO_LIST_URL("http://api.coinlayer.com/api/list?access_key=4ed624e0558531621863f52d78349089");
-// Константа, хранящая ссылку на сайт с API для парсинга криптовалюты
-const std::string CRYPTO_PARSE_URL("http://api.coinlayer.com/api/live?access_key=4ed624e0558531621863f52d78349089");
-// Константа, определяющая периодичность получения данных с сайтов
-const std::chrono::system_clock::duration OFFSET = std::chrono::seconds(60);
+// РљРѕРЅСЃС‚Р°РЅС‚Р°, С…СЂР°РЅСЏС‰Р°СЏ СЃСЃС‹Р»РєСѓ РЅР° СЃР°Р№С‚ СЃ API, РїРѕР·РІРѕР»СЏСЋС‰РёРј РїРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє РєСЂРёРїС‚РѕРІР°Р»СЋС‚
+const std::string CRYPTO_LIST_URL("http://api.coinlayer.com/api/list?access_key=049cba4a75555eb47444207ffc5f2896");
+// РљРѕРЅСЃС‚Р°РЅС‚Р°, С…СЂР°РЅСЏС‰Р°СЏ СЃСЃС‹Р»РєСѓ РЅР° СЃР°Р№С‚ СЃ API РґР»СЏ РїР°СЂСЃРёРЅРіР° РєСЂРёРїС‚РѕРІР°Р»СЋС‚С‹
+const std::string CRYPTO_PARSE_URL("http://api.coinlayer.com/api/live?access_key=049cba4a75555eb47444207ffc5f2896");
+// РљРѕРЅСЃС‚Р°РЅС‚Р°, РѕРїСЂРµРґРµР»СЏСЋС‰Р°СЏ РїРµСЂРёРѕРґРёС‡РЅРѕСЃС‚СЊ РїРѕР»СѓС‡РµРЅРёСЏ РґР°РЅРЅС‹С… СЃ СЃР°Р№С‚РѕРІ
+const std::chrono::system_clock::duration OFFSET = std::chrono::seconds(10);
 
-// Класс-обёртка для объекта типа CURL *
+// РљР»Р°СЃСЃ-РѕР±С‘СЂС‚РєР° РґР»СЏ РѕР±СЉРµРєС‚Р° С‚РёРїР° CURL *
 class CURL_adapter {
 public:
 	CURL_adapter();

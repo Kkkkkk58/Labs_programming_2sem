@@ -1,25 +1,25 @@
 #include "Currency.hpp"
 
-// Инициализация статического члена класса - мьютекса
+// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ СЃС‚Р°С‚РёС‡РµСЃРєРѕРіРѕ С‡Р»РµРЅР° РєР»Р°СЃСЃР° - РјСЊСЋС‚РµРєСЃР°
 std::mutex Currency_holder::mutex_;
 
-// Конструктор класса Currency_holder от map, где ключ - код валюты, значение - информация о валюте
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° Currency_holder РѕС‚ map, РіРґРµ РєР»СЋС‡ - РєРѕРґ РІР°Р»СЋС‚С‹, Р·РЅР°С‡РµРЅРёРµ - РёРЅС„РѕСЂРјР°С†РёСЏ Рѕ РІР°Р»СЋС‚Рµ
 Currency_holder::Currency_holder(std::map<const std::string, Currency_info> const& map)
 	: currencies_storage_(map) {}
 
-// Функция, создающая экземпляр объекта типа Singleton класса Currency_holder
+// Р¤СѓРЅРєС†РёСЏ, СЃРѕР·РґР°СЋС‰Р°СЏ СЌРєР·РµРјРїР»СЏСЂ РѕР±СЉРµРєС‚Р° С‚РёРїР° Singleton РєР»Р°СЃСЃР° Currency_holder
 Currency_holder& Currency_holder::get_instance(std::map<const std::string, Currency_info> const& currency_map) {
 	std::lock_guard<std::mutex> lock(mutex_);
 	static Currency_holder holder(currency_map);
 	return holder;
 }
 
-// Функция, возвращающая map с валютами и информацией о них, хранящуюся в объекте Currency_holder
+// Р¤СѓРЅРєС†РёСЏ, РІРѕР·РІСЂР°С‰Р°СЋС‰Р°СЏ map СЃ РІР°Р»СЋС‚Р°РјРё Рё РёРЅС„РѕСЂРјР°С†РёРµР№ Рѕ РЅРёС…, С…СЂР°РЅСЏС‰СѓСЋСЃСЏ РІ РѕР±СЉРµРєС‚Рµ Currency_holder
 std::map<const std::string, Currency_info> const& Currency_holder::value() const {
 	return currencies_storage_;
 }
 
-// Функция, возвращающая информацию о заданной валюте
+// Р¤СѓРЅРєС†РёСЏ, РІРѕР·РІСЂР°С‰Р°СЋС‰Р°СЏ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ Р·Р°РґР°РЅРЅРѕР№ РІР°Р»СЋС‚Рµ
 Currency_info Currency_holder::value(std::string const& char_code) const {
 	try {
 		return currencies_storage_.at(char_code);
@@ -29,14 +29,14 @@ Currency_info Currency_holder::value(std::string const& char_code) const {
 	}
 }
 
-// Функция для добавления или информации о валюте
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ РёР»Рё РёРЅС„РѕСЂРјР°С†РёРё Рѕ РІР°Р»СЋС‚Рµ
 void Currency_holder::add_value(std::string const& char_code, Currency_info const& info) {
 	std::lock_guard<std::mutex> lock(mutex_);
-	// Если валюта уже имеется в списке
+	// Р•СЃР»Рё РІР°Р»СЋС‚Р° СѓР¶Рµ РёРјРµРµС‚СЃСЏ РІ СЃРїРёСЃРєРµ
 	if (contains(char_code)) {
 		std::string old_name(currencies_storage_[char_code].name);
 		currencies_storage_[char_code] = info;
-		// Если в info не задано имя, оставляем старое
+		// Р•СЃР»Рё РІ info РЅРµ Р·Р°РґР°РЅРѕ РёРјСЏ, РѕСЃС‚Р°РІР»СЏРµРј СЃС‚Р°СЂРѕРµ
 		if (info.name == "") {
 			currencies_storage_[char_code].name = old_name;
 		}
@@ -46,7 +46,7 @@ void Currency_holder::add_value(std::string const& char_code, Currency_info cons
 	}
 }
 
-// Функция для возврата текущей стоимости определённой валюты
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РІРѕР·РІСЂР°С‚Р° С‚РµРєСѓС‰РµР№ СЃС‚РѕРёРјРѕСЃС‚Рё РѕРїСЂРµРґРµР»С‘РЅРЅРѕР№ РІР°Р»СЋС‚С‹
 double Currency_holder::get_curr_value(std::string const& char_code) const {
 	auto finder = currencies_storage_.find(char_code);
 	if (finder == currencies_storage_.end()) {
@@ -57,12 +57,12 @@ double Currency_holder::get_curr_value(std::string const& char_code) const {
 	}
 }
 
-// Функция для возврата количества валют в хранилище
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РІРѕР·РІСЂР°С‚Р° РєРѕР»РёС‡РµСЃС‚РІР° РІР°Р»СЋС‚ РІ С…СЂР°РЅРёР»РёС‰Рµ
 size_t Currency_holder::size() const {
 	return currencies_storage_.size();
 }
 
-// Функция для проверки на содержание определённой валюты в хранилище
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїСЂРѕРІРµСЂРєРё РЅР° СЃРѕРґРµСЂР¶Р°РЅРёРµ РѕРїСЂРµРґРµР»С‘РЅРЅРѕР№ РІР°Р»СЋС‚С‹ РІ С…СЂР°РЅРёР»РёС‰Рµ
 bool Currency_holder::contains(std::string const& char_code) const {
 	return currencies_storage_.contains(char_code);
 }
