@@ -24,7 +24,7 @@ Currency_info Currency_holder::value(std::string const& char_code) const {
 	try {
 		return currencies_storage_.at(char_code);
 	}
-	catch (std::exception const& e) {
+	catch (...) {
 		throw std::logic_error("No currency with " + char_code + " char code is found");
 	}
 }

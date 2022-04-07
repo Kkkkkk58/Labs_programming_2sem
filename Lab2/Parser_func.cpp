@@ -86,6 +86,7 @@ void regular_currency_parse(Currency_holder& holder, Database& db) {
 			std::string char_code(item.key());
 			std::string name(item.value()["Name"]);
 			double value(item.value()["Value"]);
+			value /= item.value()["Nominal"];
 			Currency_info info{ name, Currency_type::REGULAR, value };
 			update_state(holder, db, char_code, info);
 		}
