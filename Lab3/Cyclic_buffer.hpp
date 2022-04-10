@@ -8,6 +8,7 @@
 #include <iterator>
 #include <concepts>
 
+// 
 template<typename T, typename Allocator>
 class Default_delete {
 public:
@@ -43,10 +44,11 @@ public:
 	typedef Reverse_iterator<const_iterator> const_reverse_iterator;
 	//typedef pointer iterator_type;
 
+	//
 	template<std::input_iterator InputIter>
 	Cyclic_buffer(InputIter first, InputIter last, allocator_type const& alloc = Allocator(), deleter_type const& del = Deleter())
 		: capacity_(std::abs(std::distance(first, last))), size_(capacity_), head_(0), tail_(size_ - 1), alloc_(alloc),
-		del_(del), mutex_(), data_(alloc_.allocate(capacity_), del) {
+		del_(del), mutex_(), data_(alloc_.allocate(capacity_), del_) {
 		pointer p = data_.get();
 		while (first != last) {
 			std::allocator_traits<Allocator>::construct(alloc_, p, *first);
@@ -55,33 +57,34 @@ public:
 		}
 	}
 
+	//
 	explicit Cyclic_buffer(allocator_type const& alloc = Allocator(), deleter_type const& del = Deleter())
-		: capacity_(0), size_(0), head_(0), tail_(0), alloc_(alloc), mutex_(), data_(nullptr, del) {}
+		: capacity_(0), size_(0), head_(0), tail_(0), alloc_(alloc), del_(del), mutex_(), data_(nullptr, del) {}
 
+	// 
 	explicit Cyclic_buffer(size_type capacity, allocator_type const& alloc = Allocator(), deleter_type const& del = Deleter())
-		: capacity_(capacity), size_(0), head_(0), tail_(0), alloc_(alloc), mutex_(), 
-		data_(alloc_.allocate(capacity_), del) {}
+		: capacity_(capacity), size_(0), head_(0), tail_(0), alloc_(alloc), del_(del), mutex_(), 
+		data_(alloc_.allocate(capacity_), del_) {}
 
 	Cyclic_buffer(size_type size, const_reference value, allocator_type const& alloc = Allocator(), deleter_type const& del = Deleter())
-		: capacity_(size), size_(capacity_), head_(0), tail_(size_ - 1), alloc_(alloc), mutex_(),
-		data_(alloc_.allocate(capacity_), del) {
+		: capacity_(size), size_(capacity_), head_(0), tail_(size_ - 1), alloc_(alloc), del_(del), mutex_(),
+		data_(alloc_.allocate(capacity_), del_) {
 		pointer p = data_.get();
 		for (size_t i = 0; i < size_; ++i, ++p) {
 			std::allocator_traits<Allocator>::construct(alloc_, p, value);
 		}
-		//std::fill(&data_[head_], &data_[tail_], value);
 	}
-
+	//
 	Cyclic_buffer(size_type capacity, size_type size, const_reference value, allocator_type const& alloc = Allocator(), deleter_type const& del = Deleter()) 
 		: capacity_(capacity), size_((size > capacity) ? capacity_ : size), head_(0), tail_(size_ - 1), alloc_(alloc), del_(del), 
-		mutex_(), data_(alloc_.allocate(capacity_), del) {
+		mutex_(), data_(alloc_.allocate(capacity_), del_) {
 		pointer p = data_.get();
 		for (size_t i = 0; i < size_; ++i, ++p) {
 			std::allocator_traits<Allocator>::construct(alloc_, p, value);
 		}
-		//std::fill(&data_[head_], &data_[tail_], value);
 	}
-	
+
+	//
 	Cyclic_buffer(std::initializer_list<value_type> const& list, allocator_type const& alloc = Allocator(), deleter_type const& del = Deleter())
 		: capacity_(list.size()), size_(capacity_), head_(0), tail_(size_ - 1), alloc_(alloc), del_(del),
 		mutex_(), data_(alloc_.allocate(capacity_), del_) {
@@ -91,6 +94,7 @@ public:
 		}
 	}
 
+	//
 	Cyclic_buffer(size_type capacity, std::initializer_list<value_type> const& list, allocator_type const& alloc = Allocator(), deleter_type const& del = Deleter())
 		: capacity_(capacity), size_((list.size() > capacity_) ? capacity_ : list.size()),
 		head_(0), tail_(size_ - 1), alloc_(alloc), del_(del), mutex_(),
@@ -102,17 +106,18 @@ public:
 		}
 	}
 
+	//
 	Cyclic_buffer(Cyclic_buffer const& other)
-		: size_(other.size_), capacity_(other.capacity_),head_(other.head_), tail_(other.tail_),
+		: size_(other.size_), capacity_(other.capacity_), head_(other.head_), tail_(other.tail_),
 		alloc_(other.alloc_), del_(other.del_) {
 		pointer data = alloc_.allocate(capacity_);
 		pointer p = data;
 		for (size_t i = 0; i < size_; ++i, ++p) {
-			std::allocator_traits<Allocator>::construct(alloc_, p, other.data_[i]);
+			std::allocator_traits<Allocator>::construct(alloc_, p, other[i]);
 		}
 		data_ = { data, del_ };
-		//memmove(data, other.data_.get(), size_);
 	}
+	//
 	void swap(Cyclic_buffer& other) {
 		using std::swap;
 		if (data_.get() != other.data_.get()) {
@@ -128,9 +133,11 @@ public:
 		swap(alloc_, other.alloc_);
 		swap(del_, other.del_);
 	}
+	//
 	Cyclic_buffer(Cyclic_buffer&& other) {
 		swap(other);
 	}
+	//
 	Cyclic_buffer& operator=(Cyclic_buffer const& other) {
 		if (this != &other) {
 			size_ = other.size_;
@@ -142,140 +149,162 @@ public:
 			data_ = { alloc_.allocate(capacity_), del_ };
 			pointer p = data_.get();
 			for (size_t i = 0; i < size_; ++i, ++p) {
-				std::allocator_traits<Allocator>::construct(alloc_, p, other.data_[i]);
+				std::allocator_traits<Allocator>::construct(alloc_, p, other[i]);
 			}
 		}
 		return *this;
 	}
+	//
 	Cyclic_buffer& operator=(Cyclic_buffer&& other) noexcept {
 		swap(other);
 		return *this;
 	}
-	void assign(size_type count, const_reference value) {
-		reserve(count);
-		if (count != size_) {
-			size_ = count;
-			tail_ = (head_ + size_ - 1) % size_;
-		}
-		auto it = begin();
-		for (size_t i = 0; i < count; ++it, ++i) {
-			*it = value;
-		}
-	}
+	//
 	template<std::input_iterator InputIter>
 	void assign(InputIter first, InputIter last) {
 		size_type distance = std::abs(std::distance(first, last));
 		reserve(distance);
 		if (distance != size_) {
 			size_ = distance;
-			tail_ = (head_ + size_ - 1) % size_;
+			tail_ = (head_ + size_ - 1) % capacity_;
 		}
 		for (auto it = begin(); first != last; ++it, ++first) {
 			*it = *first;
 		}
 
 	}
+	//
+	void assign(size_type count, const_reference value) {
+		reserve(count);
+		if (count != size_) {
+			size_ = count;
+			tail_ = (head_ + size_ - 1) % capacity_;
+		}
+		auto it = begin();
+		for (size_t i = 0; i < count; ++it, ++i) {
+			*it = value;
+		}
+	}
+	//
 	void assign(std::initializer_list<value_type> ilist) {
 		*this = ilist;
 	}
+	//
 	~Cyclic_buffer() {
 		destroy_data(capacity_);
 		if (data_ != nullptr) {
 			data_.reset();
 		}
 	}
+	//
 	size_type size() const {
 		return size_;
 	}
+	//
 	size_type capacity() const {
 		return capacity_;
 	}
+	//
 	bool empty() const {
 		return size_ == 0;
 	}
+	//
 	bool full() const {
 		return size_ == capacity_;
 	}
+	//
 	size_type max_size() const {
 		return std::allocator_traits<Allocator>::max_size();
 	}
+	//
 	reference operator[](size_type pos) {
 		if (size_ != 0) {
-			return data_[(head_ + pos) % size_];
+			return data_[(head_ + pos % size_) % capacity_];
 		}
 		else {
 			return data_[head_];
 		}
 	}
+	//
 	const_reference operator[](size_type pos) const {
 		if (size_ != 0) {
-			return data_[(head_ + pos) % size_];
+			return data_[(head_ + pos % size_) % capacity_];
 		}
 		else {
 			return data_[head_];
 		}
 	}
+	//
 	reference at(size_type pos) {
 		if (pos > size_) {
 			throw std::out_of_range("Out of range\n");
 		}
 		return operator[](pos);
 	}
+	//
 	const_reference at(size_type pos) const {
 		if (pos > size_) {
 			throw std::out_of_range("Out of range\n");
 		}
 		return operator[](pos);
 	}
+	//
 	reference front() {
 		return at(0);
 	}
+	//
 	const_reference front() const {
 		return at(0);
 	}
+	//
 	reference back() {
-		return operator[](tail_);
+		return at(size_ - 1);
 	}
+	//
 	const_reference back() const {
-		return operator[](tail_);
+		return at(size_ - 1);
 	}
+	//
 	void push_back(const_reference value) {
 		if (capacity_ != 0) {
 			size_ += (size_ == capacity_) ? 0 : 1;
-			tail_ = (tail_ + 1) % size_;
-			operator[](tail_ - head_) = value;
+			tail_ = (tail_ + 1) % capacity_;
+			size_type pos = (tail_ >= head_) ? tail_ - head_ : tail_ + capacity_ - head_;
+			operator[](pos) = value;
 			if (head_ == tail_) {
-				head_ = (head_ + 1) % size_;
+				head_ = (head_ + 1) % capacity_;
 			}
 		}
-
 	}
+	//
 	void push_front(const_reference value) {
 		if (capacity_ != 0) {
 			size_ += (size_ == capacity_) ? 0 : 1;
-			head_ = (head_ == 0) ? size_ - 1 : (head_ - 1) % size_;
+			head_ = (head_ == 0) ? capacity_ - 1 : head_ - 1;
 			operator[](0) = value;
 			if (head_ == tail_) {
-				tail_ = (tail_ == 0) ? size_ - 1 : (tail_ - 1) % size_;
+				tail_ = (tail_ == 0) ? capacity_ - 1 : tail_ - 1;
 			}
 		}
 	}
+	//
 	void pop_back() {
 		if (size_ != 0) {
 			size_ -= 1;
 			if (size_ > 0) {
-				tail_ = (tail_ == 0) ? size_ - 1 : tail_ - 1;
+				tail_ = (tail_ == 0) ? capacity_ - 1 : tail_ - 1;
 			}
 			else {
 				tail_ = head_ = 0;
 			}
 		}
 	}
+	//
 	void pop_front() {
 		if (size_ != 0) {
 			size_ -= 1;
 			if (size_ > 0) {
-				head_ = (head_ == size_ - 1) ? 0 : head_ + 1;
+				head_ = (head_ + 1) % capacity_;
 			}
 			else {
 				head_ = tail_ = 0;
@@ -903,7 +932,7 @@ private:
 	deleter_type del_;
 	std::mutex mutex_;
 	std::unique_ptr<value_type[], Deleter> data_;
-
+	//
 	void destroy_data(size_t n) {
 		pointer p = data_.get();
 		for (size_t i = 0; i < n; ++i) {
