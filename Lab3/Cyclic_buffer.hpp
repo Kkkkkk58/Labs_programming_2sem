@@ -582,7 +582,7 @@ public:
 		}
 		//
 		Iterator& operator+=(difference_type i) {
-			size_type pos = (i >= 0) ? index_ + i : (index_ >= i) ? index_ - i : instance_->size_ - 1 + index_ - i;
+			size_type pos = (index_ >= i) ? index_ + i : instance_->size_ - 1 + index_ - i;
 			if (i >= 0 && (i > static_cast<difference_type>(instance_->head_ + instance_->size_) - index_ || type_ == iter_type::TAIL)) {
 				type_ = iter_type::TAIL;
 			}
@@ -739,12 +739,23 @@ public:
 		}
 		//
 		Reverse_iterator& operator+=(difference_type i) {
+			difference_type old_index = iter_.index_;
+			iter_type old_type = iter_.type_;
 			iter_ -= i;
+			if (i < 0 && (i >= static_cast<difference_type>(iter_.instance_->head_ + iter_.instance_->size_) - old_index || old_type == iter_type::TAIL)) {
+				iter_.type_ = iter_type::TAIL;
+			}
+			else if (i >= 0 && (std::abs(i) > old_index - static_cast<difference_type>(iter_.instance_->head_) || old_type == iter_type::HEAD)) {
+				iter_.type_ = iter_type::HEAD;
+			}
+			else {
+				iter_.type_ = iter_type::MID;
+			}
 			return *this;
 		}
 		//
 		Reverse_iterator& operator-=(difference_type i) {
-			iter_ += i;
+			*this += -i;
 			return *this;
 		}
 		//
