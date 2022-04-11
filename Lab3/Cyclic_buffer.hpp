@@ -312,25 +312,70 @@ public:
 		}
 	}
 
+	void insert(size_type pos, const_reference value) {
+		//if (pos >= size_ && pos < capacity_) {
+		//	pointer p = end();
+		//	tail_ += pos - size_ + 1;
+		//	for (size_t i = size_; i < pos; ++i, ++p) {
+		//		std::allocator_traits<Allocator>::construct(alloc_, p, T());
+		//	}
+		//	std::allocator_traits<Allocator>::construct(alloc_, p, value);
+		//	size_ = pos + 1;
+		//	return;
+		//}
+		if (!full()) {
+			size_ += 1;
+		}
+		else {
+			head_ = (head_ + 1) % capacity_;
+		}
+		tail_ = (tail_ + 1) % capacity_;
+		value_type prev = operator[](pos);
+		operator[](pos) = value;
+		value_type pred = operator[](pos + 1);
+		for (size_t i = pos + 2; i < size_; ++i) {
+			operator[](i) = pred;
+			pred = operator[](i + 1);
+		}
+		operator[](pos + 1) = prev;
+	}
+	void insert(iterator pos, const_reference value) {
+		insert(pos.index_, value);
+	}
+	void insert_extend(size_type pos, const_reference value) {
+		if (pos >= capacity_) {
+			reserve(pos + 1);
+		}
+		else if (full()) {
+			reserve(capacity_ * 9 / 8 + 1);
+		}
+		insert(pos, value);
+	}
+	void insert_extend(iterator pos, const_reference value) {
+		insert_extend(pos.index_, value);
+	}
+
 	template<std::input_iterator InputIter>
 	void insert(size_type pos, InputIter first, InputIter last) {
 		size_type distance = std::abs(std::distance(first, last));
-		if (pos + distance >= size_ && size_ + distance < capacity_) {
-			pointer p = end();
-			tail_ += pos + distance - size_;
-			for (size_t i = size_; i < pos; ++i, ++p) {
-				std::allocator_traits<Allocator>::construct(alloc_, p, T());
-			}
-			for ( ; first != last; ++first, ++p) {
-				std::allocator_traits<Allocator>::construct(alloc_, p, *first);
-			}
-			size_ = pos + distance;
-			return;
-		}
-		if (distance >= capacity_) {
-			assign(first, last);
-			return;
-		}
+		//if (pos + distance >= size_ && size_ + distance < capacity_) {
+		//	pointer p = end();
+		//	tail_ += pos + distance - size_;
+		//	for (size_t i = size_; i < pos; ++i, ++p) {
+		//		std::allocator_traits<Allocator>::construct(alloc_, p, T());
+		//	}
+		//	for ( ; first != last; ++first, ++p) {
+		//		std::allocator_traits<Allocator>::construct(alloc_, p, *first);
+		//	}
+		//	size_ = pos + distance;
+		//	return;
+		//}
+		//if (distance >= capacity_) {
+		//	auto saver = first;
+		//	std::advance(first, capacity_);
+		//	assign(saver, first);
+		//	return;
+		//}
 
 		std::rotate(begin(), begin() + (size_ - pos - distance), end());
 		//for (auto it = begin() + pos; first != last;  ++it, ++first) {
@@ -356,45 +401,6 @@ public:
 	template<std::input_iterator InputIter>
 	void insert_extend(iterator pos, InputIter first, InputIter last) {
 		insert_extend(pos.index_, first, last);
-	}
-	void insert(size_type pos, const_reference value) {
-		if (pos >= size_ && pos < capacity_) {
-			pointer p = end();
-			tail_ += pos - size_ + 1;
-			for (size_t i = size_; i < pos; ++i, ++p) {
-				std::allocator_traits<Allocator>::construct(alloc_, p, T());
-			}
-			std::allocator_traits<Allocator>::construct(alloc_, p, value);
-			size_ = pos + 1;
-			return;
-		}
-		if (!full()) {
-			size_ += 1;
-			tail_ += 1;
-		}
-		value_type prev = operator[](pos);
-		operator[](pos) = value;
-		value_type pred = operator[](pos + 1);
-		for (size_t i = pos + 2; i < size_; ++i) {
-			operator[](i) = pred;
-			pred = operator[](i + 1);
-		}
-		operator[](pos + 1) = prev;
-	}
-	void insert(iterator pos, const_reference value) {
-		insert(pos.index_, value);
-	}
-	void insert_extend(size_type pos, const_reference value) {
-		if (pos >= capacity_) {
-			reserve(pos + 1);
-		}
-		else if (full()) {
-			reserve(capacity_ * 9 / 8 + 1);
-		}
-		insert(pos, value);
-	}
-	void insert_extend(iterator pos, const_reference value) {
-		insert_extend(pos.index_, value);
 	}
 	void insert(size_type pos, size_type n, const_reference value) {
 		if (pos + n >= size_ && pos + n < capacity_) {
@@ -478,12 +484,14 @@ public:
 		}
 	}
 	// STARTS HERE
+	//
 	enum class Iter_type {
 		HEAD,
 		TAIL,
 		MID
 	};
 	using iter_type = Iter_type;
+	//
 	template<typename V>
 	class Iterator {
 	public:
@@ -492,12 +500,15 @@ public:
 		typedef long long difference_type;
 		typedef V* pointer;
 		typedef V& reference;
-
+		//
 		explicit Iterator(Cyclic_buffer *instance, difference_type index = 0,
 			iter_type const& type = iter_type::MID)
 			: instance_(instance), ptr_(instance_->data_.get()), index_(index), type_(type) {}
+		//
 		~Iterator() {}
+		//
 		Iterator(Iterator const& other) : instance_(other.instance_), ptr_(other.ptr_), index_(other.index_), type_(other.type_) {}
+		//
 		void swap(Iterator& other) {
 			using std::swap;
 			swap(instance_, other.instance_);
@@ -505,9 +516,11 @@ public:
 			swap(index_, other.index_);
 			swap(type_, other.type_);
 		}
+		//
 		Iterator(Iterator&& other) noexcept {
 			swap(other);
 		}
+		//
 		Iterator& operator=(Iterator const& other) {
 			if (this != &other) {
 				instance_ = other.instance_;
@@ -517,113 +530,130 @@ public:
 			}
 			return *this;
 		}
+		//
 		Iterator& operator=(Iterator&& other) noexcept {
 			swap(other);
 			return *this;
 		}
+		//
 		reference operator*() const {
 			return *(ptr_ + index_);
 		}
+		//
 		pointer operator->() const {
 			return &(ptr_[index_]);
 		}
+		//
 		Iterator& operator++() {
-			if (index_ == instance_->tail_) {
+			if (index_ == instance_->tail_ || type_ == iter_type::TAIL) {
 				type_ = iter_type::TAIL;
 				index_ += 1;
-				return *this;
 			}
 			else {
 				type_ = iter_type::MID;
+				index_ = (index + 1) % instance_->capacity_;
 			}
-			index_ = (index_ == instance_->size_ - 1) ? 0 : index_ + 1;
 			return *this;
 		}
+		//
 		Iterator operator++(int) {
 			Iterator tmp(*this);
 			++(*this);
 			return tmp;
 		}
+		//
 		Iterator& operator--() {
-			index_ = (index_ == 0) ? instance_->size_ - 1 : index_ - 1;
-			if (index_ == instance_->head_) {
+			size_type pos = (index_ == 0) ? instance_->capacity_ - 1 : index_ - 1;
+			if (pos == instance_->head_ || type_ == iter_type::HEAD) {
 				type_ = iter_type::HEAD;
+				--index_;
 			}
 			else {
 				type_ = iter_type::MID;
+				index_ = pos;
 			}
 			return *this;
 		}
+		//
 		Iterator operator--(int) {
 			Iterator tmp(*this);
 			--(*this);
 			return tmp;
 		}
+		//
 		Iterator& operator+=(difference_type i) {
-			index_ = (index_ + i) % instance_->size_;
-			if (i > 0 && index_ == (instance_->tail_ + 1) % instance_->size_) {
-				index_ = instance_->tail_ + 1;
+			size_type pos = (i >= 0) ? index_ + i : (index_ >= i) ? index_ - i : instance_->size_ - 1 + index_ - i;
+			if (i >= 0 && (i > (instance_->head_ + instance_->size_) - index_ || type_ == iter_type::TAIL)) {
 				type_ = iter_type::TAIL;
 			}
-			else if (i < 0 && index_ == instance_->head_) {
+			else if (i < 0 && (std::abs(i) >= index_ - head_ || type_ == iter_type::HEAD)) {
 				type_ = iter_type::HEAD;
 			}
 			else {
 				type_ = iter_type::MID;
 			}
+			index_ = pos;
 			return *this;
 		}
+		//
 		Iterator& operator-=(difference_type i) {
 			*this += -i;
-			if (i > 0 && index_ == instance_->head_) {
-				type_ = iter_type::HEAD;
-			}
-			else if (i < 0 && index_ == instance_->tail_ + 1) {
-				type_ = iter_type::TAIL;
-			}
-			else {
-				type_ = iter_type::MID;
-			}
 			return *this;
 		}
+		//
 		friend Iterator operator+(Iterator lhs, difference_type rhs) {
 			lhs += rhs;
 			return lhs;
 		}
+		//
 		friend Iterator operator+(difference_type lhs, Iterator rhs) {
 			return rhs + lhs;
 		}
+		//
 		friend Iterator operator-(Iterator lhs, difference_type rhs) {
 			lhs -= rhs;
 			return lhs;
 		}
+		//
 		reference operator[](difference_type i) const {
 			return *(*this + i);
 		}
+		//
 		difference_type operator-(Iterator const& rhs) const {
-			return (index_ >= rhs.index_) ? index_ - rhs.index_ : index_ + (instance_->size_ - 1 - rhs.index_);
+			return (index_ >= rhs.index_) ? index_ - rhs.index_ : index_ + (instance_->size_ - rhs.index_);
 		}
+		//
 		bool operator==(Iterator const& other) const {
-			return instance_ == other.instance_ && index_ == other.index_ && type_ == other.type_;
+			if (instance_ == other.instance_) {
+				return (type == iter_type::MID) ? index_ == other.index_ : type_ == other.type_;
+			}
+			return false;
 		}
+		//
 		bool operator!=(Iterator const& other) const {
 			return !(*this == other);
 		}
+		//
 		bool operator<(Iterator const& other) const {
 			return other - *this > 0;
 		}
+		//
 		bool operator>(Iterator const& other) const {
 			return other < *this;
 		}
+		//
 		bool operator>=(Iterator const& other) const {
 			return !(*this < other);
 		}
+		//
 		bool operator<=(Iterator const& other) const {
 			return !(*this > other);
 		}
+		//
 		operator Iterator<const V>() const {
 			return Iterator<const V>(instance_, index_, type_);
 		}
+		//
 		operator pointer() const {
 			return operator->();
 		}
@@ -759,119 +789,80 @@ public:
 	private:
 		Iter iter_;
 	};
+	//
 	iterator begin() {
 		return iterator(this, head_, iter_type::HEAD);
 	}
+	//
 	iterator end() {
 		return iterator(this, tail_ + 1, iter_type::TAIL);
 	}
+	//
 	const_iterator cbegin() {
 		return const_iterator(this, head_, iter_type::HEAD);
 	}
+	//
 	const_iterator cend() {
 		return const_iterator(this, tail_ + 1, iter_type::TAIL);
 	}
+	//
 	reverse_iterator rbegin() {
 		return reverse_iterator(end());
 	}
+	//
 	reverse_iterator rend() {
 		return reverse_iterator(begin());
 	}
+	//
 	const_reverse_iterator crbegin() {
 		return const_reverse_iterator(cend());
 	}
+	//
 	const_reverse_iterator crend() {
 		return const_reverse_iterator(cbegin());
 	}
-
+	//
 	allocator_type get_allocator() const {
 		return alloc_;
 	}
+	//
 	allocator_type& get_allocator() {
 		return alloc_;
 	}
+	//
 	deleter_type get_deleter() const {
 		return del_;
 	}
+	//
 	deleter_type& get_deleter() {
 		return del_;
 	}
+
+	//
 	void clear() {
 		size_ = head_ = tail_ = 0;
 	}
 
+	//
 	void reserve(size_type new_capacity) {
 		if (new_capacity <= capacity_) {
 			return;
 		}
-		head_ = 0;
-		tail_ = size_ - 1;
-		size_type old_capacity = capacity_;
-		capacity_ = new_capacity;
-		pointer new_data = alloc_.allocate(capacity_);
+		pointer new_data = alloc_.allocate(new_capacity);
 		pointer p = new_data;
 		for (auto it = cbegin(); it != cend(); ++it, ++p) {
 			std::allocator_traits<Allocator>::construct(alloc_, p, *it);
 		}
-		destroy_data(old_capacity);
+		destroy_data(capacity_);
 		data_.reset(new_data);
+		capacity_ = new_capacity;
+		head_ = 0;
+		tail_ = size_ - 1;
 	}
 
-	//void emplace(size_type pos, const_reference value) {
-	//	if (full()) {
-	//		size_type old_capacity = capacity_;
-	//		capacity_ = capacity_ * 9 / 8 + 1;
-	//		pointer new_data = alloc_.allocate(capacity_);
-	//		pointer p = new_data;
-	//		size_ += 1;
-	//		head_ = 0;
-	//		tail_ = size_ - 1;
-	//		bool inserted = false;
-	//		for (size_t i = 0; i < size_; ++i, ++p) {
-	//			if (i == pos && !inserted) {
-	//				std::allocator_traits<Allocator>::construct(alloc_, p, value);
-	//				inserted = true;
-	//				--i;
-	//			}
-	//			else {
-	//				std::allocator_traits<Allocator>::construct(alloc_, p, operator[](i));
-	//			}
-	//		}
-	//		destroy_data(old_capacity);
-	//		data_.reset(new_data);
-	//	}
-	//	else {
-	//		size_ += 1;
-	//		tail_ += 1;
-	//		bool inserted = false;
-	//		pointer p = data_.get();
-	//		for (size_t i = 0; i < size_; ++i, ++p) {
-	//			if (i == pos && !inserted) {
-	//				std::allocator_traits<Allocator>::construct(alloc_, p, value);
-	//				inserted = true;
-	//				--i;
-	//			}
-	//			else {
-	//				std::allocator_traits<Allocator>::construct(alloc_, p, operator[](i));
-	//			}
-	//		}
-	//	}
-	//}
 	//
-
-	//void emplace_front(const_reference value) {
-	//	emplace(0, value);
-	//}
-
-	//void emplace_back(const_reference value) {
-	//	emplace(size_, value);
-	//}
-
 	void resize(size_type new_size, const_reference value = T()) {
-		size_type old_capacity = capacity_;
-		capacity_ = new_size;
-
-		pointer new_data = alloc_.allocate(capacity_);
+		pointer new_data = alloc_.allocate(new_size);
 		pointer p = new_data;
 		for (size_t i = 0; i < new_size; ++i, ++p) {
 			if (i < size_) {
@@ -881,18 +872,19 @@ public:
 				std::allocator_traits<Allocator>::construct(alloc_, p, value);
 			}
 		}
-		size_ = new_size;
-		head_ = 0;
-		tail_ = new_size - 1;
-		destroy_data(old_capacity);
+		destroy_data(capacity_);
 		data_.reset(new_data);
+		capacity_ = size_ = new_size;
+		head_ = 0;
+		tail_ = size_ - 1;
 	}
 
-
+	//
 	void shrink_to_fit() {
 		resize(size_);
 	}
 
+	//
 	friend bool operator==(Cyclic_buffer& lhs, Cyclic_buffer& rhs) {
 		if (lhs.size() == rhs.size()) {
 			auto l = lhs.begin();
@@ -902,26 +894,29 @@ public:
 					return false;
 				}
 			}
-
-
 			return true;
 		}
 		return false;
 	}
+	//
 	friend bool operator!=(Cyclic_buffer& lhs, Cyclic_buffer& rhs) {
 		return !(lhs == rhs);
 	}
+	//
 	friend bool operator<(Cyclic_buffer& lhs, Cyclic_buffer& rhs) {
 		return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 	}
+	//
 	friend bool operator>(Cyclic_buffer& lhs, Cyclic_buffer& rhs) {
 		return rhs < lhs;
 	}
+	//
 	friend bool operator<=(Cyclic_buffer& lhs, Cyclic_buffer& rhs) {
 		return !(lhs > rhs);
 	}
+	//
 	friend bool operator>=(Cyclic_buffer& lhs, Cyclic_buffer& rhs) {
-		return !(lhs > rhs);
+		return !(lhs < rhs);
 	}
 private:
 	size_type capacity_;
