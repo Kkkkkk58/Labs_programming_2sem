@@ -551,7 +551,7 @@ public:
 			}
 			else {
 				type_ = iter_type::MID;
-				index_ = (index + 1) % instance_->capacity_;
+				index_ = (index_ + 1) % instance_->capacity_;
 			}
 			return *this;
 		}
@@ -583,10 +583,10 @@ public:
 		//
 		Iterator& operator+=(difference_type i) {
 			size_type pos = (i >= 0) ? index_ + i : (index_ >= i) ? index_ - i : instance_->size_ - 1 + index_ - i;
-			if (i >= 0 && (i > (instance_->head_ + instance_->size_) - index_ || type_ == iter_type::TAIL)) {
+			if (i >= 0 && (i > static_cast<difference_type>(instance_->head_ + instance_->size_) - index_ || type_ == iter_type::TAIL)) {
 				type_ = iter_type::TAIL;
 			}
-			else if (i < 0 && (std::abs(i) >= index_ - head_ || type_ == iter_type::HEAD)) {
+			else if (i < 0 && (std::abs(i) >= index_ - static_cast<difference_type>(instance_->head_) || type_ == iter_type::HEAD)) {
 				type_ = iter_type::HEAD;
 			}
 			else {
@@ -625,7 +625,7 @@ public:
 		//
 		bool operator==(Iterator const& other) const {
 			if (instance_ == other.instance_) {
-				return (type == iter_type::MID) ? index_ == other.index_ : type_ == other.type_;
+				return (type_ == iter_type::MID) ? index_ == other.index_ : type_ == other.type_;
 			}
 			return false;
 		}
@@ -666,6 +666,7 @@ public:
 		iter_type type_;
 	};
 
+	//
 	template<typename Iter>
 	class Reverse_iterator {
 	public:
@@ -675,8 +676,8 @@ public:
 		typedef typename Iter::pointer pointer;
 		typedef typename Iter::reference reference;
 
-		explicit Reverse_iterator(Iter iter) : iter_(iter.instance_, iter.index_ - 1, iter.type_) {}
-		Reverse_iterator(Cyclic_buffer* instance, difference_type index = 0,
+		explicit Reverse_iterator(Iter iter) : iter_(iter.instance_, static_cast<difference_type>(iter.index_) - 1, iter.type_) {}
+		explicit Reverse_iterator(Cyclic_buffer* instance, difference_type index = 0,
 			iter_type const& type = iter_type::MID)
 			: iter_(instance, index - 1, type) {}
 		void swap(Reverse_iterator& other) {
@@ -699,92 +700,111 @@ public:
 		pointer operator->() const {
 			return iter_.operator->();
 		}
+		//
 		Reverse_iterator& operator++() {
-			Iter tmp(iter_);
-			--tmp;
-			if (iter_.index_ == iter_.instance_->head_) {
-				--iter_.index_;
+			if (iter_.index_ == iter_.instance_->head_ || iter_.type_ == iter_type::HEAD) {
+				iter_.index_ = (iter_.index_ == 0) ? iter_.instance_->capacity_ - 1 : iter_.index_ - 1;
 				iter_.type_ = iter_type::HEAD;
-				return *this;
 			}
 			else {
-				iter_.type_ = iter_type::MID;
+				--iter_;
+				if (iter_.type_ == iter_type::HEAD) {
+					iter_.type_ = iter_type::MID;
+				}
 			}
-			iter_.index_ = tmp.index_;
 			return *this;
 		}
+		//
 		Reverse_iterator operator++(int) {
 			Reverse_iterator tmp(*this);
 			++(*this);
 			return tmp;
 		}
 		Reverse_iterator& operator--() {
-			++iter_;
-			if (iter_.index_ == iter_.instance_->tail_) {
+			if (iter_.index_ == iter_.instance_->tail_ || iter_.type_ == iter_type::TAIL) {
+				++iter_.index_;
 				iter_.type_ = iter_type::TAIL;
 			}
 			else {
+				++iter_;
 				iter_.type_ = iter_type::MID;
 			}
 			return *this;
 		}
+		//
 		Reverse_iterator operator--(int) {
 			Reverse_iterator tmp(*this);
 			--(*this);
 			return tmp;
 		}
+		//
 		Reverse_iterator& operator+=(difference_type i) {
 			iter_ -= i;
 			return *this;
 		}
+		//
 		Reverse_iterator& operator-=(difference_type i) {
 			iter_ += i;
 			return *this;
 		}
+		//
 		friend Reverse_iterator operator+(Reverse_iterator lhs, difference_type rhs) {
 			lhs += rhs;
 			return lhs;
 		}
+		//
 		friend Reverse_iterator operator+(difference_type lhs, Reverse_iterator rhs) {
 			return rhs + lhs;
 		}
+		//
 		friend Reverse_iterator operator-(Reverse_iterator lhs, difference_type rhs) {
 			lhs -= rhs;
 			return lhs;
 		}
+		//
 		reference operator[](difference_type i) const {
 			return *(*this + i);
 		}
+		//
 		difference_type operator-(Reverse_iterator const& rhs) const {
 			return rhs.iter_ - iter_;
 		}
+		//
 		bool operator==(Reverse_iterator const& other) const {
 			return iter_ == other.iter_;
 		}
+		//
 		bool operator!=(Reverse_iterator const& other) const {
 			return !(*this == other);
 		}
+		//
 		bool operator<(Reverse_iterator const& other) const {
 			return other - *this > 0;
 		}
+		//
 		bool operator>(Reverse_iterator const& other) const {
 			return other < *this;
 		}
+		//
 		bool operator>=(Reverse_iterator const& other) const {
 			return !(*this < other);
 		}
+		//
 		bool operator<=(Reverse_iterator const& other) const {
 			return !(*this > other);
 		}
+		//
 		Iter &base() const {
-			return iter_;
+			return iter_ + 1;
 		}
+		//
 		operator Reverse_iterator<const Iter>() const {
 			return Reverse_iterator<const Iter>(iter_);
 		}
-		operator pointer() const {
-			return operator->();
-		}
+		//
+		//operator pointer() const {
+		//	return operator->();
+		//}
 		friend class Cyclic_buffer;
 	private:
 		Iter iter_;
