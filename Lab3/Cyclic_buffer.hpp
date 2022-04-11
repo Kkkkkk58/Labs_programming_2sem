@@ -269,8 +269,7 @@ public:
 		if (capacity_ != 0) {
 			size_ += (size_ == capacity_) ? 0 : 1;
 			tail_ = (tail_ + 1) % capacity_;
-			size_type pos = (tail_ >= head_) ? tail_ - head_ : tail_ + capacity_ - head_;
-			operator[](pos) = value;
+			operator[](size_ - 1) = value;
 			if (head_ == tail_) {
 				head_ = (head_ + 1) % capacity_;
 			}
@@ -545,13 +544,15 @@ public:
 		}
 		//
 		Iterator& operator++() {
-			if (index_ == instance_->tail_ || type_ == iter_type::TAIL) {
+			if (index_ == instance_->tail_) {
+				index_ = instance_->head_;
 				type_ = iter_type::TAIL;
-				index_ += 1;
 			}
 			else {
-				type_ = iter_type::MID;
 				index_ = (index_ + 1) % instance_->capacity_;
+			}
+			if (type_ != iter_type::TAIL) {
+				type_ = iter_type::HEAD;
 			}
 			return *this;
 		}
@@ -563,14 +564,15 @@ public:
 		}
 		//
 		Iterator& operator--() {
-			size_type pos = (index_ == 0) ? instance_->capacity_ - 1 : index_ - 1;
-			if (pos == instance_->head_ || type_ == iter_type::HEAD) {
+			if (index_ == instance_->head_) {
+				index_ = instance_->tail_;
 				type_ = iter_type::HEAD;
-				--index_;
 			}
 			else {
+				index_ = (index_ == 0) ? instance_->capacity_ - 1 : index_ - 1;
+			}
+			if (type_ != iter_type::HEAD) {
 				type_ = iter_type::MID;
-				index_ = pos;
 			}
 			return *this;
 		}
