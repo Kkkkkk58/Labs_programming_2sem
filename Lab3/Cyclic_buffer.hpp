@@ -40,6 +40,8 @@ public:
 	typedef Deleter deleter_type;
 	typedef Iterator<value_type> iterator;
 	typedef Iterator<const value_type> const_iterator;
+	//typedef std::reverse_iterator<iterator> reverse_iterator;
+	//typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 	typedef Reverse_iterator<iterator> reverse_iterator;
 	typedef Reverse_iterator<const_iterator> const_reverse_iterator;
 	//typedef pointer iterator_type;
@@ -248,7 +250,48 @@ public:
 		}
 		return operator[](pos);
 	}
-	//
+	void replace(iterator it, const_reference value) {
+		*it = value;
+	}
+	void replace(size_type pos, const_reference value) {
+		operator[](pos) = value;
+	}
+	void replace(iterator start, iterator end, const_reference value) {
+		while (start != end) {
+			*start = value;
+			++start;
+		}
+	}
+	void replace(size_type start, size_type end, const_reference value) {
+		while (start != end) {
+			operator[](start) = value;
+			++start;
+		}
+	}
+	template<std::input_iterator InputIt>
+	void replace(iterator start, iterator end, InputIt first, InputIt last) {
+		while (start != end && first != last) {
+			*start = *first;
+			++start;
+			++first;
+		}
+	}
+	template<std::input_iterator InputIt>
+	void replace(size_type start, size_type end, InputIt first, InputIt last) {
+		while (start != end && first != last) {
+			operator[](start) = *first;
+			++start;
+			++first;
+		}
+	}
+	bool contains(const_reference value) {
+		for (auto const& val : *this) {
+			if (value == val) {
+				return true;
+			}
+		}
+		return false;
+	}
 	reference front() {
 		return at(0);
 	}
