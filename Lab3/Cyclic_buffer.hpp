@@ -760,13 +760,18 @@ public:
 		}
 		//
 		Reverse_iterator& operator+=(difference_type i) {
+			size_type rel_index = (static_cast<size_type>(iter_.index_) >= iter_.instance_->head_) ? \
+				static_cast<size_type>(iter_.index_) - iter_.instance_->head_ : \
+				iter_.instance_->capacity_ - iter_.instance_->head_ + static_cast<size_type>(iter_.index_);
+			size_type dist = std::abs(i) % iter_.instance_->size_;
 			difference_type old_index = iter_.index_;
 			iter_type old_type = iter_.type_;
 			iter_ -= i;
-			if (i < 0 && (i >= static_cast<difference_type>(iter_.instance_->head_ + iter_.instance_->size_) - old_index || old_type == iter_type::TAIL)) {
+			if (i < 0 && (static_cast<size_type>(std::abs(i)) + rel_index >= iter_.instance_->size_ || \
+				old_type == iter_type::TAIL)) {
 				iter_.type_ = iter_type::TAIL;
 			}
-			else if (i >= 0 && (std::abs(i) > old_index - static_cast<difference_type>(iter_.instance_->head_) || old_type == iter_type::HEAD)) {
+			else if (i >= 0 && (static_cast<size_type>(i) > rel_index || old_type == iter_type::HEAD)) {
 				iter_.type_ = iter_type::HEAD;
 			}
 			else {
