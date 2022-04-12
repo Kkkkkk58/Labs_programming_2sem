@@ -552,7 +552,7 @@ public:
 				index_ = (index_ + 1) % instance_->capacity_;
 			}
 			if (type_ != iter_type::TAIL) {
-				type_ = iter_type::HEAD;
+				type_ = iter_type::MID;
 			}
 			return *this;
 		}
@@ -564,7 +564,7 @@ public:
 		}
 		//
 		Iterator& operator--() {
-			if (index_ == instance_->head_) {
+			if (index_ == instance_->head_ && type_ != iter_type::TAIL) {
 				index_ = instance_->tail_;
 				type_ = iter_type::HEAD;
 			}
@@ -584,11 +584,26 @@ public:
 		}
 		//
 		Iterator& operator+=(difference_type i) {
-			size_type pos = (index_ >= i) ? index_ + i : instance_->size_ - 1 + index_ - i;
-			if (i >= 0 && (i > static_cast<difference_type>(instance_->head_ + instance_->size_) - index_ || type_ == iter_type::TAIL)) {
+			size_type rel_index = (static_cast<size_type>(index_) >= instance_->head_) ? \
+				static_cast<size_type>(index_) - instance_->head_ : \
+				instance_->capacity_ - instance_->head_ + static_cast<size_type>(index_);
+			size_type dist = std::abs(i) % instance_->size_;
+			size_type pos = 0;
+			if (i >= 0) {
+				pos = (instance_->head_ + (rel_index + i) % instance_->size_) % instance_->capacity_;
+			}
+			else {
+				if (instance_->head_ < instance_->tail_) {
+					pos = (rel_index >= dist) ? rel_index - dist : instance_->tail_ + 1 + rel_index - dist;
+				}
+				else {
+					pos = (static_cast<size_type>(index_) >= dist) ? index_ - dist : instance_->capacity_ + index_ - dist;      
+				}
+ 			}
+			if (i >= 0 && (static_cast<size_type>(i) + rel_index >= instance_->size_ || type_ == iter_type::TAIL)) {
 				type_ = iter_type::TAIL;
 			}
-			else if (i < 0 && (std::abs(i) >= index_ - static_cast<difference_type>(instance_->head_) || type_ == iter_type::HEAD)) {
+			else if (i < 0 && (static_cast<size_type>(std::abs(i)) >= rel_index || type_ == iter_type::HEAD)) {
 				type_ = iter_type::HEAD;
 			}
 			else {
@@ -704,14 +719,20 @@ public:
 		}
 		//
 		Reverse_iterator& operator++() {
-			if (iter_.index_ == iter_.instance_->head_ || iter_.type_ == iter_type::HEAD) {
-				iter_.index_ = (iter_.index_ == 0) ? iter_.instance_->capacity_ - 1 : iter_.index_ - 1;
+			if (iter_.index_ == iter_.instance_->head_) {
+				iter_.index_ = iter_.instance_->tail_;
 				iter_.type_ = iter_type::HEAD;
 			}
 			else {
-				--iter_;
 				if (iter_.type_ == iter_type::HEAD) {
-					iter_.type_ = iter_type::MID;
+					--iter_;
+					iter_.type_ = iter_type::HEAD;
+				}
+				else {
+					--iter_;
+					if (iter_.type_ == iter_type::HEAD) {
+						iter_.type_ = iter_type::MID;
+					}
 				}
 			}
 			return *this;
@@ -722,13 +743,11 @@ public:
 			++(*this);
 			return tmp;
 		}
+		//
 		Reverse_iterator& operator--() {
-			if (iter_.index_ == iter_.instance_->tail_ || iter_.type_ == iter_type::TAIL) {
-				++iter_.index_;
-				iter_.type_ = iter_type::TAIL;
-			}
-			else {
-				++iter_;
+			iter_type old_type = iter_.type_;
+			++iter_;
+			if (iter_.type_ != iter_type::TAIL || old_type == iter_type::HEAD) {
 				iter_.type_ = iter_type::MID;
 			}
 			return *this;
@@ -807,8 +826,8 @@ public:
 			return !(*this > other);
 		}
 		//
-		Iter &base() const {
-			return iter_ + 1;
+		Iter base() const {
+			return Iter(iter_.instance_, iter_.ptr_, iter_.index_ + 1, iter_.type_);
 		}
 		//
 		operator Reverse_iterator<const Iter>() const {
