@@ -250,24 +250,29 @@ public:
 		}
 		return operator[](pos);
 	}
+	//
 	void replace(iterator it, const_reference value) {
 		*it = value;
 	}
+	//
 	void replace(size_type pos, const_reference value) {
 		operator[](pos) = value;
 	}
+	//
 	void replace(iterator start, iterator end, const_reference value) {
 		while (start != end) {
 			*start = value;
 			++start;
 		}
 	}
+	//
 	void replace(size_type start, size_type end, const_reference value) {
 		while (start != end) {
 			operator[](start) = value;
 			++start;
 		}
 	}
+	//
 	template<std::input_iterator InputIt>
 	void replace(iterator start, iterator end, InputIt first, InputIt last) {
 		while (start != end && first != last) {
@@ -276,6 +281,7 @@ public:
 			++first;
 		}
 	}
+	//
 	template<std::input_iterator InputIt>
 	void replace(size_type start, size_type end, InputIt first, InputIt last) {
 		while (start != end && first != last) {
@@ -284,6 +290,7 @@ public:
 			++first;
 		}
 	}
+	//
 	bool contains(const_reference value) {
 		for (auto const& val : *this) {
 			if (value == val) {
@@ -292,6 +299,7 @@ public:
 		}
 		return false;
 	}
+	//
 	reference front() {
 		return at(0);
 	}
@@ -310,9 +318,16 @@ public:
 	//
 	void push_back(const_reference value) {
 		if (capacity_ != 0) {
-			size_ += (size_ == capacity_) ? 0 : 1;
+			//size_ += (size_ == capacity_) ? 0 : 1;
 			tail_ = (tail_ + 1) % capacity_;
-			operator[](size_ - 1) = value;
+			if (size_ == capacity_) {
+				operator[](size_) = value;
+			}
+			else {
+				size_ += 1;
+				operator[](size_ - 1) = value;
+			}
+			//operator[](size_ - 1) = value;
 			if (head_ == tail_) {
 				head_ = (head_ + 1) % capacity_;
 			}
@@ -353,78 +368,32 @@ public:
 			}
 		}
 	}
-
-	void insert(size_type pos, const_reference value) {
-		//if (pos >= size_ && pos < capacity_) {
-		//	pointer p = end();
-		//	tail_ += pos - size_ + 1;
-		//	for (size_t i = size_; i < pos; ++i, ++p) {
-		//		std::allocator_traits<Allocator>::construct(alloc_, p, T());
-		//	}
-		//	std::allocator_traits<Allocator>::construct(alloc_, p, value);
-		//	size_ = pos + 1;
-		//	return;
-		//}
-		if (!full()) {
-			size_ += 1;
-		}
-		else {
-			head_ = (head_ + 1) % capacity_;
-		}
-		tail_ = (tail_ + 1) % capacity_;
-		value_type prev = operator[](pos);
-		operator[](pos) = value;
-		value_type pred = operator[](pos + 1);
-		for (size_t i = pos + 2; i < size_; ++i) {
-			operator[](i) = pred;
-			pred = operator[](i + 1);
-		}
-		operator[](pos + 1) = prev;
-	}
-	void insert(iterator pos, const_reference value) {
-		insert(pos.index_, value);
-	}
-	void insert_extend(size_type pos, const_reference value) {
-		if (pos >= capacity_) {
-			reserve(pos + 1);
-		}
-		else if (full()) {
-			reserve(capacity_ * 9 / 8 + 1);
-		}
-		insert(pos, value);
-	}
-	void insert_extend(iterator pos, const_reference value) {
-		insert_extend(pos.index_, value);
-	}
-
+	//
 	template<std::input_iterator InputIter>
 	void insert(size_type pos, InputIter first, InputIter last) {
-		size_type distance = std::abs(std::distance(first, last));
-		//if (pos + distance >= size_ && size_ + distance < capacity_) {
-		//	pointer p = end();
-		//	tail_ += pos + distance - size_;
-		//	for (size_t i = size_; i < pos; ++i, ++p) {
-		//		std::allocator_traits<Allocator>::construct(alloc_, p, T());
-		//	}
-		//	for ( ; first != last; ++first, ++p) {
-		//		std::allocator_traits<Allocator>::construct(alloc_, p, *first);
-		//	}
-		//	size_ = pos + distance;
-		//	return;
-		//}
-		//if (distance >= capacity_) {
-		//	auto saver = first;
-		//	std::advance(first, capacity_);
-		//	assign(saver, first);
-		//	return;
-		//}
-
-		std::rotate(begin(), begin() + (size_ - pos - distance), end());
-		//for (auto it = begin() + pos; first != last;  ++it, ++first) {
-		//	*it = *first;
-		//}
+		size_type n = std::abs(std::distance(first, last));
+		if (pos >= size_ && pos + n < capacity_) {
+			pointer p = end();
+			tail_ = (tail_ + pos + n - size_) % capacity_;
+			for (size_t i = size_; i < pos; ++i, ++p) {
+				std::allocator_traits<Allocator>::construct(alloc_, p, T());
+			}
+			for (; first != last; ++first, ++p) {
+				std::allocator_traits<Allocator>::construct(alloc_, p, *first);
+			}
+			size_ = pos + n;
+			return;
+		}
+		if (n >= capacity_) {
+			assign(first, last);
+			return;
+		}
+		std::rotate(begin() + pos, end() - n, end());
+		for (auto it = begin() + pos; first != last; ++it, ++first) {
+			*it = *first;
+		}
 	}
-
+	//
 	template<std::input_iterator InputIter>
 	void insert_extend(size_type pos, InputIter first, InputIter last) {
 		size_t distance = std::distance(first, last);
@@ -436,18 +405,21 @@ public:
 		}
 		insert(pos, first, last);
 	}
+	//
 	template<std::input_iterator InputIter>
 	void insert(iterator pos, InputIter first, InputIter last) {
-		insert(pos.index_, first, last);
+		insert(pos - begin(), first, last);
 	}
+	//
 	template<std::input_iterator InputIter>
 	void insert_extend(iterator pos, InputIter first, InputIter last) {
-		insert_extend(pos.index_, first, last);
+		insert_extend(pos - begin(), first, last);
 	}
+	//
 	void insert(size_type pos, size_type n, const_reference value) {
-		if (pos + n >= size_ && pos + n < capacity_) {
+		if (pos >= size_ && pos + n < capacity_) {
 			pointer p = end();
-			tail_ += pos + n - size_;
+			tail_ = (tail_ + pos + n - size_) % capacity_;
 			for (size_t i = size_; i < pos; ++i, ++p) {
 				std::allocator_traits<Allocator>::construct(alloc_, p, T());
 			}
@@ -461,64 +433,100 @@ public:
 			assign(capacity_, value);
 			return;
 		}
-		std::rotate(begin(), begin() + (pos + n + 1) % size_, end());
+
+		std::rotate(begin() + pos, end() - n, end());
 		for (auto it = begin() + pos; it != begin() + (pos + n) % size_; ++it) {
 			*it = value;
 		}
 	}
+	//
 	void insert_extend(size_type pos, size_type n, const_reference value) {
-		if (pos >= size_ && pos + n >= capacity_) {
-			reserve(pos + n + 1);
+		if (size_ + n >= capacity_) {
+				reserve(size_ + n + 1);
 		}
-		if (size_ + n - 1 >= capacity_) {
-			reserve(size_ + n);
+		else if (pos + n + 1 >= capacity_) {
+			reserve(pos + n + 2);
 		}
 		insert(pos, n, value);
 		
 	}
+	//
 	void insert(iterator pos, size_type n, const_reference value) {
-		insert(pos.index_, n, value);
+		insert(pos - begin(), n, value);
 	}
-
+	//
+	void insert_extend(iterator pos, size_type n, const_reference value) {
+		insert_extend(pos - begin(), n, value);
+	}
+	//
+	void insert(size_type pos, const_reference value) {
+		insert(pos, 1, value);
+	}
+	//
+	void insert(iterator pos, const_reference value) {
+		insert(pos - begin(), value);
+	}
+	//
+	void insert_extend(size_type pos, const_reference value) {
+		if (pos >= capacity_) {
+			reserve(pos + 1);
+		}
+		else if (full()) {
+			reserve(capacity_ * 9 / 8 + 1);
+		}
+		insert(pos, value);
+	}
+	//
+	void insert_extend(iterator pos, const_reference value) {
+		insert_extend(pos - begin(), value);
+	}
+	//
 	iterator erase(size_type pos) {
 		for (auto it = begin() + pos; it != end(); ++it) {
 			*it = *(it + 1);
 		}
 		size_ -= 1;
-		tail_ = (tail_ == 0) ? size_ - 1 : tail_ - 1;
+		tail_ = (tail_ == 0) ? capacity_ - 1 : tail_ - 1;
 		return begin() + pos;
 	}
+	//
 	iterator erase(iterator pos) {
-		erase(pos.index_);
+		return erase(pos - begin());
 	}
-	iterator erase(size_type first, size_type last) {
+	//
+	iterator erase(iterator first, iterator last) {
+		size_t initial_pos = first.index_;
 		size_t del_volume = last - first;
 		if (del_volume >= size_) {
 			clear();
 			return begin();
 		}
-		for (auto it = begin() + first; it != begin() + last; ++it) {
-			*it = *(it + del_volume);
+		while (first != end()) {
+			*first = *(first + del_volume);
+			++first;
 		}
 		size_ = size_ - del_volume;
-		tail_ = (tail_ < del_volume) ? size_ + tail_ - del_volume : tail_ - del_volume;
-		return begin() + first;
+		tail_ = (tail_ < del_volume) ? capacity_ + tail_ - del_volume : tail_ - del_volume;
+		return begin() + initial_pos;
 	}
-	iterator erase(iterator first, iterator last) {
-		erase(first.index_, last.index_);
+	//
+	iterator erase(size_type first, size_type last) {
+		return erase(iterator(this, first), iterator(this, last));
 	}
+	//
 	void erase_begin(size_type n) {
 		if (n < size_) {
-			head_ = (head_ + n) % size_;
+			head_ = (head_ + n % size_) % capacity_;
 			size_ -= n;
 		}
 		else {
 			clear();
 		}
 	}
+	//
 	void erase_end(size_type n) {
 		if (n < size_) {
-			tail_ = (n <= tail_) ? tail_ - n : size_ - tail_ - n - 1;
+			tail_ = (n <= tail_) ? tail_ - n : capacity_ + tail_ - n;
 			size_ -= n;
 		}
 		else {
@@ -627,32 +635,34 @@ public:
 		}
 		//
 		Iterator& operator+=(difference_type i) {
-			size_type rel_index = (static_cast<size_type>(index_) >= instance_->head_) ? \
-				static_cast<size_type>(index_) - instance_->head_ : \
-				instance_->capacity_ - instance_->head_ + static_cast<size_type>(index_);
-			size_type dist = std::abs(i) % instance_->size_;
-			size_type pos = 0;
-			if (i >= 0) {
-				pos = (instance_->head_ + (rel_index + i) % instance_->size_) % instance_->capacity_;
-			}
-			else {
-				if (instance_->head_ < instance_->tail_) {
-					pos = (rel_index >= dist) ? rel_index - dist : instance_->tail_ + 1 + rel_index - dist;
+			if (i != 0) {
+				size_type rel_index = (static_cast<size_type>(index_) >= instance_->head_) ? \
+					static_cast<size_type>(index_) - instance_->head_ : \
+					instance_->capacity_ - instance_->head_ + static_cast<size_type>(index_);
+				size_type dist = std::abs(i) % instance_->size_;
+				size_type pos = 0;
+				if (i >= 0) {
+					pos = (instance_->head_ + (rel_index + i) % instance_->size_) % instance_->capacity_;
 				}
 				else {
-					pos = (static_cast<size_type>(index_) >= dist) ? index_ - dist : instance_->capacity_ + index_ - dist;      
+					if (instance_->head_ < instance_->tail_) {
+						pos = (rel_index >= dist) ? rel_index - dist : instance_->tail_ + 1 + rel_index - dist;
+					}
+					else {
+						pos = (static_cast<size_type>(index_) >= dist) ? index_ - dist : instance_->capacity_ + index_ - dist;
+					}
 				}
- 			}
-			if (i >= 0 && (static_cast<size_type>(i) + rel_index >= instance_->size_ || type_ == iter_type::TAIL)) {
-				type_ = iter_type::TAIL;
+				if (i >= 0 && (static_cast<size_type>(i) + rel_index >= instance_->size_ || type_ == iter_type::TAIL)) {
+					type_ = iter_type::TAIL;
+				}
+				else if (i < 0 && (static_cast<size_type>(std::abs(i)) >= rel_index || type_ == iter_type::HEAD)) {
+					type_ = iter_type::HEAD;
+				}
+				else {
+					type_ = iter_type::MID;
+				}
+				index_ = pos;
 			}
-			else if (i < 0 && (static_cast<size_type>(std::abs(i)) >= rel_index || type_ == iter_type::HEAD)) {
-				type_ = iter_type::HEAD;
-			}
-			else {
-				type_ = iter_type::MID;
-			}
-			index_ = pos;
 			return *this;
 		}
 		//
@@ -680,7 +690,18 @@ public:
 		}
 		//
 		difference_type operator-(Iterator const& rhs) const {
-			return (index_ >= rhs.index_) ? index_ - rhs.index_ : index_ + (instance_->size_ - rhs.index_);
+			if (index_ == rhs.index_) {
+				if (type_ == rhs.type_) {
+					return 0;
+				}
+				return instance_->size_;
+			}
+			return relative_index() - rhs.relative_index();
+		}
+		size_type relative_index() const {
+			return (static_cast<size_type>(index_) >= instance_->head_) ? \
+				static_cast<size_type>(index_) - instance_->head_ : \
+				instance_->capacity_ - instance_->head_ + static_cast<size_type>(index_);
 		}
 		//
 		bool operator==(Iterator const& other) const {
@@ -803,9 +824,7 @@ public:
 		}
 		//
 		Reverse_iterator& operator+=(difference_type i) {
-			size_type rel_index = (static_cast<size_type>(iter_.index_) >= iter_.instance_->head_) ? \
-				static_cast<size_type>(iter_.index_) - iter_.instance_->head_ : \
-				iter_.instance_->capacity_ - iter_.instance_->head_ + static_cast<size_type>(iter_.index_);
+			size_type rel_index = iter_.relative_index();
 			size_type dist = std::abs(i) % iter_.instance_->size_;
 			difference_type old_index = iter_.index_;
 			iter_type old_type = iter_.type_;
@@ -895,6 +914,9 @@ public:
 	}
 	//
 	iterator end() {
+		if (empty()) {
+			return begin();
+		}
 		return iterator(this, tail_ + 1, iter_type::TAIL);
 	}
 	//
@@ -903,6 +925,9 @@ public:
 	}
 	//
 	const_iterator cend() {
+		if (empty()) {
+			return cbegin();
+		}
 		return const_iterator(this, tail_ + 1, iter_type::TAIL);
 	}
 	//
