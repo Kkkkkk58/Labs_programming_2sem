@@ -446,8 +446,8 @@ public:
 				operator[](size_) = value;
 			}
 			else {
-				size_ += 1;
 				operator[](size_ - 1) = value;
+				size_ += 1;
 			}
 			if (head_ == tail_) {
 				head_ = (head_ + 1) % capacity_;

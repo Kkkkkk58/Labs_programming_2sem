@@ -5,8 +5,8 @@
 
 namespace algorithms {
 
-	// Алгоритм all_of, возвращает true, если все элементы диапазона удовлетворяют
-	// некоторому предикату. Иначе false
+	// РђР»РіРѕСЂРёС‚Рј all_of, РІРѕР·РІСЂР°С‰Р°РµС‚ true, РµСЃР»Рё РІСЃРµ СЌР»РµРјРµРЅС‚С‹ РґРёР°РїР°Р·РѕРЅР° СѓРґРѕРІР»РµС‚РІРѕСЂСЏСЋС‚
+	// РЅРµРєРѕС‚РѕСЂРѕРјСѓ РїСЂРµРґРёРєР°С‚Сѓ. РРЅР°С‡Рµ false
 	template<std::input_iterator InputIt, typename Pred>
 	bool all_of(InputIt first, InputIt last, Pred func) {
 		while (first != last) {
@@ -18,8 +18,8 @@ namespace algorithms {
 		return true;
 	}
 
-	// Алгоритм any_of - возвращает true, если хотя бы один из элементов диапазона
-	// удовлетворяет некоторому предикату. Иначе false
+	// РђР»РіРѕСЂРёС‚Рј any_of - РІРѕР·РІСЂР°С‰Р°РµС‚ true, РµСЃР»Рё С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ РёР· СЌР»РµРјРµРЅС‚РѕРІ РґРёР°РїР°Р·РѕРЅР°
+	// СѓРґРѕРІР»РµС‚РІРѕСЂСЏРµС‚ РЅРµРєРѕС‚РѕСЂРѕРјСѓ РїСЂРµРґРёРєР°С‚Сѓ. РРЅР°С‡Рµ false
 	template<std::input_iterator InputIt, typename Pred>
 	bool any_of(InputIt first, InputIt last, Pred func) {
 		while (first != last) {
@@ -31,8 +31,8 @@ namespace algorithms {
 		return false;
 	}
 
-	// Алгоритм none_of - возвращает true, если все элементы диапазона не удовлетворяют
-	// некоторому предикату. Иначе false
+	// РђР»РіРѕСЂРёС‚Рј none_of - РІРѕР·РІСЂР°С‰Р°РµС‚ true, РµСЃР»Рё РІСЃРµ СЌР»РµРјРµРЅС‚С‹ РґРёР°РїР°Р·РѕРЅР° РЅРµ СѓРґРѕРІР»РµС‚РІРѕСЂСЏСЋС‚
+	// РЅРµРєРѕС‚РѕСЂРѕРјСѓ РїСЂРµРґРёРєР°С‚Сѓ. РРЅР°С‡Рµ false
 	template<std::input_iterator InputIt, typename Pred>
 	bool none_of(InputIt first, InputIt last, Pred func) {
 		while (first != last) {
@@ -44,8 +44,8 @@ namespace algorithms {
 		return true;
 	}
 
-	// Алгоритм one_of - возвращает true, если ровно один элемент диапазона удовлетворяет
-	// некоторому предикату. Иначе false
+	// РђР»РіРѕСЂРёС‚Рј one_of - РІРѕР·РІСЂР°С‰Р°РµС‚ true, РµСЃР»Рё СЂРѕРІРЅРѕ РѕРґРёРЅ СЌР»РµРјРµРЅС‚ РґРёР°РїР°Р·РѕРЅР° СѓРґРѕРІР»РµС‚РІРѕСЂСЏРµС‚
+	// РЅРµРєРѕС‚РѕСЂРѕРјСѓ РїСЂРµРґРёРєР°С‚Сѓ. РРЅР°С‡Рµ false
 	template<std::input_iterator InputIt, typename Pred>
 	bool one_of(InputIt first, InputIt last, Pred func) {
 		int counter = 0;
@@ -64,8 +64,8 @@ namespace algorithms {
 		return false;
 	}
 	
-	// Алгоритм is_sorted - возвращает true, если все элементы диапазона находятся в
-	// отсортированном порядке относительно некоторого критерия
+	// РђР»РіРѕСЂРёС‚Рј is_sorted - РІРѕР·РІСЂР°С‰Р°РµС‚ true, РµСЃР»Рё РІСЃРµ СЌР»РµРјРµРЅС‚С‹ РґРёР°РїР°Р·РѕРЅР° РЅР°С…РѕРґСЏС‚СЃСЏ РІ
+	// РѕС‚СЃРѕСЂС‚РёСЂРѕРІР°РЅРЅРѕРј РїРѕСЂСЏРґРєРµ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РЅРµРєРѕС‚РѕСЂРѕРіРѕ РєСЂРёС‚РµСЂРёСЏ
 	template<std::forward_iterator ForwardIt, typename Comp = std::less<>>
 	bool is_sorted(ForwardIt first, ForwardIt last, Comp func = Comp()) {
 		if (first != last) {
@@ -80,8 +80,8 @@ namespace algorithms {
 		return true;
 	}
 
-	// Алгоритм is_partitioned - возвращает true, если в диапазоне есть элемент, делящий все
-	// элементы на удовлетворяющие и не удовлетворяющие некоторому предикату. Иначе false.
+	// РђР»РіРѕСЂРёС‚Рј is_partitioned - РІРѕР·РІСЂР°С‰Р°РµС‚ true, РµСЃР»Рё РІ РґРёР°РїР°Р·РѕРЅРµ РµСЃС‚СЊ СЌР»РµРјРµРЅС‚, РґРµР»СЏС‰РёР№ РІСЃРµ
+	// СЌР»РµРјРµРЅС‚С‹ РЅР° СѓРґРѕРІР»РµС‚РІРѕСЂСЏСЋС‰РёРµ Рё РЅРµ СѓРґРѕРІР»РµС‚РІРѕСЂСЏСЋС‰РёРµ РЅРµРєРѕС‚РѕСЂРѕРјСѓ РїСЂРµРґРёРєР°С‚Сѓ. РРЅР°С‡Рµ false.
 	template<std::input_iterator InputIt, typename Pred>
 	bool is_partitioned(InputIt first, InputIt last, Pred func) {
 		if (first != last) {
@@ -106,7 +106,7 @@ namespace algorithms {
 		return true;
 	}
 
-	// Алгоритм find_not - находит первый элемент, не равный заданному
+	// РђР»РіРѕСЂРёС‚Рј find_not - РЅР°С…РѕРґРёС‚ РїРµСЂРІС‹Р№ СЌР»РµРјРµРЅС‚, РЅРµ СЂР°РІРЅС‹Р№ Р·Р°РґР°РЅРЅРѕРјСѓ
 	template<typename T, std::input_iterator InputIt>
 	InputIt find_not(InputIt first, InputIt last, T const& value) {
 		while (first != last) {
@@ -118,7 +118,7 @@ namespace algorithms {
 		return last;
 	}
 
-	// Алгоритм find_backward - находит первый элемент, равный заданному, с конца
+	// РђР»РіРѕСЂРёС‚Рј find_backward - РЅР°С…РѕРґРёС‚ РїРµСЂРІС‹Р№ СЌР»РµРјРµРЅС‚, СЂР°РІРЅС‹Р№ Р·Р°РґР°РЅРЅРѕРјСѓ, СЃ РєРѕРЅС†Р°
 	template<typename T, std::bidirectional_iterator BidirectIt>
 	BidirectIt find_backward(BidirectIt first, BidirectIt last, T const& value) {
 		BidirectIt last_iter = last;
@@ -132,8 +132,8 @@ namespace algorithms {
 		return last_iter;
 	}
 
-	// Алгоритм is_palindrome - возвращает true, если заданная последовательность является
-	// палиндромом относительно некоторого условия. Иначе false.
+	// РђР»РіРѕСЂРёС‚Рј is_palindrome - РІРѕР·РІСЂР°С‰Р°РµС‚ true, РµСЃР»Рё Р·Р°РґР°РЅРЅР°СЏ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚СЊ СЏРІР»СЏРµС‚СЃСЏ
+	// РїР°Р»РёРЅРґСЂРѕРјРѕРј РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РЅРµРєРѕС‚РѕСЂРѕРіРѕ СѓСЃР»РѕРІРёСЏ. РРЅР°С‡Рµ false.
 	template<std::bidirectional_iterator BidirectIt>
 	bool is_palindrome(BidirectIt first, BidirectIt last) {
 		if (first != last) {
@@ -149,8 +149,8 @@ namespace algorithms {
 		return true;
 	}
 
-	// Алгоритм is_palindrome - возвращает true, если заданная последовательность является
-	// палиндромом относительно некоторого условия. Иначе false.
+	// РђР»РіРѕСЂРёС‚Рј is_palindrome - РІРѕР·РІСЂР°С‰Р°РµС‚ true, РµСЃР»Рё Р·Р°РґР°РЅРЅР°СЏ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚СЊ СЏРІР»СЏРµС‚СЃСЏ
+	// РїР°Р»РёРЅРґСЂРѕРјРѕРј РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РЅРµРєРѕС‚РѕСЂРѕРіРѕ СѓСЃР»РѕРІРёСЏ. РРЅР°С‡Рµ false.
 	template<std::bidirectional_iterator BidirectIt, typename Pred>
 	bool is_palindrome(BidirectIt first, BidirectIt last, Pred func) {
 		if (first != last) {
