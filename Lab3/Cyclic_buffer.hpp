@@ -518,7 +518,22 @@ public:
 			assign(first, last);
 			return;
 		}
-		std::rotate(begin() + pos, end() - n, end());
+		if (full()) {
+			std::rotate(begin() + pos, end() - n, end());
+		}
+		else {
+			if (size_ + n > capacity_) {
+				lock.unlock();
+				resize(capacity_);
+				lock.lock();
+			}
+			else {
+				lock.unlock();
+				resize(size_ + n);
+				lock.lock();
+			}
+			std::rotate(begin() + pos, end() - n, end());
+		}
 		for (auto it = begin() + pos; first != last; ++it, ++first) {
 			*it = *first;
 		}
@@ -574,8 +589,22 @@ public:
 			assign(capacity_, value);
 			return;
 		}
-
-		std::rotate(begin() + pos, end() - n, end());
+		if (full()) {
+			std::rotate(begin() + pos, end() - n, end());
+		}
+		else {
+			if (size_ + n > capacity_) {
+				lock.unlock();
+				resize(capacity_);
+				lock.lock();
+			}
+			else {
+				lock.unlock();
+				resize(size_ + n);
+				lock.lock();
+			}
+			std::rotate(begin() + pos, end() - n, end());
+		}
 		for (auto it = begin() + pos; it != begin() + (pos + n) % size_; ++it) {
 			*it = value;
 		}
