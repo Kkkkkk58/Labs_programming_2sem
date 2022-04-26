@@ -750,7 +750,7 @@ public:
 				std::allocator_traits<Allocator>::construct(alloc_, p, *it);
 			}
 			lock.unlock();
-			destroy_data(capacity_);
+			destroy_data(size_);
 			lock.lock();
 			data_.reset(new_data);
 			capacity_ = new_capacity;
@@ -779,7 +779,7 @@ public:
 				}
 			}
 			lock.unlock();
-			destroy_data(capacity_);
+			destroy_data(size_);
 			lock.lock();
 			data_.reset(new_data);
 			capacity_ = size_ = new_size;
@@ -1349,7 +1349,7 @@ private:
 	void destroy_data(size_t n) {
 		write_lock lock(mutex_);
 		pointer p = data_.get();
-		for (size_t i = 0; i < n; ++i) {
+		for (size_t i = 0; i < n; ++i, ++p) {
 			std::allocator_traits<Allocator>::destroy(alloc_, p);
 		}
 	}

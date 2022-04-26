@@ -110,7 +110,7 @@ void buffer_test() {
 	twelve.push_front(289374);
 	twelve.replace(1, 5, 8);
 	std::vector<int> te{ -28, -28 };
-	
+
 	twelve.shrink_to_fit();
 	//twelve.insert(4, te.begin(), te.end());
 	twelve.insert_extend(4, te.begin(), te.end());
@@ -119,13 +119,14 @@ void buffer_test() {
 	}
 	Cyclic_buffer<int> asldk = { 28,2903,1,3,5,6,7,78,0 };
 	twelve.replace(twelve.begin() + 2, twelve.end(), asldk.begin(), asldk.end());
-	std::cout << "=================\n";
-	
+	std::cout << "================\n";
+
 	for (auto iter = twelve.begin(); iter != twelve.end(); iter -= -1) {
 		std::cout << *iter << "\n";
 	}
-	
-	std::cout << "===========================\n";
+
+	std::cout << "================\n";
+	std::transform(twelve.begin(), twelve.end(), twelve.begin(), [](int a) { return a * 99; });
 	auto rrit = twelve.end();
 	do {
 		--rrit;
@@ -135,21 +136,34 @@ void buffer_test() {
 	for (auto rit = twelve.rbegin(); rit != twelve.rend(); ++rit) {
 		std::cout << *rit << "\n";
 	}
-	std::cout << "=================\n";
+	std::cout << "================\n";
+	std::sort(twelve.begin(), twelve.end());
 	auto rrrit = twelve.rend();
 	do {
 		--rrrit;
 		std::cout << *rrrit << "\n";
 	} while (rrrit != twelve.rbegin());
-
+	std::cout << "================\n";
 	std::cout << std::boolalpha << twelve.contains(0) << " " << (twelve == twelve) << "\n";
+	std::cout << "================\n";
 	Cyclic_buffer<CPolygonal_chain> polys(12, 5, CPolygonal_chain({ {1, 2}, {3,5}, {10,0} }));
 	polys.shrink_to_fit();
 	polys.push_back(CPolygonal_chain({ {1,1}, {9,8} }));
 	for (auto const& c : polys) {
 		std::cout << c << "\n";
 	}
+	std::cout << "================\n";
+	std::array <CPolynomial<int>, 3> arr(CPolynomial<int>({1,2,5,7,98,2006}),
+		CPolynomial<int>({ 58,337,228,7,-3,200 }),
+		CPolynomial<int>({ 1,2 }));
+	Cyclic_buffer<CPolynomial<int>> polynomial_buff(arr.begin(), arr.end());
+	polynomial_buff.push_back(CPolynomial<int>());
+	for (auto pit = polynomial_buff.begin(); pit != polynomial_buff.end(); ++pit) {
+		std::cout << "CPolynomial " << *pit << "\nDerivative of 2 order: " << derivative(*pit, 2) <<
+			"\nEvaluation at 1: " << pit->evaluation(1) << "\n\n";
+	}
 }
+
 
 int main() {
 	std::cout << "Launching algorithms test...\n";
