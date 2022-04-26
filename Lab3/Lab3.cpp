@@ -21,6 +21,13 @@ bool ignore_case(char a, char b) {
 	return (tolower(a) <= tolower(b));
 }
 
+template<typename T>
+class Custom_deleter {
+public:
+	void operator()(T *value) {
+		std::cout << "Custom_deleter here\n";
+	}
+};
 
 void algo_test() {
 	Cyclic_buffer<int> v(10, 2);
@@ -156,7 +163,8 @@ void buffer_test() {
 	std::array <CPolynomial<int>, 3> arr(CPolynomial<int>({1,2,5,7,98,2006}),
 		CPolynomial<int>({ 58,337,228,7,-3,200 }),
 		CPolynomial<int>({ 1,2 }));
-	Cyclic_buffer<CPolynomial<int>> polynomial_buff(arr.begin(), arr.end());
+	Cyclic_buffer<CPolynomial<int>, std::pmr::polymorphic_allocator<CPolynomial<int>>, \
+		Custom_deleter<CPolynomial<int>>> polynomial_buff(arr.begin(), arr.end());
 	polynomial_buff.push_back(CPolynomial<int>());
 	for (auto pit = polynomial_buff.begin(); pit != polynomial_buff.end(); ++pit) {
 		std::cout << "CPolynomial " << *pit << "\nDerivative of 2 order: " << derivative(*pit, 2) <<
