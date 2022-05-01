@@ -6,3 +6,4 @@
 
 #include "gtest/gtest.h"
 #include "compiletime_polynomial.hpp"
+#include "polynomial.hpp"
