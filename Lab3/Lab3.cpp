@@ -1,6 +1,6 @@
-﻿#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
+﻿#include <stdlib.h>
 #include <crtdbg.h>
+#include <assert.h>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -112,7 +112,31 @@ void algo_test() {
 
 
 void buffer_test() {
-	Cyclic_buffer<int> twelve = { 0,0,1,2,3,4,5,6,7, 0 };
+	Cyclic_buffer<int> twelve;
+	assert(twelve.size() == 0);
+	for (int i = 0; i < 12; ++i) {
+		twelve.insert_extend(twelve.begin(), i + 1);
+	}
+	twelve.shrink_to_fit();
+	assert(twelve.full());
+	assert(twelve.size() == twelve.capacity());
+	assert(twelve.size() == 12);
+
+	Cyclic_buffer<int> clone(twelve.begin(), twelve.end());
+	assert(clone == twelve);
+
+	for (size_t i = 0; i < twelve.size(); ++i) {
+		std::cout << i << " " << twelve[i] << "\n";
+	}
+	std::cout << "================\n";
+
+	for (auto it = twelve.begin(); it != twelve.end(); ++it) {
+		twelve.erase(it);
+	}
+	assert(twelve.empty());
+
+	twelve.assign({ 0, 0, 1, 2, 3, 4, 5, 6, 7, 0 });
+	assert(twelve.size() == 10);
 	twelve.push_back(98);
 	twelve.push_front(289374);
 	twelve.replace(1, 5, 8);
@@ -139,20 +163,25 @@ void buffer_test() {
 		--rrit;
 		std::cout << *rrit << "\n";
 	} while (rrit != twelve.begin());
+
 	std::cout << "================\n";
 	for (auto rit = twelve.rbegin(); rit != twelve.rend(); ++rit) {
 		std::cout << *rit << "\n";
 	}
 	std::cout << "================\n";
+
 	std::sort(twelve.begin(), twelve.end());
+	assert(algorithms::is_sorted(twelve.begin(), twelve.end()));
 	auto rrrit = twelve.rend();
 	do {
 		--rrrit;
 		std::cout << *rrrit << "\n";
 	} while (rrrit != twelve.rbegin());
 	std::cout << "================\n";
-	std::cout << std::boolalpha << twelve.contains(0) << " " << (twelve == twelve) << "\n";
+
+	std::cout << std::boolalpha << twelve.contains(0) << " " << (twelve <= twelve && twelve >= twelve) << "\n";
 	std::cout << "================\n";
+
 	Cyclic_buffer<CPolygonal_chain> polys(12, 5, CPolygonal_chain({ {1, 2}, {3,5}, {10,0} }));
 	polys.shrink_to_fit();
 	polys.push_back(CPolygonal_chain({ {1,1}, {9,8} }));
@@ -160,12 +189,15 @@ void buffer_test() {
 		std::cout << c << "\n";
 	}
 	std::cout << "================\n";
+
 	std::array <CPolynomial<int>, 3> arr(CPolynomial<int>({1,2,5,7,98,2006}),
 		CPolynomial<int>({ 58,337,228,7,-3,200 }),
 		CPolynomial<int>({ 1,2 }));
+
 	Cyclic_buffer<CPolynomial<int>, std::pmr::polymorphic_allocator<CPolynomial<int>>, \
 		Custom_deleter<CPolynomial<int>>> polynomial_buff(arr.begin(), arr.end());
 	polynomial_buff.push_back(CPolynomial<int>());
+
 	for (auto pit = polynomial_buff.begin(); pit != polynomial_buff.end(); ++pit) {
 		std::cout << "CPolynomial " << *pit << "\nDerivative of 2 order: " << derivative(*pit, 2) <<
 			"\nEvaluation at 1: " << pit->evaluation(1) << "\n\n";
