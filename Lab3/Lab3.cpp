@@ -121,6 +121,7 @@ void buffer_test() {
 	assert(twelve.full());
 	assert(twelve.size() == twelve.capacity());
 	assert(twelve.size() == 12);
+	assert(twelve.end() - twelve.begin() == twelve.size());
 
 	Cyclic_buffer<int> clone(twelve.begin(), twelve.end());
 	assert(clone == twelve);
@@ -162,10 +163,12 @@ void buffer_test() {
 	do {
 		--rrit;
 		std::cout << *rrit << "\n";
+		//*rrit = 98;
 	} while (rrit != twelve.begin());
 
 	std::cout << "================\n";
-	for (auto rit = twelve.rbegin(); rit != twelve.rend(); ++rit) {
+	for (auto rit = twelve.crbegin(); rit != twelve.crend(); ++rit) {
+		//*rit = 5;
 		std::cout << *rit << "\n";
 	}
 	std::cout << "================\n";
