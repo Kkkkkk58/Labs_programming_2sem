@@ -28,19 +28,20 @@ public:
 	class Iterator;
 	template<typename Iter>
 	class Reverse_iterator;
-	typedef T value_type;	
-	typedef size_t size_type;
-	typedef ptrdiff_t difference_type;
-	typedef T& reference;
-	typedef T const& const_reference;
-	typedef typename std::allocator_traits<Allocator>::pointer pointer;
-	typedef typename std::allocator_traits<Allocator>::const_pointer const_pointer;
-	typedef Allocator allocator_type;
-	typedef Deleter deleter_type;
-	typedef Iterator<value_type> iterator;
-	typedef Iterator<const value_type> const_iterator;
-	typedef Reverse_iterator<iterator> reverse_iterator;
-	typedef Reverse_iterator<const_iterator> const_reverse_iterator;
+
+	using value_type			 = T;
+	using size_type				 = size_t;
+	using difference_type		 = ptrdiff_t;
+	using reference				 = T&;
+	using const_reference        = T const&;
+	using pointer                = typename std::allocator_traits<Allocator>::pointer;
+	using const_pointer          = typename std::allocator_traits<Allocator>::const_pointer;
+	using allocator_type         = Allocator;
+	using deleter_type           = Deleter;
+	using iterator               = Iterator<value_type>;
+	using const_iterator         = Iterator<const value_type>;
+	using reverse_iterator       = Reverse_iterator<iterator>;
+	using const_reverse_iterator = Reverse_iterator<const_iterator>;
 
 	// Конструктор класса от двух входных итераторов, аллокатора по умолчанию, очистителя по умолчанию
 	template<std::input_iterator InputIter>

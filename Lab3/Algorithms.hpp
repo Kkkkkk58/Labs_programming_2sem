@@ -9,6 +9,7 @@ namespace algorithms {
 	// некоторому предикату. Иначе false
 	template<std::input_iterator InputIt, typename Pred>
 	bool all_of(InputIt first, InputIt last, Pred func) {
+		// Простая проверка всех элементов
 		while (first != last) {
 			if (!func(*first)) {
 				return false;
@@ -22,6 +23,7 @@ namespace algorithms {
 	// удовлетворяет некоторому предикату. Иначе false
 	template<std::input_iterator InputIt, typename Pred>
 	bool any_of(InputIt first, InputIt last, Pred func) {
+		// Проверка до первого найденного
 		while (first != last) {
 			if (func(*first)) {
 				return true;
@@ -35,6 +37,7 @@ namespace algorithms {
 	// некоторому предикату. Иначе false
 	template<std::input_iterator InputIt, typename Pred>
 	bool none_of(InputIt first, InputIt last, Pred func) {
+		// Проверка до первого найденного
 		while (first != last) {
 			if (func(*first)) {
 				return false;
@@ -50,7 +53,9 @@ namespace algorithms {
 	bool one_of(InputIt first, InputIt last, Pred func) {
 		int counter = 0;
 		while (first != last) {
+			// Если элемент удовлетворяет предикату
 			if (func(*first)) {
+				// Если этот элемент не единственный в своём роде
 				if (counter != 0) {
 					return false;
 				}
@@ -70,6 +75,7 @@ namespace algorithms {
 	bool is_sorted(ForwardIt first, ForwardIt last, Comp func = Comp()) {
 		if (first != last) {
 			ForwardIt curr = first;
+			// Сравнение с предыдущими элементами
 			while (++curr != last) {
 				if (func(*curr, *first)) {
 					return false;
@@ -93,6 +99,7 @@ namespace algorithms {
 				}
 				++first;
 			}
+			// Если значение предиката на всех элементах одинаково
 			if (first == last) {
 				return false;
 			}
@@ -109,6 +116,7 @@ namespace algorithms {
 	// Алгоритм find_not - находит первый элемент, не равный заданному
 	template<typename T, std::input_iterator InputIt>
 	InputIt find_not(InputIt first, InputIt last, T const& value) {
+		// Проверка всех элементов до первого, не удовлетворяющего условию
 		while (first != last) {
 			if (*first != value) {
 				return first;
@@ -121,6 +129,7 @@ namespace algorithms {
 	// Алгоритм find_backward - находит первый элемент, равный заданному, с конца
 	template<typename T, std::bidirectional_iterator BidirectIt>
 	BidirectIt find_backward(BidirectIt first, BidirectIt last, T const& value) {
+		// Проход от конца до начала
 		BidirectIt last_iter = last;
 		if (first != last) {
 			while (--last != first) {
