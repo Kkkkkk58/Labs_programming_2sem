@@ -1094,11 +1094,11 @@ public:
 	template<typename Iter>
 	class Reverse_iterator {
 	public:
-		typedef std::random_access_iterator_tag iterator_category;
-		typedef typename Iter::value_type value_type;
-		typedef Iter::difference_type difference_type;
-		typedef typename Iter::pointer pointer;
-		typedef typename Iter::reference reference;
+		using iterator_category = std::random_access_iterator_tag;
+		using value_type        = typename Iter::value_type;
+		using difference_type   = typename Iter::difference_type;
+		using pointer           = typename Iter::pointer;
+		using reference         = typename Iter::reference;
 
 		// Конструктор класса от обычного итератора
 		explicit Reverse_iterator(Iter iter) : iter_(iter.instance_, \
