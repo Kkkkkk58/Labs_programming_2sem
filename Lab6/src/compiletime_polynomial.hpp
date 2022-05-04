@@ -3,40 +3,40 @@
 #include <iostream>
 #include "polynomial.hpp"
 
-// Объявление шаблонного класса полинома
+// РћР±СЉСЏРІР»РµРЅРёРµ С€Р°Р±Р»РѕРЅРЅРѕРіРѕ РєР»Р°СЃСЃР° РїРѕР»РёРЅРѕРјР°
 template<int ...Args>
 class CTPolynomial;
 
-// Объявление метафункции, рассчитывающей значение полинома в точке
+// РћР±СЉСЏРІР»РµРЅРёРµ РјРµС‚Р°С„СѓРЅРєС†РёРё, СЂР°СЃСЃС‡РёС‚С‹РІР°СЋС‰РµР№ Р·РЅР°С‡РµРЅРёРµ РїРѕР»РёРЅРѕРјР° РІ С‚РѕС‡РєРµ
 template<int V, typename Polynomial>
 class Evaluation;
 
-// Объявление метафункции, рассчитывающей значение производной от функции, заданной полиномом, в точке
+// РћР±СЉСЏРІР»РµРЅРёРµ РјРµС‚Р°С„СѓРЅРєС†РёРё, СЂР°СЃСЃС‡РёС‚С‹РІР°СЋС‰РµР№ Р·РЅР°С‡РµРЅРёРµ РїСЂРѕРёР·РІРѕРґРЅРѕР№ РѕС‚ С„СѓРЅРєС†РёРё, Р·Р°РґР°РЅРЅРѕР№ РїРѕР»РёРЅРѕРјРѕРј, РІ С‚РѕС‡РєРµ
 template<int Value, int Degree, typename Polynomial>
 class Derivative;
 
-// Объявление метафункции, рассчитывающей значение определённого интеграла
-// от функции, заданной полиномом, в соответствии с заданными пределами интегрирования
+// РћР±СЉСЏРІР»РµРЅРёРµ РјРµС‚Р°С„СѓРЅРєС†РёРё, СЂР°СЃСЃС‡РёС‚С‹РІР°СЋС‰РµР№ Р·РЅР°С‡РµРЅРёРµ РѕРїСЂРµРґРµР»С‘РЅРЅРѕРіРѕ РёРЅС‚РµРіСЂР°Р»Р°
+// РѕС‚ С„СѓРЅРєС†РёРё, Р·Р°РґР°РЅРЅРѕР№ РїРѕР»РёРЅРѕРјРѕРј, РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРё СЃ Р·Р°РґР°РЅРЅС‹РјРё РїСЂРµРґРµР»Р°РјРё РёРЅС‚РµРіСЂРёСЂРѕРІР°РЅРёСЏ
 template<int LowerBound, int UpperBound, int Degree, typename Polynomial>
 class Integral;
 
-// Метафункция, рассчитывающая степень полинома
+// РњРµС‚Р°С„СѓРЅРєС†РёСЏ, СЂР°СЃСЃС‡РёС‚С‹РІР°СЋС‰Р°СЏ СЃС‚РµРїРµРЅСЊ РїРѕР»РёРЅРѕРјР°
 template<typename Polynomial>
 class Degree {
 public:
 	static const int value = 1 + Degree<typename Polynomial::Shifted>::value;
 };
 
-// Частная специализация шаблонного класса Degree - база для случая пустого полинома
+// Р§Р°СЃС‚РЅР°СЏ СЃРїРµС†РёР°Р»РёР·Р°С†РёСЏ С€Р°Р±Р»РѕРЅРЅРѕРіРѕ РєР»Р°СЃСЃР° Degree - Р±Р°Р·Р° РґР»СЏ СЃР»СѓС‡Р°СЏ РїСѓСЃС‚РѕРіРѕ РїРѕР»РёРЅРѕРјР°
 template<>
 class Degree<CTPolynomial<>> {
 public:
-	// Степень пустого полинома = -1
+	// РЎС‚РµРїРµРЅСЊ РїСѓСЃС‚РѕРіРѕ РїРѕР»РёРЅРѕРјР° = -1
 	static const int value = -1;
 };
 
 
-// Частная специализация класса полинома для случая без коэффициентов
+// Р§Р°СЃС‚РЅР°СЏ СЃРїРµС†РёР°Р»РёР·Р°С†РёСЏ РєР»Р°СЃСЃР° РїРѕР»РёРЅРѕРјР° РґР»СЏ СЃР»СѓС‡Р°СЏ Р±РµР· РєРѕСЌС„С„РёС†РёРµРЅС‚РѕРІ
 template<>
 class CTPolynomial<> {
 public:
@@ -55,28 +55,28 @@ public:
 	}
 };
 
-// Частная специализация класса Evaluation для случая пустого полинома - база рекурсии
+// Р§Р°СЃС‚РЅР°СЏ СЃРїРµС†РёР°Р»РёР·Р°С†РёСЏ РєР»Р°СЃСЃР° Evaluation РґР»СЏ СЃР»СѓС‡Р°СЏ РїСѓСЃС‚РѕРіРѕ РїРѕР»РёРЅРѕРјР° - Р±Р°Р·Р° СЂРµРєСѓСЂСЃРёРё
 template<int V>
 class Evaluation<V, CTPolynomial<>> {
 public:
 	static const long long value = 0;
 };
 
-// Частная специализация класса Derivative для случая пустого полинома - база рекурсии
+// Р§Р°СЃС‚РЅР°СЏ СЃРїРµС†РёР°Р»РёР·Р°С†РёСЏ РєР»Р°СЃСЃР° Derivative РґР»СЏ СЃР»СѓС‡Р°СЏ РїСѓСЃС‚РѕРіРѕ РїРѕР»РёРЅРѕРјР° - Р±Р°Р·Р° СЂРµРєСѓСЂСЃРёРё
 template<int V, int Degree>
 class Derivative<V, Degree, CTPolynomial<>> {
 public:
 	static const long long value = 0;
 };
 
-// Частная специализация класса Integral для случая пустого полинома - база рекурсии
+// Р§Р°СЃС‚РЅР°СЏ СЃРїРµС†РёР°Р»РёР·Р°С†РёСЏ РєР»Р°СЃСЃР° Integral РґР»СЏ СЃР»СѓС‡Р°СЏ РїСѓСЃС‚РѕРіРѕ РїРѕР»РёРЅРѕРјР° - Р±Р°Р·Р° СЂРµРєСѓСЂСЃРёРё
 template<int LowerBound, int UpperBound, int Degree>
 class Integral<LowerBound, UpperBound, Degree, CTPolynomial<>> {
 public:
 	inline static const double value = 0;
 };
 
-// Частная специализация класса CTPolynomial для полинома с коэффициентами
+// Р§Р°СЃС‚РЅР°СЏ СЃРїРµС†РёР°Р»РёР·Р°С†РёСЏ РєР»Р°СЃСЃР° CTPolynomial РґР»СЏ РїРѕР»РёРЅРѕРјР° СЃ РєРѕСЌС„С„РёС†РёРµРЅС‚Р°РјРё
 template<int FirstElement, int... Rest>
 class CTPolynomial<FirstElement, Rest...> {
 public:
@@ -161,14 +161,14 @@ public:
 	}
 };
 
-// Частная специализация класса Evaluation для полинома с коэффициентами
+// Р§Р°СЃС‚РЅР°СЏ СЃРїРµС†РёР°Р»РёР·Р°С†РёСЏ РєР»Р°СЃСЃР° Evaluation РґР»СЏ РїРѕР»РёРЅРѕРјР° СЃ РєРѕСЌС„С„РёС†РёРµРЅС‚Р°РјРё
 template<int V, int FirstElement, int... Rest>
 class Evaluation<V, CTPolynomial<FirstElement, Rest...>> {
 public:
 	static const long long value = FirstElement + V * Evaluation<V, CTPolynomial<Rest...>>::value;
 };
 
-// Частная специализация класса Derivative для полинома с коэффициентами
+// Р§Р°СЃС‚РЅР°СЏ СЃРїРµС†РёР°Р»РёР·Р°С†РёСЏ РєР»Р°СЃСЃР° Derivative РґР»СЏ РїРѕР»РёРЅРѕРјР° СЃ РєРѕСЌС„С„РёС†РёРµРЅС‚Р°РјРё
 template<int V, int Degree, int FirstElement, int... Rest>
 class Derivative<V, Degree, CTPolynomial<FirstElement, Rest...>> {
 public:
@@ -176,21 +176,21 @@ public:
 		+ V * Derivative<V, Degree, CTPolynomial<Rest...>>::value;
 };
 
-// Метафункция Pow для возведения числа в неотрицательную степень
+// РњРµС‚Р°С„СѓРЅРєС†РёСЏ Pow РґР»СЏ РІРѕР·РІРµРґРµРЅРёСЏ С‡РёСЃР»Р° РІ РЅРµРѕС‚СЂРёС†Р°С‚РµР»СЊРЅСѓСЋ СЃС‚РµРїРµРЅСЊ
 template<int Value, int Degree>
 class Pow {
 public:
 	static const long long value = Value * Pow<Value, Degree - 1>::value;
 };
 
-// Частная специализация класса Pow для возведения в нулевую степень - база рекурсии
+// Р§Р°СЃС‚РЅР°СЏ СЃРїРµС†РёР°Р»РёР·Р°С†РёСЏ РєР»Р°СЃСЃР° Pow РґР»СЏ РІРѕР·РІРµРґРµРЅРёСЏ РІ РЅСѓР»РµРІСѓСЋ СЃС‚РµРїРµРЅСЊ - Р±Р°Р·Р° СЂРµРєСѓСЂСЃРёРё
 template<int Value>
 class Pow<Value, 0> {
 public:
 	static const long long value = 1;
 };
 
-// Частная специализация класса Integral для полинома с коэффициентами
+// Р§Р°СЃС‚РЅР°СЏ СЃРїРµС†РёР°Р»РёР·Р°С†РёСЏ РєР»Р°СЃСЃР° Integral РґР»СЏ РїРѕР»РёРЅРѕРјР° СЃ РєРѕСЌС„С„РёС†РёРµРЅС‚Р°РјРё
 template<int LowerBound, int UpperBound, int Degree, int FirstElement, int... Rest>
 class Integral<LowerBound, UpperBound, Degree, CTPolynomial<FirstElement, Rest...>> {
 public:
@@ -199,14 +199,14 @@ public:
 		Integral<LowerBound, UpperBound, Degree, CTPolynomial<Rest...>>::value;
 };
 
-// Перегрузка оператора вывода в поток полинома
+// РџРµСЂРµРіСЂСѓР·РєР° РѕРїРµСЂР°С‚РѕСЂР° РІС‹РІРѕРґР° РІ РїРѕС‚РѕРє РїРѕР»РёРЅРѕРјР°
 template<int... Args>
 std::ostream& operator<<(std::ostream& os, CTPolynomial<Args...> const& poly) {
 	poly.print(os);
 	return os;
 }
 
-// Внешняя функция вывода в поток для полинома
+// Р’РЅРµС€РЅСЏСЏ С„СѓРЅРєС†РёСЏ РІС‹РІРѕРґР° РІ РїРѕС‚РѕРє РґР»СЏ РїРѕР»РёРЅРѕРјР°
 template<int... Args>
 void print(std::ostream& os, CTPolynomial<Args...> const& poly) {
 	if constexpr (sizeof...(Args) == 0) {
