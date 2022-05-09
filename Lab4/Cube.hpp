@@ -5,10 +5,11 @@
 #include <string>
 #include <iterator>
 #include <Windows.h>
+#include <regex>
 
 class Cubie {
 public:
-	enum class Colours {
+	enum class Colours : char {
 		WHITE, GREEN, YELLOW, BLUE, RED, ORANGE
 	};
 	Cubie() : colour_(Colours::WHITE) {}
@@ -29,7 +30,7 @@ public:
 		using std::swap;
 		swap(colour_, other.colour_);
 	}
-	Cubie(Cubie&& other) {
+	Cubie(Cubie&& other) noexcept {
 		swap(other);
 	}
 	Cubie& operator=(Cubie const& other) {
@@ -38,7 +39,7 @@ public:
 		}
 		return *this;
 	}
-	Cubie& operator=(Cubie&& other) {
+	Cubie& operator=(Cubie&& other) noexcept {
 		swap(other);
 		return *this;
 	}
@@ -60,7 +61,7 @@ std::ostream& operator<<(std::ostream& os, Cubie::Colours c) {
 	case Cubie::Colours::RED: /*SetConsoleTextAttribute(handle, FOREGROUND_RED);*/os << "R"; break;
 	case Cubie::Colours::BLUE: /*SetConsoleTextAttribute(handle, FOREGROUND_BLUE);*/ os << "B"; break;
 	case Cubie::Colours::ORANGE: /*SetConsoleTextAttribute(handle, FOREGROUND_RED);*/ os << "O"; break;
-	//case Cubie::Colours::BLACK: os << "*"; break;
+		//case Cubie::Colours::BLACK: os << "*"; break;
 	}
 	return os;
 }
@@ -105,14 +106,14 @@ std::ostream& operator<<(std::ostream& os, Cubie::Colours c) {
 class Face {
 public:
 	using Row = std::array<Cubie, 3>;
-	enum class Type {
+	enum class Type : char {
 		UP, LEFT, FRONT, RIGHT, BACK, DOWN
 	};
 	Face() : cubies_(), type_(Type::DOWN) {}
 	template<std::input_iterator InputIt>
 	Face(InputIt first, InputIt last, Type type) : cubies_(first, last), type_(type) {}
 	Face(std::array<std::array<Cubie, 3>, 3> const& cubies, Type type) : cubies_(cubies), type_(type) {}
-	Face(Cubie ul, Cubie um, Cubie ur, Cubie ml, Cubie mm, Cubie mr, Cubie dl, Cubie dm, Cubie dr, Type type) 
+	Face(Cubie ul, Cubie um, Cubie ur, Cubie ml, Cubie mm, Cubie mr, Cubie dl, Cubie dm, Cubie dr, Type type)
 		: cubies_({ Row{ul, um, ur}, Row{ml, mm, mr}, Row{dl, dm, dr} }), type_(type) {}
 	~Face() = default;
 	Face(Face const& other) : cubies_(other.cubies_), type_(other.type_) {}
@@ -121,7 +122,7 @@ public:
 		swap(cubies_, other.cubies_);
 		swap(type_, other.type_);
 	}
-	Face(Face&& other) : cubies_(std::move(other.cubies_)) {}
+	Face(Face&& other) noexcept : cubies_(std::move(other.cubies_)), type_(other.type_) {}
 	Face& operator=(Face const& other) {
 		if (this != &other) {
 			cubies_ = other.cubies_;
@@ -129,7 +130,7 @@ public:
 		}
 		return *this;
 	}
-	Face& operator=(Face&& other) {
+	Face& operator=(Face&& other) noexcept {
 		swap(other);
 		return *this;
 	}
@@ -181,8 +182,8 @@ public:
 		}
 		else {
 			cubies_ = { Row{cubies_[0][2], cubies_[1][2], cubies_[2][2]}, \
-			Row{cubies_[0][1], cubies_[1][1], cubies_[2][1]},
-			Row{cubies_[0][0], cubies_[1][0], cubies_[2][0]} };
+						Row{cubies_[0][1], cubies_[1][1], cubies_[2][1]},
+						Row{cubies_[0][0], cubies_[1][0], cubies_[2][0]} };
 		}
 	}
 	void set_type(Type type) {
@@ -194,7 +195,7 @@ public:
 	bool is_solved() const {
 		Cubie::Colours colour = main_colour();
 		return std::all_of(cubies_.begin(), cubies_.end(), [&](Row const& r) {\
-			return std::all_of(r.begin(), r.end(), [&](Cubie const& c) { return c.colour() == colour; }); 
+			return std::all_of(r.begin(), r.end(), [&](Cubie const& c) { return c.colour() == colour; });
 			});
 	}
 	void read_sequence() {
@@ -245,8 +246,8 @@ public:
 			throw std::invalid_argument("Invalid state");
 		}
 	}
-	Cube(Face const& up, Face const& left, Face const& front, Face const& right, Face const& back, Face const& down) 
-	: faces_({up, left, front, right, back, down}) {
+	Cube(Face const& up, Face const& left, Face const& front, Face const& right, Face const& back, Face const& down)
+		: faces_({ up, left, front, right, back, down }) {
 		if (!is_valid()) {
 			throw std::invalid_argument("Invalid state");
 		}
@@ -265,11 +266,11 @@ public:
 	}
 	~Cube() = default;
 	Cube(Cube const& other) : faces_(other.faces_) {}
-	void swap(Cube &other) {
+	void swap(Cube& other) {
 		using std::swap;
 		swap(faces_, other.faces_);
 	}
-	Cube(Cube&& other) : faces_(std::move(other.faces_)) {}
+	Cube(Cube&& other) noexcept : faces_(std::move(other.faces_)) {}
 	void flip(char axis, char direction, size_t times = 1) {
 		times %= 4;
 
@@ -305,6 +306,7 @@ public:
 		case 'X':
 			switch (direction) {
 			case 'L':
+				std::cout << "FLIP\n";
 				for (size_t i = 0; i < times; ++i) {
 					flip_left_x();
 				}
@@ -349,6 +351,23 @@ public:
 		default: throw std::invalid_argument("Unknown parameter");
 		}
 	}
+	void rotate(char direction, bool clockwise = true, size_t times = 1) {
+		switch (direction) {
+		case 'U': case 'u':
+		case 'D': case 'd':
+			horizontal_move(direction, clockwise, times);
+			break;
+		case 'L': case 'l':
+		case 'R': case 'r':
+			side_move(direction, clockwise, times);
+			break;
+		case 'F': case 'f':
+		case 'B': case 'b':
+			facing_move(direction, clockwise, times);
+			break;
+		default: throw std::invalid_argument("Cannot perform this move");
+		}
+	}
 	friend std::ostream& operator<<(std::ostream& os, Cube const& cube) {
 		for (size_t i = 0; i < 3; ++i) {
 			std::cout << "\n\t";
@@ -369,50 +388,119 @@ public:
 			}
 		}
 		for (size_t i = 0; i < 3; ++i) {
-			
+
 			std::cout << "\n\t";
 			for (size_t j = 0; j < 3; ++j) {
-				std::cout << cube.faces_[5][i][j].colour() << " ";
+				std::cout << cube.faces_[5][2 - i][2 - j].colour() << " ";
 			}
 		}
 		return os;
 	}
-
-	void print_scramble(std::ostream &os) {	}
-	void print_scramble(std::string const& filename) {	}
-	void read_scramble(std::ostream& os) {}
-	void read_scramble(std::string const& filename) {}
-	void read_sweep(std::ostream& os) {}
-	void read_sweep(std::string const& filename) {}
-	void read_sequence(std::ostream &os) {}
-	void read_sequence(std::string const& sequence) {
-		for (size_t i = 0; i < 6; ++i) {
-			for (size_t j = 0; j < 3; ++j) {
-				for (size_t k = 0; k < 3; ++k) {
-					faces_[i][j][k] = sequence[i * 6 + j * 3 + k];
-				}
-			}
-		}
-	}
+	// TODO:
+	//void print_scramble(std::ostream &os) {}
+	//void print_scramble(std::string const& filename) {}
+	//void read_scramble(std::ostream& os) {}
+	//void read_scramble(std::string const& filename) {}
+	//void read_sweep(std::ostream& os) {}
+	//void read_sweep(std::string const& filename) {}
+	//void read_sequence(std::ostream &os) {}
 	bool is_solved() const {
 		return std::all_of(faces_.begin(), faces_.end(), [](Face const& f) { return f.is_solved(); });
 	}
 
-	//friend std::istream& operator>>(std::istream& is, Cube& cube) {
-	//	while (is.good()) {
-	//		Face 
-	//	}
-	//}
+	friend std::istream& operator>>(std::istream& is, Cube& cube) {
+		std::string init;
+		is >> init;
+		cube.read_sequence(init);
+		return is;
+	}
+
+	void setup(std::string const& scramble) {
+		std::regex command_template("([UuDdLlRrFfBbxXyYzZeEsS])([1-9]+)?(')?");
+		std::sregex_iterator rit(scramble.begin(), scramble.end(), command_template);
+		std::sregex_iterator rend;
+		while (rit != rend) {
+			char direction = std::string((*rit)[1])[0];
+			bool clockwise = (std::string((*rit)[3]).length() == 0) ? true : false;
+			size_t times = (std::string((*rit)[2]).length()) ? std::stoi((*rit)[2]) : 1;
+			if (direction == 'y') {
+				flip('X', 'L');
+			}// z->yr;   y -> xl; x->zu
+			else if (direction == 'x') {
+				flip('Z', 'D');
+			}
+			else {
+				rotate(direction, clockwise, times);
+			}
+			//std::cout << "Performed rotation " << direction << " " << clockwise << " " << times << "\n"
+			//	<< *this << "\n";
+			++rit;
+		}
+	}
 private:
 	std::array<Face, 6> faces_;
+	enum Faces_order {
+		UP, LEFT, FRONT, RIGHT, BACK, DOWN
+	};
+	enum Rotation : bool {
+		COUNTERCLOCKWISE, CLOCKWISE
+	};
+	//enum Rotation_dir {
+	//	UP = 'U', DOWN = 'D', LEFT = 'L', RIGHT = 'R', BACK = 'B', FRONT = 'F'
+	//};
+	void horizontal_move(char direction, bool clockwise, size_t times = 1) {
+		Faces_order order = (direction == 'U' || direction == 'u') ? UP : DOWN;
+		times %= 4;
+		for (size_t i = 0; i < times; ++i) {
+			faces_[order].rotate(clockwise);
+		}
+		std::array<Face::Row, 4> layer = { faces_[LEFT][order % 3], faces_[FRONT][order % 3], faces_[RIGHT][order % 3], faces_[BACK][order % 3] };
+		times %= 4;
+		if (order == UP && clockwise || order == DOWN && !clockwise) {
+			std::rotate(layer.begin(), layer.begin() + times, layer.end());
+		}
+		else {
+			std::rotate(layer.begin(), layer.begin() + (4 - times), layer.end());
+		}
+		for (size_t i = LEFT; i <= BACK; ++i) {
+			faces_[i][order % 3] = layer[i - 1];
+		}
+
+	}
+
+	void side_move(char direction, bool clockwise, size_t times) {
+		char anti_direction = (direction == 'L' || direction == 'l') ? 'R' : 'L';
+		flip('Y', anti_direction);
+		horizontal_move('U', clockwise, times);
+		flip('Y', direction);
+	}
+
+	void facing_move(char direction, bool clockwise, size_t times) {
+		char flip_direction = (direction == 'F' || direction == 'f') ? 'U' : 'D';
+		char reverse_flip_direction = (flip_direction == 'U') ? 'D' : 'U';
+		flip('Z', flip_direction);
+		horizontal_move('U', clockwise, times);
+		flip('Z', reverse_flip_direction);
+	}
+	void read_sequence(std::string const& sequence) {
+		size_t stri = 0;;
+		for (size_t i = 0; i < 6; ++i) {
+			for (size_t j = 0; j < 3; ++j) {
+				for (size_t k = 0; k < 3; ++k) {
+					faces_[i][j][k] = sequence[stri];
+					++stri;
+				}
+			}
+		}
+	}
 	bool is_valid() const {
 		return true;
 	}
 	void default_init() {
 		using C = Cubie::Colours;
-		faces_[UP] = Face({Face::Row{C::WHITE, C::WHITE, C::WHITE}, Face::Row{C::WHITE, C::WHITE, C::WHITE}, \
-		Face::Row{C::WHITE, C::WHITE, C::WHITE}}, Face::Type::UP);
-		faces_[DOWN] = Face({Face::Row{C::YELLOW, C::YELLOW, C::YELLOW}, Face::Row{C::YELLOW, C::YELLOW, C::YELLOW}, \
+		faces_[UP] = Face({ Face::Row{C::WHITE, C::WHITE, C::WHITE}, Face::Row{C::WHITE, C::WHITE, C::WHITE}, \
+		Face::Row{C::WHITE, C::WHITE, C::WHITE} }, Face::Type::UP);
+		faces_[DOWN] = Face({ Face::Row{C::YELLOW, C::YELLOW, C::YELLOW}, Face::Row{C::YELLOW, C::YELLOW, C::YELLOW}, \
 		Face::Row{C::YELLOW, C::YELLOW, C::YELLOW} }, Face::Type::DOWN);
 		faces_[LEFT] = Face({ Face::Row{C::GREEN, C::GREEN, C::GREEN}, Face::Row{C::GREEN, C::GREEN, C::GREEN}, \
 		Face::Row{C::GREEN, C::GREEN, C::GREEN } }, Face::Type::LEFT);
@@ -423,12 +511,6 @@ private:
 		faces_[BACK] = Face({ Face::Row{C::ORANGE, C::ORANGE, C::ORANGE}, Face::Row{C::ORANGE, C::ORANGE, C::ORANGE}, \
 		Face::Row{C::ORANGE, C::ORANGE, C::ORANGE } }, Face::Type::BACK);
 	}
-	enum Faces_order {
-		UP, LEFT, FRONT, RIGHT, BACK, DOWN
-	};
-	enum Rotation : bool {
-		COUNTERCLOCKWISE, CLOCKWISE
-	};
 	void flip_down() {
 		Face new_up = faces_[BACK].inverted(true);
 		new_up.set_type(Face::Type::UP);
@@ -486,7 +568,13 @@ private:
 	//}
 };
 
-Cube generate() { return Cube(); }
+class CubeGenerator {
+
+private:
+	Cube cube_;
+};
+
+
 
 
 #endif
