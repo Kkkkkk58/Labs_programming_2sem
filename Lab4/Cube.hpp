@@ -7,6 +7,7 @@
 #include <string>
 #include <iostream>
 #include <Windows.h>
+#include <regex>
 #include "CubeExceptions.hpp"
 
 
@@ -420,7 +421,21 @@ public:
 				[](CornerCubie const& corner) {return corner.get_orientation() == CornerCubie::Orientation::CORRECT; });
 	}
 
-	void setup(std::string const& scramble) {}
+	void rotate(std::string const& scramble) {
+		// TODO : Aho-Corasick ??
+		std::regex command_template("([UuDdLlRrFfBbxXyYzZeEsSmM])([1-9]+)?(')?");
+		std::sregex_iterator rit(scramble.begin(), scramble.end(), command_template);
+		std::sregex_iterator rend;
+	
+		while (rit != rend) {
+			char direction = std::string((*rit)[1])[0];
+			uint8_t times = (std::string((*rit)[2]).length()) ? std::stoi((*rit)[2]) : 1;
+			bool clockwise = (std::string((*rit)[3]).length() == 0) ? true : false;
+
+			perform(direction, clockwise, times);
+			++rit;
+		}
+	}
 private:
 	std::vector<CenterCubie> centers_;
 	std::vector<EdgeCubie> edges_;
@@ -449,11 +464,24 @@ private:
 	}
 
 	void init_corners(std::vector<Colour> const& colour) {
-		std::vector<std::vector<uint8_t>> indexes = { {0, 9, 38}, {2, 29, 36}, {8, 20, 27}, {6, 11, 18},
-													  {51, 15, 44}, {53, 35, 42}, {47, 26, 33}, {45, 17, 24} };
+		std::vector<std::vector<uint8_t>> indexes = { {0, 38, 9}, {2, 29, 36}, {8, 20, 27}, {6, 11, 18},
+													  {51, 15, 44}, {53, 42, 35}, {47, 33, 26}, {45, 24, 17} };
+		Colour top_colour = centers_[UP].get_colour(), bottom_colour = centers_[DOWN].get_colour();
+		
 		for (uint8_t i = Corners::UP_LEFT_BACK; i <= Corners::DOWN_LEFT_FRONT; ++i) {
-			//TODO: orientation ??
-			corners_[i] = CornerCubie(colour[indexes[i][0]], colour[indexes[i][1]], colour[indexes[i][2]]);
+			
+			CornerCubie::Orientation orientation;
+			if (colour[indexes[i][0]] == top_colour || colour[indexes[i][0]] == bottom_colour) {
+				orientation = CornerCubie::Orientation::CORRECT;
+			}
+			else if (colour[indexes[i][1]] == top_colour || colour[indexes[i][1]] == bottom_colour) {
+				orientation = CornerCubie::Orientation::CLOCKWISE;
+			}
+			else {
+				orientation = CornerCubie::Orientation::COUNTERCLOCKWISE;
+			}
+
+			corners_[i] = CornerCubie(colour[indexes[i][0]], colour[indexes[i][1]], colour[indexes[i][2]], orientation);
 		}
 	}
 
@@ -462,27 +490,100 @@ private:
 														{14, 21}, {12, 41}, {32, 39}, {30, 23},
 														{48, 16}, {52, 34}, {50, 34}, {46, 25} };
 		for (uint8_t i = Edges::UP_LEFT; i <= Edges::DOWN_FRONT; ++i) {
-			Faces checked_side;
+			Faces checked_side, opposite_side;
 			if (i <= Edges::UP_FRONT) {
 				checked_side = Faces::UP;
+				opposite_side = Faces::DOWN;
 			}
 			else if (i <= Edges::LEFT_BACK) {
 				checked_side = Faces::LEFT;
+				opposite_side = Faces::RIGHT;
 			}
 			else if (i <= Edges::RIGHT_FRONT) {
 				checked_side = Faces::RIGHT;
+				opposite_side = Faces::LEFT;
 			}
 			else {
 				checked_side = Faces::BACK;
+				opposite_side = Faces::FRONT;
 			}
 
-			EdgeCubie::Orientation orientation = (centers_[checked_side].get_colour() == colour[indexes[i][0]])\
+			EdgeCubie::Orientation orientation = (centers_[checked_side].get_colour() == colour[indexes[i][0]] ||
+				centers_[opposite_side].get_colour() == colour[indexes[i][0]])\
 				? EdgeCubie::Orientation::CORRECT : EdgeCubie::Orientation::INVERTED;
 			edges_[i] = EdgeCubie(colour[indexes[i][0]], colour[indexes[i][1]], orientation);
 		}
 	}
 
+	void perform(char direction, bool clockwise, uint8_t times) {
+		switch (direction) {
+		case 'x': case 'X':
+			flip_x(clockwise, times);
+			break;
+		case 'y': case 'Y':
+			flip_y(clockwise, times);
+			break;
+		case 'z': case 'Z':
+			flip_z(clockwise, times);
+			break;
+		case 'u': case 'U':
+			break;
+		case 'd': case 'D':
+			break;
+		case 'l': case 'L':
+			break;
+		case 'r': case 'R':
+			break;
+		case 'f': case 'F':
+			break;
+		case 'b': case 'B':
+			break;
 
+		case 'm': case 'M':
+			break;
+		case 'e': case 'E':
+			break;
+		case 's': case 'S':
+			break;
+		}
+	}
+	void flip_x(bool clockwise, uint8_t times) {
+		for (uint8_t i = 0; i < times; ++i) {
+			if (clockwise) {
+				centers_ = { centers_[Faces::FRONT], centers_[Faces::LEFT], centers_[Faces::DOWN],
+							centers_[Faces::RIGHT], centers_[Faces::UP], centers_[Faces::BACK] };
+
+			}
+			else {
+				centers_ = { centers_[Faces::BACK], centers_[Faces::LEFT], centers_[Faces::UP],
+							centers_[Faces::RIGHT], centers_[Faces::DOWN], centers_[Faces::FRONT] };
+			}
+
+		}
+	}
+	void flip_y(bool clockwise, uint8_t times) {
+		for (uint8_t i = 0; i < times; ++i) {
+			if (clockwise) {
+				std::rotate(centers_.begin() + LEFT, centers_.begin() + BACK, centers_.begin() + DOWN);
+			}
+			else {
+				std::rotate(centers_.begin() + LEFT, centers_.begin() + FRONT, centers_.begin() + DOWN);
+			}
+
+		}
+	}
+	void flip_z(bool clockwise, uint8_t times) {
+		for (uint8_t i = 0; i < times; ++i) {
+			if (clockwise) {
+				centers_ = { centers_[Faces::LEFT], centers_[Faces::DOWN], centers_[Faces::FRONT],
+							centers_[Faces::UP], centers_[Faces::BACK], centers_[Faces::RIGHT] };
+			}
+			else {
+				centers_ = { centers_[Faces::RIGHT], centers_[Faces::UP], centers_[Faces::FRONT],
+							centers_[Faces::DOWN], centers_[Faces::BACK], centers_[Faces::LEFT] };
+			}
+		}
+	}
 	void validate(CubeValidator::StickersNumberCheck const& option = CubeValidator::StickersNumberCheck::ENABLED) {
 		CubeValidator validator(*this);
 		std::string check_results = validator.report(option);
@@ -490,6 +591,8 @@ private:
 			throw InvalidState(check_results);
 		}
 	}
+
+
 };
 
 // Functor class??
