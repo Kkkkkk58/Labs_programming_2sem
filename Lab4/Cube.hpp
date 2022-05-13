@@ -7,6 +7,8 @@
 #include <string>
 #include <iostream>
 #include <Windows.h>
+#include "CubeExceptions.hpp"
+
 
 constexpr uint8_t COLOURS_COUNT = 6;
 constexpr uint8_t FACES_COUNT = 6;
@@ -45,7 +47,7 @@ public:
 		case 'O': case 'o':
 			colour_ = static_cast<uint8_t>(Colours::ORANGE);
 			break;
-		default: throw std::invalid_argument("No such color: " + colour);
+		default: throw UnknownColour(std::string(1, colour));
 		}
 	}
 	~Colour() = default;
@@ -69,7 +71,9 @@ public:
 		colour_ |= other.colour_;
 		return *this;
 	}
-
+	bool operator==(Colour const& other) const {
+		return colour_ == other.colour_;
+	}
 	std::vector<Colours> get_state() const {
 		std::vector<Colours> colours;
 		uint8_t bit_mask = static_cast<uint8_t>(Colours::WHITE);
@@ -255,32 +259,78 @@ private:
 namespace CubieHelper {
 	std::vector<Colour> to_colours(std::string const& colour_map) {
 		try {
+			std::vector<uint8_t> number_check(COLOURS_COUNT);
 			std::vector<Colour> colours(colour_map.size());
 			size_t i = 0;
 			for (char symbol : colour_map) {
 				colours[i] = Colour(symbol);
+				uint8_t colour_index = static_cast<uint8_t>((colours[i].get_state())[0]);
+				if (number_check[colour_index] >= 9) {
+					throw InvalidState("Too many stickers of the same colour");
+				}
+				number_check[colour_index] += 1;
 			}
 			return colours;
 		}
 		catch (std::exception const& e) {
-			std::cerr << "Failed to recognize the symbol from colour map\n" << e.what();
+			std::cerr << "Failed to recognize the colour map\n" << e.what();
 			return std::vector<Colour>();
 		}
 	}
 }
 
+class RubiksCube;
+
+class CubeValidator {
+public:
+	enum class StickersNumberCheck : bool {
+		DISABLED, ENABLED
+	};
+	CubeValidator(RubiksCube const& cube) : cube_(cube) {}
+	std::string report(StickersNumberCheck const& option = StickersNumberCheck::ENABLED) {
+		// TODO: Run multithreading
+		if (option == StickersNumberCheck::ENABLED && !correct_stickering) {
+			return "Incorrect stickering";
+		}
+		if (!edges_invariant()) {
+			return "Edges invariant failed";
+		}
+		if (!corners_invariant()) {
+			return "Corners invariant failed";
+		}
+		if (!permutations_invariant()) {
+			return "Permutations invariant failed";
+		}
+		return "OK";
+	}
+private:
+	//TODO:
+	bool correct_stickering() const {
+		return true;
+	}
+	bool edges_invariant() const {
+		return true;
+	}
+	bool corners_invariant() const {
+		return true;
+	}
+	bool permutations_invariant() const {
+		return true;
+	}
+	RubiksCube cube_;
+};
 
 class RubiksCube {
 public:
-	enum class Faces : uint8_t {
+	enum Faces : uint8_t {
 		UP, LEFT, FRONT, RIGHT, BACK, DOWN
 	};
-	enum class Edges : uint8_t {
+	enum Edges : uint8_t {
 		UP_LEFT, UP_BACK, UP_RIGHT, UP_FRONT,
 		LEFT_FRONT, LEFT_BACK, RIGHT_BACK, RIGHT_FRONT,
 		DOWN_LEFT, DOWN_BACK, DOWN_RIGHT, DOWN_FRONT
 	};
-	enum class Corners : uint8_t {
+	enum Corners : uint8_t {
 		UP_LEFT_BACK, UP_RIGHT_BACK, UP_RIGHT_FRONT, UP_LEFT_FRONT,
 		DOWN_LEFT_BACK, DOWN_RIGHT_BACK, DOWN_RIGHT_FRONT, DOWN_LEFT_FRONT
 	};
@@ -292,15 +342,29 @@ public:
 	}
 	RubiksCube(std::vector<CenterCubie> const& centers, std::vector<EdgeCubie> const& edges, \
 		std::vector<CornerCubie> const& corners) : centers_(centers), edges_(edges), corners_(corners) {
-		centers_.resize(FACES_COUNT);
-		edges_.resize(EDGES_COUNT);
-		corners_.resize(CORNERS_COUNT);
+		try {
+			centers_.resize(FACES_COUNT);
+			edges_.resize(EDGES_COUNT);
+			corners_.resize(CORNERS_COUNT);
+			validate();
+		}
+		catch (std::exception const& e) {
+			std::cerr << "Failed to construct the Cube: " << e.what() << "\nCreating the default one";
+			default_init();
+		}
 	}
 	RubiksCube(std::initializer_list<CenterCubie> const& centers, std::initializer_list<EdgeCubie> const& edges, \
 		std::initializer_list<CornerCubie> const& corners) : centers_(centers), edges_(edges), corners_(corners) {
-		centers_.resize(FACES_COUNT);
-		edges_.resize(EDGES_COUNT);
-		corners_.resize(CORNERS_COUNT);
+		try {
+			centers_.resize(FACES_COUNT);
+			edges_.resize(EDGES_COUNT);
+			corners_.resize(CORNERS_COUNT);
+			validate();
+		}
+		catch (std::exception const& e) {
+			std::cerr << "Failed to construct the Cube: " << e.what() << "\nCreating the default one";
+			default_init();
+		}
 	}
 	explicit RubiksCube(std::string colour_map)
 		: centers_(std::vector<CenterCubie>(FACES_COUNT)), 
@@ -309,7 +373,15 @@ public:
 		try {
 			colour_map.erase(std::remove_if(colour_map.begin(), colour_map.end(), std::isspace), colour_map.end());
 			std::vector<Colour> colours = CubieHelper::to_colours(colour_map);
-
+			if (colours.size() == 0) {
+				default_init();
+				return;
+			}
+			init_center(colours);
+			// TODO: Multithreading
+			init_edges(colours);
+			init_corners(colours);
+			validate(CubeValidator::StickersNumberCheck::DISABLED);
 
 		}
 		catch (std::exception const& e) {
@@ -370,14 +442,57 @@ private:
 	}
 
 
+	void init_center(std::vector<Colour> const& colours) {
+		for (size_t i = 4, j = 0; i < 50, j < FACES_COUNT; i += 9, ++j) {
+			centers_[j] = CenterCubie(colours[i]);
+		}
+	}
+
+	void init_corners(std::vector<Colour> const& colour) {
+		std::vector<std::vector<uint8_t>> indexes = { {0, 9, 38}, {2, 29, 36}, {8, 20, 27}, {6, 11, 18},
+													  {51, 15, 44}, {53, 35, 42}, {47, 26, 33}, {45, 17, 24} };
+		for (uint8_t i = Corners::UP_LEFT_BACK; i <= Corners::DOWN_LEFT_FRONT; ++i) {
+			//TODO: orientation ??
+			corners_[i] = CornerCubie(colour[indexes[i][0]], colour[indexes[i][1]], colour[indexes[i][2]]);
+		}
+	}
+
+	void init_edges(std::vector<Colour> const& colour) {
+		std::vector<std::vector<uint8_t>> indexes =   { {3, 10}, {1, 37}, {5, 28}, {7, 19},
+														{14, 21}, {12, 41}, {32, 39}, {30, 23},
+														{48, 16}, {52, 34}, {50, 34}, {46, 25} };
+		for (uint8_t i = Edges::UP_LEFT; i <= Edges::DOWN_FRONT; ++i) {
+			Faces checked_side;
+			if (i <= Edges::UP_FRONT) {
+				checked_side = Faces::UP;
+			}
+			else if (i <= Edges::LEFT_BACK) {
+				checked_side = Faces::LEFT;
+			}
+			else if (i <= Edges::RIGHT_FRONT) {
+				checked_side = Faces::RIGHT;
+			}
+			else {
+				checked_side = Faces::BACK;
+			}
+
+			EdgeCubie::Orientation orientation = (centers_[checked_side].get_colour() == colour[indexes[i][0]])\
+				? EdgeCubie::Orientation::CORRECT : EdgeCubie::Orientation::INVERTED;
+			edges_[i] = EdgeCubie(colour[indexes[i][0]], colour[indexes[i][1]], orientation);
+		}
+	}
 
 
-	void validate() {
-
+	void validate(CubeValidator::StickersNumberCheck const& option = CubeValidator::StickersNumberCheck::ENABLED) {
+		CubeValidator validator(*this);
+		std::string check_results = validator.report(option);
+		if (check_results != "OK") {
+			throw InvalidState(check_results);
+		}
 	}
 };
 
-
+// Functor class??
 namespace CubeHelper {
 	RubiksCube generate_cube() {
 		RubiksCube cube;
