@@ -29,6 +29,8 @@ public:
 //}
 class CornerPosition : public Position {
 public:
+
+	CornerPosition() : bits_() {}
 	CornerPosition(Positions const& a, Positions const& b, Positions const& c)
 		: bits_((static_cast<uint16_t>(a) << (COLOURS_COUNT * 2)) | (static_cast<uint16_t>(b) << COLOURS_COUNT) | static_cast<uint8_t>(c)) {}
 
@@ -38,24 +40,18 @@ public:
 		if (a < b) {
 			std::swap(a, b);
 		}
-		std::cout << "BEFORE " << bits_ << "\n";
 		std::bitset<COLOURS_COUNT * 3> first_bit_mask((0b111111 << ((2 - a) * COLOURS_COUNT)));
-		std::cout << "1BM: " << first_bit_mask << "\n";
 		std::bitset<COLOURS_COUNT * 3> second_bit_mask((0b111111 << ((2 - b) * COLOURS_COUNT)));
-		std::cout << "2BM: " << second_bit_mask << "\n";
 		if ((a | b) == 0b10) {
 			uint8_t pentabits_avail = 1;
 			std::bitset<COLOURS_COUNT * 3> third_bit_mask = 0b111111 << (pentabits_avail * COLOURS_COUNT);
-			std::cout << "3BM: " << third_bit_mask << "\n";
 			bits_ = ((bits_ & first_bit_mask) >> COLOURS_COUNT * 2) | ((bits_ & second_bit_mask) << COLOURS_COUNT * 2) | (bits_ & third_bit_mask);
 		}
 		else {
 			uint8_t pentabits_avail = ((a | b) == 0b1) ? 0 : 2;
 			std::bitset<COLOURS_COUNT * 3> third_bit_mask = 0b111111 << (pentabits_avail * COLOURS_COUNT);
-			std::cout << "3BM: " << third_bit_mask << "\n";
 			bits_ = ((bits_ & first_bit_mask) << COLOURS_COUNT) | ((bits_ & second_bit_mask) >> COLOURS_COUNT) | (bits_ & third_bit_mask);
 		}
-		std::cout << "AFTER: " << bits_ << "\n";
 	}
 
 	Positions operator[](uint8_t i) const override {
@@ -69,6 +65,7 @@ private:
 
 class EdgePosition : public Position {
 public:
+	EdgePosition() : bits_() {}
 	EdgePosition(Positions const& a, Positions const& b)
 		: bits_((static_cast<uint16_t>(a) << COLOURS_COUNT) | static_cast<uint8_t>(b)) {}
 	EdgePosition(EdgePosition const& other) : bits_(other.bits_) {}
