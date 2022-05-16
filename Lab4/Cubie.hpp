@@ -63,6 +63,9 @@ public:
 			rotate_y(move.times(), !move.clockwise());
 			break;
 		case Move::Direction::M:
+			rotate_x(move.times(), !move.clockwise());
+			break;
+		case Move::Direction::S:
 			rotate_z(move.times(), move.clockwise());
 			break;
 		default: break;
