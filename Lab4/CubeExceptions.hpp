@@ -49,5 +49,14 @@ private:
 };
 
 
+class InvalidFile : public CubeException {
+public:
+	InvalidFile(std::string const& err) : CubeException(), error_("Invalid file: " + err) {}
+	const char* what() const override {
+		return error_.c_str();
+	}
 
+private:
+	std::string error_;
+};
 #endif

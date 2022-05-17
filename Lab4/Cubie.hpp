@@ -8,6 +8,7 @@
 class Cubie {
 public:
 	virtual ~Cubie() {}
+	virtual Position::Positions operator[](uint8_t) const = 0;
 	virtual void rotate(Move const&) = 0;
 };
 
@@ -36,10 +37,7 @@ public:
 		swap(other);
 		return *this;
 	}
-	Colour& operator[](Faces const& i) {
-		return colours_[i];
-	}
-	Colour const& operator[](Faces const& i) const {
+	Position::Positions operator[](uint8_t i) const override {
 		return colours_[i];
 	}
 	std::vector<Colour> const& get_colours() const {
@@ -124,7 +122,7 @@ private:
 
 class EdgeCubie : public Cubie {
 public:
-	explicit EdgeCubie(EdgePosition const& orientation = EdgePosition(Position::Positions::UP, Position::Positions::FRONT))
+	explicit EdgeCubie(EdgePosition const& orientation = EdgePosition(Position::Positions::WHITE, Position::Positions::BLUE))
 		: Cubie(), orientation_(orientation) {}
 	EdgeCubie(EdgeCubie const& other) : orientation_(other.orientation_) {}
 	void swap(EdgeCubie& other) {
@@ -147,6 +145,9 @@ public:
 	EdgePosition const& get_orientation() const {
 		return orientation_;
 	}
+	Position::Positions operator[](uint8_t i) const override {
+		return orientation_[i];
+	}
 	void rotate(Move const& move) override {
 		if (move.times() != 2) {
 			switch (move.direction()) {
@@ -166,8 +167,8 @@ private:
 class CornerCubie : public Cubie {
 public:
 
-	explicit CornerCubie(CornerPosition const& orientation = CornerPosition(Position::Positions::UP, \
-		Position::Positions::FRONT, Position::Positions::LEFT))
+	explicit CornerCubie(CornerPosition const& orientation = CornerPosition(Position::Positions::WHITE, \
+		Position::Positions::RED, Position::Positions::BLUE))
 		: Cubie(), orientation_(orientation) {}
 	CornerCubie(CornerCubie const& other) : orientation_(other.orientation_) {}
 	void swap(CornerCubie& other) {
@@ -189,6 +190,9 @@ public:
 	}
 	CornerPosition const& get_orientation() const {
 		return orientation_;
+	}
+	Position::Positions operator[](uint8_t i) const override {
+		return orientation_[i];
 	}
 	void rotate(Move const& move) {
 		if (move.times() != 2) {

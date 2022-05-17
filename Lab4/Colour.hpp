@@ -4,7 +4,7 @@
 #include "CubeExceptions.hpp"
 #include <iostream>
 #include <Windows.h>
-
+#include "Position.hpp"
 
 class Colour {
 public:
@@ -12,6 +12,29 @@ public:
 		WHITE, BLUE, RED, GREEN, YELLOW, ORANGE
 	};
 	Colour(Colours colour = Colours::WHITE) : colour_(colour) {}
+	Colour(Position::Positions const& pos) : colour_(Colours::WHITE) {
+		switch (pos) {
+		case Position::Positions::WHITE:
+			colour_ = Colours::WHITE;
+			break;
+		case Position::Positions::BLUE:
+			colour_ = Colours::BLUE;
+			break;
+		case Position::Positions::RED:
+			colour_ = Colours::RED;
+			break;
+		case Position::Positions::GREEN:
+			colour_ = Colours::GREEN;
+			break;
+		case Position::Positions::YELLOW:
+			colour_ = Colours::YELLOW;
+			break;
+		case Position::Positions::ORANGE:
+			colour_ = Colours::ORANGE;
+			break;
+		default: break;
+		}
+	}
 	Colour(char colour) {
 		switch (colour) {
 		case 'W': case 'w':
@@ -55,41 +78,59 @@ public:
 	bool operator==(Colour const& other) const {
 		return colour_ == other.colour_;
 	}
+	operator Position::Positions() const {
+		switch (colour_) {
+		case Colours::WHITE: return Position::Positions::WHITE;
+		case Colours::BLUE: return Position::Positions::BLUE;
+		case Colours::GREEN: return Position::Positions::GREEN;
+		case Colours::ORANGE: return Position::Positions::ORANGE;
+		case Colours::RED: return Position::Positions::RED;
+		default: return Position::Positions::YELLOW;
+		}
+	}
 private:
 	Colours colour_;
 };
 
 
-std::ostream& operator<<(std::ostream& os, Colour::Colours const& colour) {
+std::ostream& operator<<(std::ostream& os, Position::Positions const& colour) {
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 	switch (colour) {
-	case Colour::Colours::WHITE:
+	case Position::Positions::WHITE:
 		SetConsoleTextAttribute(console, (WORD)(0 << 4) | 0x7);
 		os << 'W';
 		break;
-	case Colour::Colours::BLUE:
+	case Position::Positions::BLUE:
 		SetConsoleTextAttribute(console, (WORD)(0 << 4) | 0x1);
 		os << 'B';
 		break;
-	case Colour::Colours::GREEN:
+	case Position::Positions::GREEN:
 		SetConsoleTextAttribute(console, (WORD)(0 << 4) | 0x2);
 		os << 'G';
 		break;
-	case Colour::Colours::ORANGE:
+	case Position::Positions::ORANGE:
 		SetConsoleTextAttribute(console, (WORD)(0 << 4) | 0xE);
 		os << 'O';
 		break;
-	case Colour::Colours::RED:
+	case Position::Positions::RED:
 		SetConsoleTextAttribute(console, (WORD)(0 << 4) | 0x4);
 		os << 'R';
 		break;
-	case Colour::Colours::YELLOW:
+	case Position::Positions::YELLOW:
 		SetConsoleTextAttribute(console, (WORD)(0 << 4) | 0x6);
 		os << 'Y';
+		break;
+	default:
 		break;
 	}
 	SetConsoleTextAttribute(console, (WORD)(0 << 4) | 0x7);
 	return os;
 }
 
+std::istream& operator>>(std::istream& is, Colour& colour) {
+	char input;
+	is >> input;
+	colour = input;
+	return is;
+}
 #endif

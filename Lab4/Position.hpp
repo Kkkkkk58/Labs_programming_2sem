@@ -9,7 +9,7 @@
 class Position {
 public:
 	enum class Positions : uint8_t {
-		UP = 0b1, LEFT = 0b10, FRONT = 0b100, RIGHT = 0b1000, BACK = 0b10000, DOWN = 0b100000
+		WHITE = 0b1, BLUE = 0b10, RED = 0b100, GREEN = 0b1000, YELLOW = 0b10000, ORANGE = 0b100000
 	};
 	virtual Positions operator[](uint8_t) const = 0;
 	virtual void swap_bits(uint8_t, uint8_t) = 0;
@@ -91,11 +91,12 @@ public:
 	}
 	Positions operator[](uint8_t i) const override {
 		std::bitset<COLOURS_COUNT * 2> bit_mask(0b111111);
-		return static_cast<Positions>(((bits_ >> (COLOURS_COUNT * (2 - i))) & bit_mask).to_ulong());
+		return static_cast<Positions>(((bits_ >> (COLOURS_COUNT * (1 - i))) & bit_mask).to_ulong());
 	}
 private:
 	std::bitset<COLOURS_COUNT * 2> bits_;
 };
+
 
 
 #endif
