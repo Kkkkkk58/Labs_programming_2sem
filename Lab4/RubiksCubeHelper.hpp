@@ -22,8 +22,18 @@ namespace RubiksCubeHelper {
 
 	void to_positions(std::string const& colour_map, std::vector<Position::Positions>& colour_buf) {
 		for (char c : colour_map) {
-			colour_buf.push_back(Colour(c));
+			if (std::isalpha(c)) {
+				colour_buf.push_back(Colour(c));
+			}
 		}
+	}
+
+	std::vector<Colour> to_colours(std::vector<Position::Positions> const& colour_sequence) {
+		std::vector<Colour> colours;
+		for (Position::Positions const& pos : colour_sequence) {
+			colours.push_back(Colour(pos));
+		}
+		return colours;
 	}
 }
 

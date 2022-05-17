@@ -50,6 +50,7 @@ public:
 			using EC = EdgeCubie;
 			using CP = CornerPosition;
 			using EP = EdgePosition;
+
 			center_ = CenterCubie({ colours[4], colours[22], colours[25], colours[28], colours[31], colours[49] });
 			corners_ = { CC(CP(colours[0], colours[20], colours[9])), CC(CP(colours[2], colours[18], colours[17])),
 						 CC(CP(colours[8], colours[14], colours[15])), CC(CP(colours[6], colours[12], colours[11])),
@@ -133,7 +134,48 @@ public:
 		}
 		std::string sweep() const {
 			std::string sweep;
-
+			using namespace RubiksCubeHelper;
+			std::vector<Position::Positions> colours_sequence = {
+					corners_[UP_BACK_LEFT][0], edges_[UP_BACK][0], corners_[UP_BACK_RIGHT][0], edges_[UP_LEFT][0], center_[0],
+					edges_[UP_RIGHT][0], corners_[UP_FRONT_LEFT][0], edges_[UP_FRONT][0], corners_[UP_FRONT_RIGHT][0],
+					corners_[UP_BACK_LEFT][2], edges_[UP_LEFT][1], corners_[UP_FRONT_LEFT][2], corners_[UP_FRONT_LEFT][1],
+					edges_[UP_FRONT][1], corners_[UP_FRONT_RIGHT][1], corners_[UP_FRONT_RIGHT][2], edges_[UP_RIGHT][1],
+					corners_[UP_BACK_RIGHT][2], corners_[UP_BACK_RIGHT][1], edges_[UP_BACK][1], corners_[UP_BACK_LEFT][1],
+					edges_[BACK_LEFT][1], center_[1], edges_[FRONT_LEFT][1], edges_[FRONT_LEFT][0], center_[2], edges_[FRONT_RIGHT][0],
+					edges_[FRONT_RIGHT][1], center_[3], edges_[BACK_RIGHT][1], edges_[BACK_RIGHT][0], center_[4], edges_[BACK_LEFT][0],
+					corners_[DOWN_BACK_LEFT][2], edges_[DOWN_LEFT][1], corners_[DOWN_FRONT_LEFT][2], corners_[DOWN_FRONT_LEFT][1],
+					edges_[DOWN_FRONT][1], corners_[DOWN_FRONT_RIGHT][1], corners_[DOWN_FRONT_RIGHT][2], edges_[DOWN_RIGHT][1], 
+					corners_[DOWN_BACK_RIGHT][2], corners_[DOWN_BACK_RIGHT][1], edges_[DOWN_BACK][1], corners_[DOWN_BACK_LEFT][1],
+					corners_[DOWN_FRONT_LEFT][0], edges_[DOWN_FRONT][0], corners_[DOWN_FRONT_RIGHT][0], edges_[DOWN_LEFT][0], center_[5],
+					edges_[DOWN_RIGHT][0], corners_[DOWN_BACK_LEFT][0], edges_[DOWN_BACK][0], corners_[DOWN_BACK_RIGHT][0]
+			};
+			std::vector<Colour> raw_colours = to_colours(colours_sequence);
+			for (size_t i = 0; i < 3; ++i) {
+				sweep.push_back('\t');
+				for (size_t j = 0; j < 3; ++j) {
+					sweep.push_back(raw_colours[i * 3 + j]);
+					sweep.push_back(' ');
+				}
+				sweep.push_back('\n');
+			}
+			for (size_t i = 0; i < 3; ++i) {
+				for (size_t j = 0; j < 12; ++j) {
+					sweep.push_back(raw_colours[9 + i * 12 + j]);
+					sweep.push_back(' ');
+					if (j % 3 == 2) {
+						sweep += "  ";
+					}
+				}
+				sweep.push_back('\n');
+			}
+			for (size_t i = 0; i < 3; ++i) {
+				sweep.push_back('\t');
+				for (size_t j = 0; j < 3; ++j) {
+					sweep.push_back(raw_colours[45 + i * 3 + j]);
+					sweep.push_back(' ');
+				}
+				sweep.push_back('\n');
+			}
 			return sweep;
 		}
 
@@ -194,16 +236,24 @@ private:
 	}
 	std::string create_filename() const {
 		std::time_t t = std::time(0);
-		std::tm* now;
-		localtime_s(now, &t);
+		std::tm now;
+		localtime_s(&now, &t);
 		char buffer[256];
-		std::strftime(buffer, 256, "F::T", now);
+		std::strftime(buffer, 256, "%F_%H-%M-%S", &now);
 		return "CUBE_" + std::string(buffer) + ".cube";
 	}
 };
 
 std::ostream& operator<<(std::ostream& os, RubiksCube const& cube) {
-	os << cube.sweep();
+	std::string sweep_base = cube.sweep();
+	for (char c : sweep_base) {
+		if (std::isalpha(c)) {
+			os << Colour(c);
+		}
+		else {
+			os << c;
+		}
+	}
 	return os;
 }
 

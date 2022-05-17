@@ -88,6 +88,16 @@ public:
 		default: return Position::Positions::YELLOW;
 		}
 	}
+	operator char() const {
+		switch(colour_) {
+		case Colours::WHITE: return 'W';
+		case Colours::BLUE: return 'B';
+		case Colours::GREEN: return 'G';
+		case Colours::ORANGE: return 'O';
+		case Colours::RED: return 'R';
+		default: return 'Y';
+		}
+	}
 private:
 	Colours colour_;
 };
