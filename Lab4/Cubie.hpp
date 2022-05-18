@@ -12,6 +12,7 @@ public:
 	virtual void rotate(Move const&) = 0;
 };
 
+
 class CenterCubie : public Cubie {
 public:
 	enum Faces : uint8_t {
@@ -40,6 +41,9 @@ public:
 	Position::Positions operator[](uint8_t i) const override {
 		return colours_[i];
 	}
+	Colour& operator[](uint8_t i) {
+		return colours_[i];
+	}
 	std::vector<Colour> const& get_colours() const {
 		return colours_;
 	}
@@ -58,7 +62,7 @@ public:
 			rotate_z(move.times(), move.clockwise());
 			break;
 		case Move::Direction::E:
-			rotate_y(move.times(), !move.clockwise());
+			rotate_y(move.times(), move.clockwise());
 			break;
 		case Move::Direction::M:
 			rotate_x(move.times(), !move.clockwise());

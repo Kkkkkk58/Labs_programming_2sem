@@ -8,8 +8,11 @@
 
 namespace RubiksCubeHelper {
 
-	
-	enum CornersIndexing : uint8_t {
+	enum CentersIndexing : uint8_t {
+		UP, LEFT, FRONT, RIGHT, BACK, DOWN
+	};
+
+ 	enum CornersIndexing : uint8_t {
 		UP_BACK_LEFT, UP_BACK_RIGHT, UP_FRONT_RIGHT, UP_FRONT_LEFT, 
 		DOWN_FRONT_LEFT, DOWN_BACK_LEFT, DOWN_BACK_RIGHT, DOWN_FRONT_RIGHT
 	};
@@ -35,6 +38,7 @@ namespace RubiksCubeHelper {
 		}
 		return colours;
 	}
+
 }
 
 

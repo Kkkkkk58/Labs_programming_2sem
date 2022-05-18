@@ -45,7 +45,7 @@ public:
 		if ((a | b) == 0b10) {
 			uint8_t pentabits_avail = 1;
 			std::bitset<COLOURS_COUNT * 3> third_bit_mask = 0b111111 << (pentabits_avail * COLOURS_COUNT);
-			bits_ = ((bits_ & first_bit_mask) >> COLOURS_COUNT * 2) | ((bits_ & second_bit_mask) << COLOURS_COUNT * 2) | (bits_ & third_bit_mask);
+			bits_ = ((bits_ & first_bit_mask) << COLOURS_COUNT * 2) | ((bits_ & second_bit_mask) >> COLOURS_COUNT * 2) | (bits_ & third_bit_mask);
 		}
 		else {
 			uint8_t pentabits_avail = ((a | b) == 0b1) ? 0 : 2;

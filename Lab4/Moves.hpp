@@ -122,6 +122,7 @@ public:
 			std::sregex_iterator rend;
 			while (rit != rend) {
 				moves_.push_back(Move(std::string((*rit)[0])));
+				++rit;
 			}
 		}
 		catch (std::exception const& e) {
