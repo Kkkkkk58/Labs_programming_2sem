@@ -114,7 +114,7 @@ public:
 	using reverse_iterator = std::vector<Move>::reverse_iterator;
 	using const_reverse_iterator = std::vector<Move>::const_reverse_iterator;
 
-	explicit MoveSequence(std::vector<Move> const& moves) : moves_(moves) {}
+	explicit MoveSequence(std::vector<Move> const& moves = std::vector<Move>()) : moves_(moves) {}
 	MoveSequence(std::string const& scramble) : moves_() {
 		try {
 			std::regex command_template("([UuDdLlRrFfBbxXyYzZeEsSmM])([12])?(')?");
@@ -142,6 +142,7 @@ public:
 		if (this != &other) {
 			moves_ = other.moves_;
 		}
+		return *this;
 	}
 	MoveSequence& operator=(MoveSequence&& other) noexcept {
 		swap(other);
@@ -163,14 +164,21 @@ public:
 	std::string to_string() const {
 		std::string s;
 		for (auto const& move : moves_) {
-			s += move.to_string();
+			s += move.to_string() + " ";
 		}
 		return s;
 	}
 	size_t size() const {
 		return moves_.size();
 	}
-
+	MoveSequence& operator+=(MoveSequence const& rhs) {
+		moves_.insert(moves_.end(), rhs.moves_.begin(), rhs.moves_.end());
+		return *this;
+	}
+	MoveSequence& operator+=(Move const& rhs) {
+		moves_.push_back(rhs);
+		return *this;
+	}
 	iterator begin() {
 		return moves_.begin();
 	}
@@ -211,6 +219,17 @@ private:
 	std::vector<Move> moves_;
 };
 
+const MoveSequence operator+(MoveSequence lhs, MoveSequence const& rhs) {
+	return lhs += rhs;
+}
+
+const MoveSequence operator+(MoveSequence lhs, Move const& rhs) {
+	return lhs += rhs;
+}
+
+const MoveSequence operator+(Move const& lhs, MoveSequence rhs) {
+	return rhs += lhs;
+}
 
 std::ostream& operator<<(std::ostream& os, MoveSequence const& m) {
 	os << m.to_string();

@@ -14,6 +14,7 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
+#include <random>
 #include "CubeExceptions.hpp"
 #include "Position.hpp"
 #include "Constants.hpp"
@@ -24,7 +25,7 @@
 
 
 
-
+class CubeValidator;
 class RubiksCube {
 public:
 	RubiksCube()
@@ -98,158 +99,157 @@ public:
 			throw InvalidFile(filename);
 		}
 	}
-		RubiksCube(RubiksCube const& other) : center_(other.center_), corners_(other.corners_), edges_(other.edges_) {}
-		void swap(RubiksCube& other) {
-			using std::swap;
-			swap(center_, other.center_);
-			swap(corners_, other.corners_);
-			swap(edges_, other.edges_);
+	RubiksCube(RubiksCube const& other) : center_(other.center_), corners_(other.corners_), edges_(other.edges_) {}
+	void swap(RubiksCube& other) {
+		using std::swap;
+		swap(center_, other.center_);
+		swap(corners_, other.corners_);
+		swap(edges_, other.edges_);
+	}
+	RubiksCube(RubiksCube&& other) noexcept {
+		swap(other);
+	}
+	RubiksCube& operator=(RubiksCube const& other) {
+		if (this != &other) {
+			center_ = other.center_;
+			corners_ = other.corners_;
+			edges_ = other.edges_;
 		}
-		RubiksCube(RubiksCube&& other) noexcept {
-			swap(other);
+		return *this;
+	}
+	RubiksCube& operator=(RubiksCube&& other) noexcept {
+		swap(other);
+		return *this;
+	}
+	~RubiksCube() = default;
+	bool is_solved() const {
+		return up_solved() && left_solved() && front_solved();
+	}
+	void setup(MoveSequence const& moves) {
+		for (size_t i = 0; i < moves.size(); ++i) {
+			rotate(moves[i]);
 		}
-		RubiksCube& operator=(RubiksCube const& other) {
-			if (this != &other) {
-				center_ = other.center_;
-				corners_ = other.corners_;
-				edges_ = other.edges_;
-			}
-			return *this;
-		}
-		RubiksCube& operator=(RubiksCube&& other) noexcept {
-			swap(other);
-			return *this;
-		}
-		~RubiksCube() = default;
-		bool is_solved() const {
-			return up_solved() && left_solved() && front_solved();
-		}
-		void setup(MoveSequence const& moves) {
-			for (size_t i = 0; i < moves.size(); ++i) {
-				rotate(moves[i]);
-			}
-		}
-		//enum CornersIndexing : uint8_t {
-		//	UP_BACK_LEFT, UP_BACK_RIGHT, UP_FRONT_RIGHT, UP_FRONT_LEFT,
-		//	DOWN_FRONT_LEFT, DOWN_BACK_LEFT, DOWN_BACK_RIGHT, DOWN_FRONT_RIGHT
-		//};
+	}
 
-		//enum EdgesIndexing : uint8_t {
-		//	UP_BACK, UP_RIGHT, UP_FRONT, UP_LEFT,
-		//	FRONT_LEFT, BACK_LEFT, BACK_RIGHT, FRONT_RIGHT,
-		//	DOWN_LEFT, DOWN_BACK, DOWN_RIGHT, DOWN_FRONT
-		//};
-		void rotate(Move const& move) {
-			using namespace RubiksCubeHelper;
-			//std::cout << "PERFORMING " << move.to_string() << "\n";
-			switch (move.direction()) {
-				
-				//TODO: Multithreading
-			case Move::Direction::U:
-				perform_rotation(UP_BACK_LEFT, UP_BACK_RIGHT, UP_FRONT_RIGHT, UP_FRONT_LEFT, move);
-				perform_rotation(UP_BACK, UP_RIGHT, UP_FRONT, UP_LEFT, move);
-				break;
-			case Move::Direction::D:
-				perform_rotation(DOWN_FRONT_LEFT, DOWN_FRONT_RIGHT, DOWN_BACK_RIGHT, DOWN_BACK_LEFT, move);
-				perform_rotation(DOWN_LEFT, DOWN_FRONT, DOWN_RIGHT, DOWN_BACK, move);
-				break;
-			case Move::Direction::L:
-				perform_rotation(UP_BACK_LEFT, UP_FRONT_LEFT, DOWN_FRONT_LEFT, DOWN_BACK_LEFT, move);
-				perform_rotation(UP_LEFT, FRONT_LEFT, DOWN_LEFT, BACK_LEFT, move);
-				break;
-			case Move::Direction::R:
-				perform_rotation(UP_BACK_RIGHT, DOWN_BACK_RIGHT, DOWN_FRONT_RIGHT, UP_FRONT_RIGHT, move);
-				perform_rotation(UP_RIGHT, BACK_RIGHT, DOWN_RIGHT, FRONT_RIGHT, move);
-				break;
-			case Move::Direction::F:
-				perform_rotation(UP_FRONT_RIGHT, DOWN_FRONT_RIGHT, DOWN_FRONT_LEFT, UP_FRONT_LEFT, move);
-				perform_rotation(UP_FRONT, FRONT_RIGHT, DOWN_FRONT, FRONT_LEFT, move);
-				break;
-			case Move::Direction::B:
-				perform_rotation(UP_BACK_LEFT, DOWN_BACK_LEFT, DOWN_BACK_RIGHT, UP_BACK_RIGHT, move);
-				perform_rotation(UP_BACK, BACK_LEFT, DOWN_BACK, BACK_RIGHT, move);
-				break;
-			case Move::Direction::M:
-				perform_rotation(UP_FRONT, DOWN_FRONT, DOWN_BACK, UP_BACK, move);
-				//center_.rotate(move);
-				perform_rotation(UP, FRONT, DOWN, BACK, move);
-				break;
-			case Move::Direction::S:
-				perform_rotation(UP_RIGHT, DOWN_RIGHT, DOWN_LEFT, UP_LEFT, move);
-				//center_.rotate(move);
-				perform_rotation(UP, RIGHT, DOWN, LEFT, move);
-				break;
-			case Move::Direction::E:
-				perform_rotation(FRONT_RIGHT, BACK_RIGHT, BACK_LEFT, FRONT_LEFT, move);
-				//center_.rotate(move);
-				perform_rotation(FRONT, RIGHT, BACK, LEFT, move);
-				break;
-			case Move::Direction::X:
-				rotate(Move(Move::Direction::R, move.clockwise(), move.times()));
-				rotate(Move(Move::Direction::L, !move.clockwise(), move.times()));
-				rotate(Move(Move::Direction::M, !move.clockwise(), move.times()));
-				break;
-			case Move::Direction::Y:
-				rotate(Move(Move::Direction::U, move.clockwise(), move.times()));
-				rotate(Move(Move::Direction::E, !move.clockwise(), move.times()));
-				rotate(Move(Move::Direction::D, !move.clockwise(), move.times()));
-				break;
-			case Move::Direction::Z:
-				rotate(Move(Move::Direction::F, move.clockwise(), move.times()));
-				rotate(Move(Move::Direction::S, move.clockwise(), move.times()));
-				rotate(Move(Move::Direction::B, !move.clockwise(), move.times()));
-				break;
-			default: break;
-			}
-
-		}
-		std::string sweep() const {
-			std::string sweep;
-			using namespace RubiksCubeHelper;
-			std::vector<Position::Positions> colours_sequence = {
-					corners_[UP_BACK_LEFT][0], edges_[UP_BACK][0], corners_[UP_BACK_RIGHT][0], edges_[UP_LEFT][0], center_[0],
-					edges_[UP_RIGHT][0], corners_[UP_FRONT_LEFT][0], edges_[UP_FRONT][0], corners_[UP_FRONT_RIGHT][0],
-					corners_[UP_BACK_LEFT][2], edges_[UP_LEFT][1], corners_[UP_FRONT_LEFT][2], corners_[UP_FRONT_LEFT][1],
-					edges_[UP_FRONT][1], corners_[UP_FRONT_RIGHT][1], corners_[UP_FRONT_RIGHT][2], edges_[UP_RIGHT][1],
-					corners_[UP_BACK_RIGHT][2], corners_[UP_BACK_RIGHT][1], edges_[UP_BACK][1], corners_[UP_BACK_LEFT][1],
-					edges_[BACK_LEFT][1], center_[1], edges_[FRONT_LEFT][1], edges_[FRONT_LEFT][0], center_[2], edges_[FRONT_RIGHT][0],
-					edges_[FRONT_RIGHT][1], center_[3], edges_[BACK_RIGHT][1], edges_[BACK_RIGHT][0], center_[4], edges_[BACK_LEFT][0],
-					corners_[DOWN_BACK_LEFT][2], edges_[DOWN_LEFT][1], corners_[DOWN_FRONT_LEFT][2], corners_[DOWN_FRONT_LEFT][1],
-					edges_[DOWN_FRONT][1], corners_[DOWN_FRONT_RIGHT][1], corners_[DOWN_FRONT_RIGHT][2], edges_[DOWN_RIGHT][1], 
-					corners_[DOWN_BACK_RIGHT][2], corners_[DOWN_BACK_RIGHT][1], edges_[DOWN_BACK][1], corners_[DOWN_BACK_LEFT][1],
-					corners_[DOWN_FRONT_LEFT][0], edges_[DOWN_FRONT][0], corners_[DOWN_FRONT_RIGHT][0], edges_[DOWN_LEFT][0], center_[5],
-					edges_[DOWN_RIGHT][0], corners_[DOWN_BACK_LEFT][0], edges_[DOWN_BACK][0], corners_[DOWN_BACK_RIGHT][0]
-			};
-			std::vector<Colour> raw_colours = to_colours(colours_sequence);
-			for (size_t i = 0; i < 3; ++i) {
-				sweep.push_back('\t');
-				for (size_t j = 0; j < 3; ++j) {
-					sweep.push_back(raw_colours[i * 3 + j]);
-					sweep.push_back(' ');
-				}
-				sweep.push_back('\n');
-			}
-			for (size_t i = 0; i < 3; ++i) {
-				for (size_t j = 0; j < 12; ++j) {
-					sweep.push_back(raw_colours[9 + i * 12 + j]);
-					sweep.push_back(' ');
-					if (j % 3 == 2) {
-						sweep += "  ";
-					}
-				}
-				sweep.push_back('\n');
-			}
-			for (size_t i = 0; i < 3; ++i) {
-				sweep.push_back('\t');
-				for (size_t j = 0; j < 3; ++j) {
-					sweep.push_back(raw_colours[45 + i * 3 + j]);
-					sweep.push_back(' ');
-				}
-				sweep.push_back('\n');
-			}
-			return sweep;
+	void rotate(Move const& move) {
+		using namespace RubiksCubeHelper;
+		//std::cout << "PERFORMING " << move.to_string() << "\n";
+		switch (move.direction()) {
+			
+			//TODO: Multithreading
+		case Move::Direction::U:
+			perform_rotation(UP_BACK_LEFT, UP_BACK_RIGHT, UP_FRONT_RIGHT, UP_FRONT_LEFT, move);
+			perform_rotation(UP_BACK, UP_RIGHT, UP_FRONT, UP_LEFT, move);
+			break;
+		case Move::Direction::D:
+			perform_rotation(DOWN_FRONT_LEFT, DOWN_FRONT_RIGHT, DOWN_BACK_RIGHT, DOWN_BACK_LEFT, move);
+			perform_rotation(DOWN_LEFT, DOWN_FRONT, DOWN_RIGHT, DOWN_BACK, move);
+			break;
+		case Move::Direction::L:
+			perform_rotation(UP_BACK_LEFT, UP_FRONT_LEFT, DOWN_FRONT_LEFT, DOWN_BACK_LEFT, move);
+			perform_rotation(UP_LEFT, FRONT_LEFT, DOWN_LEFT, BACK_LEFT, move);
+			break;
+		case Move::Direction::R:
+			perform_rotation(UP_BACK_RIGHT, DOWN_BACK_RIGHT, DOWN_FRONT_RIGHT, UP_FRONT_RIGHT, move);
+			perform_rotation(UP_RIGHT, BACK_RIGHT, DOWN_RIGHT, FRONT_RIGHT, move);
+			break;
+		case Move::Direction::F:
+			perform_rotation(UP_FRONT_RIGHT, DOWN_FRONT_RIGHT, DOWN_FRONT_LEFT, UP_FRONT_LEFT, move);
+			perform_rotation(UP_FRONT, FRONT_RIGHT, DOWN_FRONT, FRONT_LEFT, move);
+			break;
+		case Move::Direction::B:
+			perform_rotation(UP_BACK_LEFT, DOWN_BACK_LEFT, DOWN_BACK_RIGHT, UP_BACK_RIGHT, move);
+			perform_rotation(UP_BACK, BACK_LEFT, DOWN_BACK, BACK_RIGHT, move);
+			break;
+		case Move::Direction::M:
+			perform_rotation(UP_FRONT, DOWN_FRONT, DOWN_BACK, UP_BACK, move);
+			//center_.rotate(move);
+			perform_rotation(UP, FRONT, DOWN, BACK, move);
+			break;
+		case Move::Direction::S:
+			perform_rotation(UP_RIGHT, DOWN_RIGHT, DOWN_LEFT, UP_LEFT, move);
+			//center_.rotate(move);
+			perform_rotation(UP, RIGHT, DOWN, LEFT, move);
+			break;
+		case Move::Direction::E:
+			perform_rotation(FRONT_RIGHT, BACK_RIGHT, BACK_LEFT, FRONT_LEFT, move);
+			//center_.rotate(move);
+			perform_rotation(FRONT, RIGHT, BACK, LEFT, move);
+			break;
+		case Move::Direction::X:
+			rotate(Move(Move::Direction::R, move.clockwise(), move.times()));
+			rotate(Move(Move::Direction::L, !move.clockwise(), move.times()));
+			rotate(Move(Move::Direction::M, !move.clockwise(), move.times()));
+			break;
+		case Move::Direction::Y:
+			rotate(Move(Move::Direction::U, move.clockwise(), move.times()));
+			rotate(Move(Move::Direction::E, !move.clockwise(), move.times()));
+			rotate(Move(Move::Direction::D, !move.clockwise(), move.times()));
+			break;
+		case Move::Direction::Z:
+			rotate(Move(Move::Direction::F, move.clockwise(), move.times()));
+			rotate(Move(Move::Direction::S, move.clockwise(), move.times()));
+			rotate(Move(Move::Direction::B, !move.clockwise(), move.times()));
+			break;
+		default: break;
 		}
 
+	}
+	std::string sweep() const {
+		std::string sweep;
+		using namespace RubiksCubeHelper;
+		std::vector<Position::Positions> colours_sequence = {
+				corners_[UP_BACK_LEFT][0], edges_[UP_BACK][0], corners_[UP_BACK_RIGHT][0], edges_[UP_LEFT][0], center_[0],
+				edges_[UP_RIGHT][0], corners_[UP_FRONT_LEFT][0], edges_[UP_FRONT][0], corners_[UP_FRONT_RIGHT][0],
+				corners_[UP_BACK_LEFT][2], edges_[UP_LEFT][1], corners_[UP_FRONT_LEFT][2], corners_[UP_FRONT_LEFT][1],
+				edges_[UP_FRONT][1], corners_[UP_FRONT_RIGHT][1], corners_[UP_FRONT_RIGHT][2], edges_[UP_RIGHT][1],
+				corners_[UP_BACK_RIGHT][2], corners_[UP_BACK_RIGHT][1], edges_[UP_BACK][1], corners_[UP_BACK_LEFT][1],
+				edges_[BACK_LEFT][1], center_[1], edges_[FRONT_LEFT][1], edges_[FRONT_LEFT][0], center_[2], edges_[FRONT_RIGHT][0],
+				edges_[FRONT_RIGHT][1], center_[3], edges_[BACK_RIGHT][1], edges_[BACK_RIGHT][0], center_[4], edges_[BACK_LEFT][0],
+				corners_[DOWN_BACK_LEFT][2], edges_[DOWN_LEFT][1], corners_[DOWN_FRONT_LEFT][2], corners_[DOWN_FRONT_LEFT][1],
+				edges_[DOWN_FRONT][1], corners_[DOWN_FRONT_RIGHT][1], corners_[DOWN_FRONT_RIGHT][2], edges_[DOWN_RIGHT][1], 
+				corners_[DOWN_BACK_RIGHT][2], corners_[DOWN_BACK_RIGHT][1], edges_[DOWN_BACK][1], corners_[DOWN_BACK_LEFT][1],
+				corners_[DOWN_FRONT_LEFT][0], edges_[DOWN_FRONT][0], corners_[DOWN_FRONT_RIGHT][0], edges_[DOWN_LEFT][0], center_[5],
+				edges_[DOWN_RIGHT][0], corners_[DOWN_BACK_LEFT][0], edges_[DOWN_BACK][0], corners_[DOWN_BACK_RIGHT][0]
+		};
+		std::vector<Colour> raw_colours = to_colours(colours_sequence);
+		for (size_t i = 0; i < 3; ++i) {
+			sweep.push_back('\t');
+			for (size_t j = 0; j < 3; ++j) {
+				sweep.push_back(raw_colours[i * 3 + j]);
+				sweep.push_back(' ');
+			}
+			sweep.push_back('\n');
+		}
+		for (size_t i = 0; i < 3; ++i) {
+			for (size_t j = 0; j < 12; ++j) {
+				sweep.push_back(raw_colours[9 + i * 12 + j]);
+				sweep.push_back(' ');
+				if (j % 3 == 2) {
+					sweep += "  ";
+				}
+			}
+			sweep.push_back('\n');
+		}
+		for (size_t i = 0; i < 3; ++i) {
+			sweep.push_back('\t');
+			for (size_t j = 0; j < 3; ++j) {
+				sweep.push_back(raw_colours[45 + i * 3 + j]);
+				sweep.push_back(' ');
+			}
+			sweep.push_back('\n');
+		}
+		return sweep;
+	}
+	Position::Positions face(RubiksCubeHelper::CentersIndexing i) const {
+		return center_[i];
+	}
+	CornerPosition const& corner(RubiksCubeHelper::CornersIndexing i) const {
+		return corners_[i].get_orientation();
+	}
+	EdgePosition const& edge(RubiksCubeHelper::EdgesIndexing i) const {
+		return edges_[i].get_orientation();
+	}
 private:
 	CenterCubie center_;
 	std::vector<CornerCubie> corners_;
@@ -295,16 +295,16 @@ private:
 			&& edges_[DOWN_FRONT][1] == front_colour && edges_[FRONT_LEFT][0] == front_colour
 			&& edges_[FRONT_RIGHT][0] == front_colour && edges_[UP_FRONT][1] == front_colour;
 	}
-	//void validate(CubeValidator::StickersNumberCheck const& option = CubeValidator::StickersNumberCheck::ENABLED) {
-	//	//CubeValidator validator(*this);
-	//	//std::string check_results = validator.report(option);
-	//	//if (check_results != "OK") {
-	//	//	throw InvalidState(check_results);
-	//	//}
-	//}
-	void validate() {
-		return;
+	void validate(CubeValidator::StickersNumberCheck const& option = CubeValidator::StickersNumberCheck::ENABLED) {
+		CubeValidator validator(*this);
+		std::string check_results = validator.report(option);
+		if (check_results != "OK") {
+			throw InvalidState(check_results);
+		}
 	}
+	//void validate() {
+	//	return;
+	//}
 	std::string create_filename() const {
 		std::time_t t = std::time(0);
 		std::tm now;
@@ -403,4 +403,64 @@ std::istream& operator>>(std::istream& is, RubiksCube& cube) {
 	return is;
 }
 
+
+RubiksCube random_cube() {
+	std::random_device device;
+	std::mt19937 generator(device());
+
+	size_t steps = generator() % 40;
+	//std::cout << steps << "\n";
+	RubiksCube cube;
+	MoveSequence s;
+	for (size_t i = 0; i < steps; ++i) {
+		char dir_index = generator() % 12;
+		uint8_t times = generator() % 2 + 1;
+		bool clockwise = generator() % 2;
+		Move m(static_cast<Move::Direction>(dir_index), clockwise, times);
+		s += m;
+		cube.rotate(Move(static_cast<Move::Direction>(dir_index), clockwise, times));
+	}
+	std::cout << s.to_string() << "\n";
+	return cube;
+}
+
+
+class CubeValidator {
+public:
+	enum class StickersNumberCheck : bool {
+		DISABLED, ENABLED
+	};
+	CubeValidator(RubiksCube const& cube) : cube_(cube) {}
+	std::string report(StickersNumberCheck const& option = StickersNumberCheck::ENABLED) {
+		// TODO: Run multithreading
+		if (option == StickersNumberCheck::ENABLED && !correct_stickering()) {
+			return "Incorrect stickering";
+		}
+		if (!edges_invariant()) {
+			return "Edges invariant failed";
+		}
+		if (!corners_invariant()) {
+			return "Corners invariant failed";
+		}
+		if (!permutations_invariant()) {
+			return "Permutations invariant failed";
+		}
+		return "OK";
+	}
+private:
+	//TODO:
+	bool correct_stickering() const {
+		return true;
+	}
+	bool edges_invariant() const {
+		return true;
+	}
+	bool corners_invariant() const {
+		return true;
+	}
+	bool permutations_invariant() const {
+		return true;
+	}
+	RubiksCube cube_;
+};
 #endif
