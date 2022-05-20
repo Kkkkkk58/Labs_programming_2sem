@@ -460,7 +460,6 @@ public:
 private:
 	//TODO:
 	static std::unordered_map<Position::Positions, Position::Positions> opposite_colours;
-
 	bool correct_centers() const {
 		using namespace RubiksCubeHelper;
 		return (cube_.face(DOWN) == opposite_colours[cube_.face(UP)] && cube_.face(LEFT) == opposite_colours[cube_.face(RIGHT)]
@@ -484,7 +483,7 @@ private:
 	}
 	bool corners_invariant() const {
 		using namespace RubiksCubeHelper;
-		uint8_t clockwise_cnt = 0, counterclockwise_cnt = 0;
+		uint8_t twist_cnt = 0;
 		Position::Positions up_col = cube_.face(UP), down_col = opposite_colours[up_col];
 		for (uint8_t i = 0; i < CORNERS_COUNT; ++i) {
 			if (cube_.corner(static_cast<CornersIndexing>(i))[0] == up_col
@@ -494,43 +493,37 @@ private:
 			if (cube_.corner(static_cast<CornersIndexing>(i))[1] == up_col
 				|| cube_.corner(static_cast<CornersIndexing>(i))[1] == down_col) {
 				if (i == UP_BACK_LEFT || i == UP_FRONT_RIGHT || i == DOWN_FRONT_LEFT || i == DOWN_BACK_RIGHT) {
-					clockwise_cnt += 1;
+					twist_cnt += 1;
 				}
 				else {
-					counterclockwise_cnt += 1;
+					twist_cnt += 2;
 				}
 			}
 			else {
-				if (i == UP_FRONT_LEFT || i == UP_BACK_RIGHT || i == DOWN_FRONT_LEFT || i == DOWN_BACK_RIGHT) {
-					clockwise_cnt += 1;
+				if (i == UP_FRONT_LEFT || i == UP_BACK_RIGHT || i == DOWN_FRONT_RIGHT || i == DOWN_BACK_LEFT) {
+					twist_cnt += 1;
 				}
 				else {
-					counterclockwise_cnt += 1;
+					twist_cnt += 2;
 				}
 			}
 		}
-		return (clockwise_cnt % 3) == (counterclockwise_cnt % 3);
+		return twist_cnt % 3 == 0;
 	}
 	bool edges_invariant() const {
 		using namespace RubiksCubeHelper;
 		uint8_t good_edges_cnt = 0;
 		Position::Positions down_col = cube_.face(DOWN), up_col = opposite_colours[down_col],
 			front_col = cube_.face(FRONT), back_col = opposite_colours[front_col];
-		for (uint8_t i = UP_BACK; i <= UP_LEFT; ++i) {
+		for (uint8_t i = UP_BACK; i <= DOWN_FRONT; ++i) {
 			if (cube_.edge(static_cast<EdgesIndexing>(i))[0] == up_col
 				|| cube_.edge(static_cast<EdgesIndexing>(i))[0] == down_col) {
 				++good_edges_cnt;
 			}
-		}
-		for (uint8_t i = FRONT_LEFT; i <= FRONT_RIGHT; ++i) {
-			if (cube_.edge(static_cast<EdgesIndexing>(i))[0] == front_col
-				|| cube_.edge(static_cast<EdgesIndexing>(i))[0] == back_col) {
-				++good_edges_cnt;
-			}
-		}
-		for (uint8_t i = DOWN_LEFT; i <= DOWN_FRONT; ++i) {
-			if (cube_.edge(static_cast<EdgesIndexing>(i))[0] == front_col
-				|| cube_.edge(static_cast<EdgesIndexing>(i))[0] == back_col) {
+			else if (cube_.edge(static_cast<EdgesIndexing>(i))[1] != up_col
+				&& cube_.edge(static_cast<EdgesIndexing>(i))[1] != down_col
+				&& (cube_.edge(static_cast<EdgesIndexing>(i))[0] == front_col
+					|| cube_.edge(static_cast<EdgesIndexing>(i))[0] == back_col)) {
 				++good_edges_cnt;
 			}
 		}
@@ -573,10 +566,6 @@ private:
 	size_t corners_perm(std::vector<Colour> const& centers) const {
 		using namespace RubiksCubeHelper;
 		std::vector<std::vector<Colour>> corners(CORNERS_COUNT);
-		/* 	enum CornersIndexing : uint8_t {
-		UP_BACK_LEFT, UP_BACK_RIGHT, UP_FRONT_RIGHT, UP_FRONT_LEFT, 
-		DOWN_FRONT_LEFT, DOWN_BACK_LEFT, DOWN_BACK_RIGHT, DOWN_FRONT_RIGHT
-	};*/
 		for (uint8_t i = UP_BACK_LEFT; i <= DOWN_FRONT_RIGHT; ++i) {
 			corners[i] = cube_.corner_colours(static_cast<CornersIndexing>(i));
 		}
