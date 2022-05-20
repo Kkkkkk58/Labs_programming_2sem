@@ -64,7 +64,7 @@ void RubiksCube::read_state(std::string const& filename, FileInputType const& fi
 	}
 }
 
-void RubiksCube::save_state(std::string filename) {
+std::string RubiksCube::save_state(std::string filename) const {
 	if (filename.empty()) {
 		filename = create_filename();
 	}
@@ -75,6 +75,7 @@ void RubiksCube::save_state(std::string filename) {
 	else {
 		throw InvalidFile(filename);
 	}
+	return filename;
 }
 
 RubiksCube::RubiksCube(RubiksCube const& other) : center_(other.center_), corners_(other.corners_), edges_(other.edges_) {}

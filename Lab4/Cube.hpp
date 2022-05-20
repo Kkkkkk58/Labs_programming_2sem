@@ -18,7 +18,7 @@ public:
 		SCRAMBLE
 	};
 	void read_state(std::string const&, FileInputType const& = FileInputType::SWEEP);
-	void save_state(std::string = std::string());
+	std::string save_state(std::string = std::string()) const;
 	RubiksCube(RubiksCube const&);
 	void swap(RubiksCube&);
 	RubiksCube(RubiksCube&&) noexcept;
