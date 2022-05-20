@@ -123,7 +123,7 @@ class GeneticAlgorithm : public ISolution {
 public:
 	explicit GeneticAlgorithm(RubiksCube const& cube)
 		: ISolution(), initial_state_(cube),
-		population_(std::vector<Candidate>(1000, Candidate(initial_state_))), found_solution(false) {}
+		population_(std::vector<Candidate>(100, Candidate(initial_state_))), found_solution(false) {}
 	//TODO: Multithreading
 
 	void solve() override {
@@ -133,8 +133,9 @@ public:
 		for (size_t i = 0; i < 54; ++i) {
 			std::cout << (char)177;
 		}
-		std::cout << "\r\t\t\t\t";
+	
 		while (true) {
+			std::cout << "\r\t\t\t\t";
 			size_t curr_rate = 0;
 			for (size_t i = 0; i < DEATH_AGE; ++i) {
 				for (auto& cube : population_) {
@@ -148,6 +149,7 @@ public:
 					}
 					std::cout << "\n\n\n";
 					SetConsoleTextAttribute(console, (WORD)(0 << 4) | 0x7);
+
 					found_solution = true;
 					break;
 				}
@@ -165,12 +167,13 @@ public:
 					//	std::cout << population_[0];
 					//}
 				}
-				std::copy(population_.begin(), population_.begin() + 151, population_.begin() + 151);
-				std::copy(population_.begin(), population_.begin() + 301, population_.begin() + 301);
-				std::copy(population_.begin(), population_.begin() + 500, population_.begin() + 500);
+				std::copy(population_.begin(), population_.begin() + 16, population_.begin() + 16);
+				std::copy(population_.begin(), population_.begin() + 31, population_.begin() + 31);
+				std::copy(population_.begin(), population_.begin() + 50, population_.begin() + 50);
 
 			}
 			if (!found_solution) {
+				std::cout << "\n\n" << population_[0] << "\n";
 				reset();
 			}
 			else {
@@ -187,7 +190,7 @@ public:
 	}
 
 	void reset() {
-		population_ = std::vector<Candidate>(1000, Candidate(initial_state_));
+		population_ = std::vector<Candidate>(100, Candidate(initial_state_));
 	}
 
 private:

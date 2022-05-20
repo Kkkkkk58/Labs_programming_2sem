@@ -102,6 +102,26 @@ private:
 	Colours colour_;
 };
 
+uint8_t index(Colour const& col) {
+	if (col == Colour::Colours::WHITE) {
+		return 0;
+	}
+	if (col == Colour::Colours::BLUE) {
+		return 1;
+	}
+	if (col == Colour::Colours::GREEN) {
+		return 3;
+	}
+	if (col == Colour::Colours::ORANGE) {
+		return 5;
+	}
+	if (col == Colour::Colours::RED) {
+		return 2;
+	}
+	else {
+		return 4;
+	}
+}
 
 std::ostream& operator<<(std::ostream& os, Position::Positions const& colour) {
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);

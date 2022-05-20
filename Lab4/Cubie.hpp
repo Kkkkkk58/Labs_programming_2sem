@@ -152,6 +152,9 @@ public:
 	Position::Positions operator[](uint8_t i) const override {
 		return orientation_[i];
 	}
+	std::vector<Colour> get_colours() const {
+		return { orientation_[0], orientation_[1] };
+	}
 	void rotate(Move const& move) override {
 		if (move.times() != 2) {
 			switch (move.direction()) {
@@ -214,7 +217,9 @@ public:
 			}
 		}
 	}
-
+	std::vector<Colour> get_colours() const {
+		return { orientation_[0], orientation_[1], orientation_[2] };
+	}
 private:
 	CornerPosition orientation_;
 };
