@@ -2,7 +2,6 @@
 #define RUBIKS_CUBE_HELPER_HPP
 #include <cinttypes>
 #include <vector>
-#include "Moves.hpp"
 #include "Colour.hpp"
 #include "Position.hpp"
 
@@ -23,21 +22,9 @@ namespace RubiksCubeHelper {
 		DOWN_LEFT, DOWN_BACK, DOWN_RIGHT, DOWN_FRONT
 	};
 
-	void to_positions(std::string const& colour_map, std::vector<Position::Positions>& colour_buf) {
-		for (char c : colour_map) {
-			if (std::isalpha(c)) {
-				colour_buf.push_back(Colour(c));
-			}
-		}
-	}
+	void to_positions(std::string const&, std::vector<Position::Positions>&);
 
-	std::vector<Colour> to_colours(std::vector<Position::Positions> const& colour_sequence) {
-		std::vector<Colour> colours;
-		for (Position::Positions const& pos : colour_sequence) {
-			colours.push_back(Colour(pos));
-		}
-		return colours;
-	}
+	std::vector<Colour> to_colours(std::vector<Position::Positions> const&);
 	
 }
 
