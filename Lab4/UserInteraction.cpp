@@ -99,7 +99,7 @@ void UserInteraction::on_read() const {
 	std::cout << "Enter the filename: ";
 	std::string filename;
 	std::cin >> filename;
-	std::cout << "Is the cube given as a sweep (<-) or a scramble (->)?";
+	std::cout << "Is the cube given as a sweep (<-) or a scramble (->)?\n";
 	char ch = _getch();
 	ch = _getch();
 	switch (ch) {
@@ -120,6 +120,7 @@ void UserInteraction::on_input() const {
 	std::cout << "Enter the sweep of the cube: ";
 	RubiksCube cube;
 	std::cin >> cube;
+	std::cout << "\n";
 	on_cube_interaction(cube);
 }
 
@@ -128,7 +129,7 @@ void UserInteraction::on_save(RubiksCube const& cube, std::string const& filenam
 }
 
 void UserInteraction::on_cube_interaction(RubiksCube& cube) const {
-	std::cout << "Initial state of the cube is \n\n" << cube << "\n";
+	std::cout << "\nInitial state of the cube is \n\n" << cube << "\n";
 	bool alive = true;
 	while (alive) {
 		std::cout << "What to do with this cube?\n"
