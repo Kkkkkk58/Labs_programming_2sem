@@ -1,7 +1,7 @@
 #include "RubiksCubeHelper.hpp"
 
 std::string RubiksCubeHelper::create_filename() {
-	// Перевод текущего времени в строку
+	// РџРµСЂРµРІРѕРґ С‚РµРєСѓС‰РµРіРѕ РІСЂРµРјРµРЅРё РІ СЃС‚СЂРѕРєСѓ
 	std::time_t t = std::time(0);
 	std::tm now;
 	localtime_s(&now, &t);

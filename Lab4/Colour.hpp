@@ -4,7 +4,7 @@
 #include <iostream>
 #include "Position.hpp"
 
-// Класс, определяющий цвета - для индексации и взаимодействия с внешним миром
+// РљР»Р°СЃСЃ, РѕРїСЂРµРґРµР»СЏСЋС‰РёР№ С†РІРµС‚Р° - РґР»СЏ РёРЅРґРµРєСЃР°С†РёРё Рё РІР·Р°РёРјРѕРґРµР№СЃС‚РІРёСЏ СЃ РІРЅРµС€РЅРёРј РјРёСЂРѕРј
 class Colour {
 public:
 	enum class Colours : uint8_t {
@@ -24,7 +24,7 @@ public:
 	operator Position::Positions() const;
 	operator char() const;
 private:
-	Colours colour_;	// Объект типа перечисления
+	Colours colour_;	// РћР±СЉРµРєС‚ С‚РёРїР° РїРµСЂРµС‡РёСЃР»РµРЅРёСЏ
 };
 
 uint8_t index(Colour const&);

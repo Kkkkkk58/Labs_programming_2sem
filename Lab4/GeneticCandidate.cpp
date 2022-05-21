@@ -1,14 +1,14 @@
 #include "GeneticCandidate.hpp"
 #include "GeneticMutations.hpp"
 
-// Конструктор класса Candidate от состояния кубика
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° Candidate РѕС‚ СЃРѕСЃС‚РѕСЏРЅРёСЏ РєСѓР±РёРєР°
 Candidate::Candidate(RubiksCube const& cube) : cube_(cube), moves_(), updated_(true), curr_fitness_(0) {}
 
-// Конструктор копирования класса Candidate
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РєР»Р°СЃСЃР° Candidate
 Candidate::Candidate(Candidate const& other)
 	: cube_(other.cube_), moves_(other.moves_), updated_(other.updated_), curr_fitness_(other.curr_fitness_) {}
 
-// Метод swap класса Candidate
+// РњРµС‚РѕРґ swap РєР»Р°СЃСЃР° Candidate
 void Candidate::swap(Candidate& other) {
 	using std::swap;
 	swap(cube_, other.cube_);
@@ -17,12 +17,12 @@ void Candidate::swap(Candidate& other) {
 	swap(curr_fitness_, other.curr_fitness_);
 }
 
-// Конструктор перемещения класса Candidate
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРµСЂРµРјРµС‰РµРЅРёСЏ РєР»Р°СЃСЃР° Candidate
 Candidate::Candidate(Candidate&& other) noexcept {
 	swap(other);
 }
 
-// Оператор присваивания класса Candidate
+// РћРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° Candidate
 Candidate& Candidate::operator=(Candidate const& other) {
 	if (this != &other) {
 		cube_ = other.cube_;
@@ -33,20 +33,20 @@ Candidate& Candidate::operator=(Candidate const& other) {
 	return *this;
 }
 
-// Перемещающий оператор присваивания класса Candidate
+// РџРµСЂРµРјРµС‰Р°СЋС‰РёР№ РѕРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° Candidate
 Candidate& Candidate::operator=(Candidate&& other) noexcept {
 	swap(other);
 	return *this;
 }
 
-// Метод исполнения последовательности поворотов по коду
+// РњРµС‚РѕРґ РёСЃРїРѕР»РЅРµРЅРёСЏ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚Рё РїРѕРІРѕСЂРѕС‚РѕРІ РїРѕ РєРѕРґСѓ
 void Candidate::perform_sequence(uint8_t sequence_code) {
 	cube_.setup(mutations_sequences[sequence_code]);
 	moves_.push_back(sequence_code);
 	updated_ = true;
 }
 
-// Метод раскодирования списка мутаций
+// РњРµС‚РѕРґ СЂР°СЃРєРѕРґРёСЂРѕРІР°РЅРёСЏ СЃРїРёСЃРєР° РјСѓС‚Р°С†РёР№
 MoveSequence Candidate::get_moves() const {
 	MoveSequence moves;
 	for (auto const& move : moves_) {
@@ -55,7 +55,7 @@ MoveSequence Candidate::get_moves() const {
 	return moves;
 }
 
-// Метод ленивого пересчета параметра fitness
+// РњРµС‚РѕРґ Р»РµРЅРёРІРѕРіРѕ РїРµСЂРµСЃС‡РµС‚Р° РїР°СЂР°РјРµС‚СЂР° fitness
 size_t Candidate::fitness() {
 	if (updated_) {
 		updated_ = false;
@@ -64,15 +64,15 @@ size_t Candidate::fitness() {
 	return curr_fitness_;
 }
 
-// Метод доступа к полю cube_ класса Candidate
+// РњРµС‚РѕРґ РґРѕСЃС‚СѓРїР° Рє РїРѕР»СЋ cube_ РєР»Р°СЃСЃР° Candidate
 RubiksCube const& Candidate::get_cube() const {
 	return cube_;
 }
 
-// Метод пересчета количества стикеров, находящихся не на своих местах
+// РњРµС‚РѕРґ РїРµСЂРµСЃС‡РµС‚Р° РєРѕР»РёС‡РµСЃС‚РІР° СЃС‚РёРєРµСЂРѕРІ, РЅР°С…РѕРґСЏС‰РёС…СЃСЏ РЅРµ РЅР° СЃРІРѕРёС… РјРµСЃС‚Р°С…
 size_t Candidate::wrong_stickers() const {
 	using namespace RubiksCubeHelper;
-	// Проверка всех кубиков
+	// РџСЂРѕРІРµСЂРєР° РІСЃРµС… РєСѓР±РёРєРѕРІ
 	size_t count = check(UP_BACK_LEFT, UP, BACK, LEFT) + check(UP_BACK, UP, BACK) + check(UP_BACK_RIGHT, UP, BACK, RIGHT)
 		+ check(UP_RIGHT, UP, RIGHT) + check(UP_FRONT_RIGHT, UP, FRONT, RIGHT) + check(UP_FRONT, UP, FRONT)
 		+ check(UP_FRONT_LEFT, UP, FRONT, LEFT) + check(UP_LEFT, UP, LEFT) + check(FRONT_LEFT, FRONT, LEFT)
@@ -83,7 +83,7 @@ size_t Candidate::wrong_stickers() const {
 	return count;
 }
 
-// Проверка углового кубика
+// РџСЂРѕРІРµСЂРєР° СѓРіР»РѕРІРѕРіРѕ РєСѓР±РёРєР°
 size_t Candidate::check(RubiksCubeHelper::CornersIndexing el, RubiksCubeHelper::CentersIndexing a,
 	RubiksCubeHelper::CentersIndexing b, RubiksCubeHelper::CentersIndexing c) const {
 	size_t count = 0;
@@ -99,7 +99,7 @@ size_t Candidate::check(RubiksCubeHelper::CornersIndexing el, RubiksCubeHelper::
 	return count;
 }
 
-// Проверка реберного кубика
+// РџСЂРѕРІРµСЂРєР° СЂРµР±РµСЂРЅРѕРіРѕ РєСѓР±РёРєР°
 size_t Candidate::check(RubiksCubeHelper::EdgesIndexing el, RubiksCubeHelper::CentersIndexing a,
 	RubiksCubeHelper::CentersIndexing b) const {
 	size_t count = 0;

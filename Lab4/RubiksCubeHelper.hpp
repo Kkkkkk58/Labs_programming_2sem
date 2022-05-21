@@ -7,31 +7,31 @@
 
 namespace RubiksCubeHelper {
 
-	// Индексация центральных стикеров
+	// РРЅРґРµРєСЃР°С†РёСЏ С†РµРЅС‚СЂР°Р»СЊРЅС‹С… СЃС‚РёРєРµСЂРѕРІ
 	enum CentersIndexing : uint8_t {
 		UP, LEFT, FRONT, RIGHT, BACK, DOWN
 	};
 
-	// Индексация угловых кубиков
+	// РРЅРґРµРєСЃР°С†РёСЏ СѓРіР»РѕРІС‹С… РєСѓР±РёРєРѕРІ
  	enum CornersIndexing : uint8_t {
 		UP_BACK_LEFT, UP_BACK_RIGHT, UP_FRONT_RIGHT, UP_FRONT_LEFT, 
 		DOWN_FRONT_LEFT, DOWN_BACK_LEFT, DOWN_BACK_RIGHT, DOWN_FRONT_RIGHT
 	};
 
-	// Индексация реберных кубиков
+	// РРЅРґРµРєСЃР°С†РёСЏ СЂРµР±РµСЂРЅС‹С… РєСѓР±РёРєРѕРІ
 	enum EdgesIndexing : uint8_t {
 		UP_BACK, UP_RIGHT, UP_FRONT, UP_LEFT, 
 		FRONT_LEFT, BACK_LEFT, BACK_RIGHT, FRONT_RIGHT, 
 		DOWN_LEFT, DOWN_BACK, DOWN_RIGHT, DOWN_FRONT
 	};
 
-	// Генерация имени файла для сохранения состояния кубика
+	// Р“РµРЅРµСЂР°С†РёСЏ РёРјРµРЅРё С„Р°Р№Р»Р° РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ СЃРѕСЃС‚РѕСЏРЅРёСЏ РєСѓР±РёРєР°
 	std::string create_filename();
 
-	// Функция, переводящая строку с буквенным представлением цветов во внутренний формат хранения
+	// Р¤СѓРЅРєС†РёСЏ, РїРµСЂРµРІРѕРґСЏС‰Р°СЏ СЃС‚СЂРѕРєСѓ СЃ Р±СѓРєРІРµРЅРЅС‹Рј РїСЂРµРґСЃС‚Р°РІР»РµРЅРёРµРј С†РІРµС‚РѕРІ РІРѕ РІРЅСѓС‚СЂРµРЅРЅРёР№ С„РѕСЂРјР°С‚ С…СЂР°РЅРµРЅРёСЏ
 	void to_positions(std::string const&, std::vector<Position::Positions>&);
 
-	// Перевод из внутреннего представления в формат класса Colour
+	// РџРµСЂРµРІРѕРґ РёР· РІРЅСѓС‚СЂРµРЅРЅРµРіРѕ РїСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ РІ С„РѕСЂРјР°С‚ РєР»Р°СЃСЃР° Colour
 	std::vector<Colour> to_colours(std::vector<Position::Positions> const&);
 
 }

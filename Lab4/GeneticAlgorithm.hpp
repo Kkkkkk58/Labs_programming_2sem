@@ -4,17 +4,17 @@
 #include "Solution.hpp"
 #include "GeneticCandidate.hpp"
 
-// Класс-"решатель" кубика Рубика генетическим алгоритмом
+// РљР»Р°СЃСЃ-"СЂРµС€Р°С‚РµР»СЊ" РєСѓР±РёРєР° Р СѓР±РёРєР° РіРµРЅРµС‚РёС‡РµСЃРєРёРј Р°Р»РіРѕСЂРёС‚РјРѕРј
 class GeneticAlgorithm : public ISolution {
 public:
 	explicit GeneticAlgorithm(RubiksCube const& cube);
 	void solve() override;
 	MoveSequence sequence() const override;
 private:
-	RubiksCube initial_state_;				// Сохранение исходного состояния кубика (если понадобится новая популяция)
-	std::vector<Candidate> population_;		// Текущая популяция
-	bool found_solution;					// Флаг, сигнализирующий о том, что решение найдено
-	static const size_t DEATH_AGE, POPULATION_NUMBER;	// Константы - размер популяции и номер, после которого создается новая
+	RubiksCube initial_state_;				// РЎРѕС…СЂР°РЅРµРЅРёРµ РёСЃС…РѕРґРЅРѕРіРѕ СЃРѕСЃС‚РѕСЏРЅРёСЏ РєСѓР±РёРєР° (РµСЃР»Рё РїРѕРЅР°РґРѕР±РёС‚СЃСЏ РЅРѕРІР°СЏ РїРѕРїСѓР»СЏС†РёСЏ)
+	std::vector<Candidate> population_;		// РўРµРєСѓС‰Р°СЏ РїРѕРїСѓР»СЏС†РёСЏ
+	bool found_solution;					// Р¤Р»Р°Рі, СЃРёРіРЅР°Р»РёР·РёСЂСѓСЋС‰РёР№ Рѕ С‚РѕРј, С‡С‚Рѕ СЂРµС€РµРЅРёРµ РЅР°Р№РґРµРЅРѕ
+	static const size_t DEATH_AGE, POPULATION_NUMBER;	// РљРѕРЅСЃС‚Р°РЅС‚С‹ - СЂР°Р·РјРµСЂ РїРѕРїСѓР»СЏС†РёРё Рё РЅРѕРјРµСЂ, РїРѕСЃР»Рµ РєРѕС‚РѕСЂРѕРіРѕ СЃРѕР·РґР°РµС‚СЃСЏ РЅРѕРІР°СЏ
 	void reset();
 	size_t get_combination() const;
 };

@@ -4,23 +4,23 @@
 #include <algorithm>
 #include <random>
 
-// Конструктор класса GeneticAlgorithm от кубика
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° GeneticAlgorithm РѕС‚ РєСѓР±РёРєР°
 GeneticAlgorithm::GeneticAlgorithm(RubiksCube const& cube)
 	: ISolution(), initial_state_(cube),
 	population_({ Candidate(cube) }), found_solution(false) {
 	population_[0].fitness();
 }
 
-// Метод нахождения решения с помощью генетического алгоритма
+// РњРµС‚РѕРґ РЅР°С…РѕР¶РґРµРЅРёСЏ СЂРµС€РµРЅРёСЏ СЃ РїРѕРјРѕС‰СЊСЋ РіРµРЅРµС‚РёС‡РµСЃРєРѕРіРѕ Р°Р»РіРѕСЂРёС‚РјР°
 void GeneticAlgorithm::solve() {
-	// Печатаем в консоль прогресс-бар
+	// РџРµС‡Р°С‚Р°РµРј РІ РєРѕРЅСЃРѕР»СЊ РїСЂРѕРіСЂРµСЃСЃ-Р±Р°СЂ
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(console, (WORD)(0 << 4) | 0x2);
 	std::cout << "\n\n\t\t\t\t\t\t   Calculating...\n\n\t\t\t\t";
 	for (size_t i = 0; i < 54; ++i) {
 		std::cout << (char)177;
 	}
-	// Если получен уже собранный кубик
+	// Р•СЃР»Рё РїРѕР»СѓС‡РµРЅ СѓР¶Рµ СЃРѕР±СЂР°РЅРЅС‹Р№ РєСѓР±РёРє
 	if (population_[0].fitness() == STICKERS_COUNT) {
 		std::cout << "\r\t\t\t\t";
 		for (size_t i = 0; i < 54; ++i) {
@@ -29,27 +29,27 @@ void GeneticAlgorithm::solve() {
 		SetConsoleTextAttribute(console, (WORD)(0 << 4) | 0x7);
 		found_solution = true;
 	}
-	// Генерируем первую популяцию
+	// Р“РµРЅРµСЂРёСЂСѓРµРј РїРµСЂРІСѓСЋ РїРѕРїСѓР»СЏС†РёСЋ
 	reset();
-	// Измеряем время работы
+	// РР·РјРµСЂСЏРµРј РІСЂРµРјСЏ СЂР°Р±РѕС‚С‹
 	std::clock_t start;
 	double duration;
 	start = std::clock();
-	// Пока не найдем решинение, ищем
+	// РџРѕРєР° РЅРµ РЅР°Р№РґРµРј СЂРµС€РёРЅРµРЅРёРµ, РёС‰РµРј
 	while (!found_solution) {
 		std::cout << "\r\t\t\t\t";
 		size_t curr_rate = 0;
-		// Пока не достигли терминальной стадии развития
+		// РџРѕРєР° РЅРµ РґРѕСЃС‚РёРіР»Рё С‚РµСЂРјРёРЅР°Р»СЊРЅРѕР№ СЃС‚Р°РґРёРё СЂР°Р·РІРёС‚РёСЏ
 		for (size_t i = 0; i < DEATH_AGE; ++i) {
 			for (auto& cube : population_) {
-				// Применяем случайные мутации к популяции
+				// РџСЂРёРјРµРЅСЏРµРј СЃР»СѓС‡Р°Р№РЅС‹Рµ РјСѓС‚Р°С†РёРё Рє РїРѕРїСѓР»СЏС†РёРё
 				cube.perform_sequence(get_combination());
 			}
-			// Сортировка представителей популяции для отбора сильнейших
+			// РЎРѕСЂС‚РёСЂРѕРІРєР° РїСЂРµРґСЃС‚Р°РІРёС‚РµР»РµР№ РїРѕРїСѓР»СЏС†РёРё РґР»СЏ РѕС‚Р±РѕСЂР° СЃРёР»СЊРЅРµР№С€РёС…
 			std::sort(population_.begin(), population_.end(),
 				[](Candidate& a, Candidate& b) { return a.fitness() > b.fitness(); });
 
-			// Если нашли решение
+			// Р•СЃР»Рё РЅР°С€Р»Рё СЂРµС€РµРЅРёРµ
 			if (population_[0].fitness() == STICKERS_COUNT) {
 				for (size_t i = 0; i < population_[0].fitness() - curr_rate; ++i) {
 					std::cout << (char)219;
@@ -60,7 +60,7 @@ void GeneticAlgorithm::solve() {
 				found_solution = true;
 				break;
 			}
-			// Иначе оставляем 15 сильнейших представителей и образуем новую популяцию, опираясь на них
+			// РРЅР°С‡Рµ РѕСЃС‚Р°РІР»СЏРµРј 15 СЃРёР»СЊРЅРµР№С€РёС… РїСЂРµРґСЃС‚Р°РІРёС‚РµР»РµР№ Рё РѕР±СЂР°Р·СѓРµРј РЅРѕРІСѓСЋ РїРѕРїСѓР»СЏС†РёСЋ, РѕРїРёСЂР°СЏСЃСЊ РЅР° РЅРёС…
 			else {
 				if (population_[0].fitness() > curr_rate) {
 					for (size_t i = 0; i < population_[0].fitness() - curr_rate; ++i) {
@@ -74,12 +74,12 @@ void GeneticAlgorithm::solve() {
 			std::copy(population_.begin(), population_.begin() + 50, population_.begin() + 50);
 
 		}
-		// Если после терминальной стадии ветка эволюции зашла в тупик, генерируем новое поколение от исходного куба
+		// Р•СЃР»Рё РїРѕСЃР»Рµ С‚РµСЂРјРёРЅР°Р»СЊРЅРѕР№ СЃС‚Р°РґРёРё РІРµС‚РєР° СЌРІРѕР»СЋС†РёРё Р·Р°С€Р»Р° РІ С‚СѓРїРёРє, РіРµРЅРµСЂРёСЂСѓРµРј РЅРѕРІРѕРµ РїРѕРєРѕР»РµРЅРёРµ РѕС‚ РёСЃС…РѕРґРЅРѕРіРѕ РєСѓР±Р°
 		if (!found_solution) {
 			reset();
 		}
 		else {
-			// Сообщаем, сколько времени потрачено на поиск решения
+			// РЎРѕРѕР±С‰Р°РµРј, СЃРєРѕР»СЊРєРѕ РІСЂРµРјРµРЅРё РїРѕС‚СЂР°С‡РµРЅРѕ РЅР° РїРѕРёСЃРє СЂРµС€РµРЅРёСЏ
 			duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 			std::cout << "\t\t\t\t\t\tTime elapsed: " << duration << "\n\n\n";
 			break;
@@ -87,7 +87,7 @@ void GeneticAlgorithm::solve() {
 	}
 }
 
-// Возврат последовательности, решающей кубик (если решение уже было найдено)
+// Р’РѕР·РІСЂР°С‚ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚Рё, СЂРµС€Р°СЋС‰РµР№ РєСѓР±РёРє (РµСЃР»Рё СЂРµС€РµРЅРёРµ СѓР¶Рµ Р±С‹Р»Рѕ РЅР°Р№РґРµРЅРѕ)
 MoveSequence GeneticAlgorithm::sequence() const {
 	if (found_solution) {
 		return population_[0].get_moves();
@@ -95,17 +95,17 @@ MoveSequence GeneticAlgorithm::sequence() const {
 	return MoveSequence();
 }
 
-// Генерация новой популяции
+// Р“РµРЅРµСЂР°С†РёСЏ РЅРѕРІРѕР№ РїРѕРїСѓР»СЏС†РёРё
 void GeneticAlgorithm::reset() {
 	population_ = std::vector<Candidate>(POPULATION_NUMBER, Candidate(initial_state_));
 }
 
-// Получение кода случайной мутации
+// РџРѕР»СѓС‡РµРЅРёРµ РєРѕРґР° СЃР»СѓС‡Р°Р№РЅРѕР№ РјСѓС‚Р°С†РёРё
 size_t GeneticAlgorithm::get_combination() const {
 	std::random_device device;
 	std::mt19937 generator(device());
 	return generator() % mutations_sequences.size();
 }
 
-// Инициализация статических полей класса
+// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ СЃС‚Р°С‚РёС‡РµСЃРєРёС… РїРѕР»РµР№ РєР»Р°СЃСЃР°
 const size_t GeneticAlgorithm::DEATH_AGE = 100, GeneticAlgorithm::POPULATION_NUMBER = 100;

@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 
-// Класс, предоставляющий информацию об одном повороте
+// РљР»Р°СЃСЃ, РїСЂРµРґРѕСЃС‚Р°РІР»СЏСЋС‰РёР№ РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РѕРґРЅРѕРј РїРѕРІРѕСЂРѕС‚Рµ
 class Move {
 public:
-	// Коды для поворотов граней из стандартной нотации
+	// РљРѕРґС‹ РґР»СЏ РїРѕРІРѕСЂРѕС‚РѕРІ РіСЂР°РЅРµР№ РёР· СЃС‚Р°РЅРґР°СЂС‚РЅРѕР№ РЅРѕС‚Р°С†РёРё
 	enum class Direction : char {
 		U, D, L, R, F, B, X, Y, Z, M, E, S
 	};
@@ -18,9 +18,9 @@ public:
 	bool clockwise() const;
 	uint8_t times() const;
 private:
-	Direction direction_;	// Код поворачиваемой(-ых) грани(-ей)
-	bool clockwise_;		// Направление поворота - true == по часовой стрелке, false == против часовой
-	uint8_t times_;			// Количество раз (в стандартной нотации от 1 до 2)
+	Direction direction_;	// РљРѕРґ РїРѕРІРѕСЂР°С‡РёРІР°РµРјРѕР№(-С‹С…) РіСЂР°РЅРё(-РµР№)
+	bool clockwise_;		// РќР°РїСЂР°РІР»РµРЅРёРµ РїРѕРІРѕСЂРѕС‚Р° - true == РїРѕ С‡Р°СЃРѕРІРѕР№ СЃС‚СЂРµР»РєРµ, false == РїСЂРѕС‚РёРІ С‡Р°СЃРѕРІРѕР№
+	uint8_t times_;			// РљРѕР»РёС‡РµСЃС‚РІРѕ СЂР°Р· (РІ СЃС‚Р°РЅРґР°СЂС‚РЅРѕР№ РЅРѕС‚Р°С†РёРё РѕС‚ 1 РґРѕ 2)
 };
 
 
@@ -28,7 +28,7 @@ std::istream& operator>>(std::istream&, Move&);
 
 std::ostream& operator<<(std::ostream& , Move const&);
 
-// Контейнер - последовательность поворотов
+// РљРѕРЅС‚РµР№РЅРµСЂ - РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚СЊ РїРѕРІРѕСЂРѕС‚РѕРІ
 class MoveSequence {
 public:
 	using iterator				 = std::vector<Move>::iterator;
@@ -66,7 +66,7 @@ public:
 	const_reverse_iterator rend() const;
 	const_reverse_iterator crend() const;
 private:
-	std::vector<Move> moves_;		// Вектор поворотов
+	std::vector<Move> moves_;		// Р’РµРєС‚РѕСЂ РїРѕРІРѕСЂРѕС‚РѕРІ
 };
 
 const MoveSequence operator+(MoveSequence, MoveSequence const&);

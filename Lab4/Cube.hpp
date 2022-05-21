@@ -7,13 +7,13 @@
 #include "Cubie.hpp"
 #include "RubiksCubeHelper.hpp"
 
-// Класс, описывающий состояние кубика Рубика
+// РљР»Р°СЃСЃ, РѕРїРёСЃС‹РІР°СЋС‰РёР№ СЃРѕСЃС‚РѕСЏРЅРёРµ РєСѓР±РёРєР° Р СѓР±РёРєР°
 class RubiksCube {
 public:
 	RubiksCube();
 	RubiksCube(CenterCubie const&, std::vector<CornerCubie> const&, std::vector<EdgeCubie> const&);
 	explicit RubiksCube(std::string const&);
-	// Перечисление для определения типа ввода из файла
+	// РџРµСЂРµС‡РёСЃР»РµРЅРёРµ РґР»СЏ РѕРїСЂРµРґРµР»РµРЅРёСЏ С‚РёРїР° РІРІРѕРґР° РёР· С„Р°Р№Р»Р°
 	enum class FileInputType : bool {
 		SWEEP,
 		SCRAMBLE

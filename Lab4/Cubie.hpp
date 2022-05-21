@@ -5,7 +5,7 @@
 #include "Position.hpp"
 #include "Moves.hpp"
 
-// Интерфейс маленького кубика
+// РРЅС‚РµСЂС„РµР№СЃ РјР°Р»РµРЅСЊРєРѕРіРѕ РєСѓР±РёРєР°
 class Cubie {
 public:
 	virtual ~Cubie() {}
@@ -13,10 +13,10 @@ public:
 	virtual void rotate(Move const&) = 0;
 };
 
-// Крестовина - центральный кубик
+// РљСЂРµСЃС‚РѕРІРёРЅР° - С†РµРЅС‚СЂР°Р»СЊРЅС‹Р№ РєСѓР±РёРє
 class CenterCubie : public Cubie {
 public:
-	// Соответствующие грани
+	// РЎРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РёРµ РіСЂР°РЅРё
 	enum Faces : uint8_t {
 		UP, LEFT, FRONT, RIGHT, BACK, DOWN
 	};
@@ -32,14 +32,14 @@ public:
 	std::vector<Colour>& get_colours();
 	void rotate(Move const&) override {}
 private:
-	std::vector<Colour> colours_;	// Цвета крестовины в заданном порядке
+	std::vector<Colour> colours_;	// Р¦РІРµС‚Р° РєСЂРµСЃС‚РѕРІРёРЅС‹ РІ Р·Р°РґР°РЅРЅРѕРј РїРѕСЂСЏРґРєРµ
 	void rotate_x(uint8_t, bool);
 	void rotate_y(uint8_t, bool);
 	void rotate_z(uint8_t, bool);
 	using C = Colour::Colours;
 };
 
-// Реберный кубик
+// Р РµР±РµСЂРЅС‹Р№ РєСѓР±РёРє
 class EdgeCubie : public Cubie {
 public:
 	explicit EdgeCubie(EdgePosition const& = EdgePosition(Position::Positions::BLUE, Position::Positions::YELLOW));
@@ -53,10 +53,10 @@ public:
 	std::vector<Colour> get_colours() const;
 	void rotate(Move const&) override;
 private:
-	EdgePosition orientation_;		// Цвета кубика в относительной ориентации
+	EdgePosition orientation_;		// Р¦РІРµС‚Р° РєСѓР±РёРєР° РІ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕР№ РѕСЂРёРµРЅС‚Р°С†РёРё
 };
  
-// Угловой кубик
+// РЈРіР»РѕРІРѕР№ РєСѓР±РёРє
 class CornerCubie : public Cubie {
 public:
 	explicit CornerCubie(CornerPosition const& = CornerPosition(Position::Positions::WHITE, \
@@ -71,7 +71,7 @@ public:
 	void rotate(Move const&);
 	std::vector<Colour> get_colours() const;
 private:
-	CornerPosition orientation_;		// Цвета кубика в относительной ориентации
+	CornerPosition orientation_;		// Р¦РІРµС‚Р° РєСѓР±РёРєР° РІ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕР№ РѕСЂРёРµРЅС‚Р°С†РёРё
 };
 
 #endif

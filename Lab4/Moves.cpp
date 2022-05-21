@@ -2,17 +2,17 @@
 #include <regex>
 #include "CubeExceptions.hpp"
 
-// Конструктор класса Move от составляющих частей нотации поворота
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° Move РѕС‚ СЃРѕСЃС‚Р°РІР»СЏСЋС‰РёС… С‡Р°СЃС‚РµР№ РЅРѕС‚Р°С†РёРё РїРѕРІРѕСЂРѕС‚Р°
 Move::Move(Direction const& direction, bool clockwise, uint8_t times)
 	: direction_(direction), clockwise_(clockwise), times_(times) {}
 
-// Конструктор класса Move от строки, кодирующей поворот
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° Move РѕС‚ СЃС‚СЂРѕРєРё, РєРѕРґРёСЂСѓСЋС‰РµР№ РїРѕРІРѕСЂРѕС‚
 Move::Move(std::string const& s) : direction_(), clockwise_(true), times_(1) {
-	// Если на вход поступила пустая строка
+	// Р•СЃР»Рё РЅР° РІС…РѕРґ РїРѕСЃС‚СѓРїРёР»Р° РїСѓСЃС‚Р°СЏ СЃС‚СЂРѕРєР°
 	if (s.size() == 0) {
 		throw UnknownMove("Empty move code passed");
 	}
-	// Получаем код поворачиваемой(-ых) грани(-ей)
+	// РџРѕР»СѓС‡Р°РµРј РєРѕРґ РїРѕРІРѕСЂР°С‡РёРІР°РµРјРѕР№(-С‹С…) РіСЂР°РЅРё(-РµР№)
 	switch (s[0]) {
 	case 'U': case 'u': direction_ = Direction::U; break;
 	case 'D': case 'd': direction_ = Direction::D; break;
@@ -26,21 +26,21 @@ Move::Move(std::string const& s) : direction_(), clockwise_(true), times_(1) {
 	case 'M': case 'm': direction_ = Direction::M; break;
 	case 'E': case 'e': direction_ = Direction::E; break;
 	case 'S': case 's': direction_ = Direction::S; break;
-	// Представлено другое значение
+	// РџСЂРµРґСЃС‚Р°РІР»РµРЅРѕ РґСЂСѓРіРѕРµ Р·РЅР°С‡РµРЅРёРµ
 	default: throw UnknownMove(s);
 	}
-	// Если в строке содержится три символа
+	// Р•СЃР»Рё РІ СЃС‚СЂРѕРєРµ СЃРѕРґРµСЂР¶РёС‚СЃСЏ С‚СЂРё СЃРёРјРІРѕР»Р°
 	if (s.size() == 3) {
 
 		times_ = s[1] - '0';
 		clockwise_ = (s[2] == '\'') ? false : true;
-		// Если встретились ошибки в нотации
+		// Р•СЃР»Рё РІСЃС‚СЂРµС‚РёР»РёСЃСЊ РѕС€РёР±РєРё РІ РЅРѕС‚Р°С†РёРё
 		if (times_ != 2 || clockwise_) {
 			throw UnknownMove(s);
 		}
 
 	}
-	// Строка потенциально содержит цифру 2 или символ '
+	// РЎС‚СЂРѕРєР° РїРѕС‚РµРЅС†РёР°Р»СЊРЅРѕ СЃРѕРґРµСЂР¶РёС‚ С†РёС„СЂСѓ 2 РёР»Рё СЃРёРјРІРѕР» '
 	if (s.size() > 1) {
 		switch (s[1]) {
 		case '\'':
@@ -49,17 +49,17 @@ Move::Move(std::string const& s) : direction_(), clockwise_(true), times_(1) {
 		case '2':
 			times_ = 2;
 			break;
-		// Несоответствие нотации
+		// РќРµСЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ РЅРѕС‚Р°С†РёРё
 		default:
 			throw UnknownMove(s);
 		}
 	}
 }
 
-// Перевод кода движения в строковый формат
+// РџРµСЂРµРІРѕРґ РєРѕРґР° РґРІРёР¶РµРЅРёСЏ РІ СЃС‚СЂРѕРєРѕРІС‹Р№ С„РѕСЂРјР°С‚
 std::string Move::to_string() const {
 	std::string s;
-	// Задаем поворачиваемую грань
+	// Р—Р°РґР°РµРј РїРѕРІРѕСЂР°С‡РёРІР°РµРјСѓСЋ РіСЂР°РЅСЊ
 	switch (direction_) {
 	case Direction::U: s += 'U'; break;
 	case Direction::D: s += 'D'; break;
@@ -74,12 +74,12 @@ std::string Move::to_string() const {
 	case Direction::Y: s += 'Y'; break;
 	case Direction::Z: s += 'Z'; break;
 	}
-	// Если поворотов - два
+	// Р•СЃР»Рё РїРѕРІРѕСЂРѕС‚РѕРІ - РґРІР°
 	switch (times_) {
 	case 2: s += '2'; break;
 	default: break;
 	}
-	// Если двигаемся против часовой стрелки
+	// Р•СЃР»Рё РґРІРёРіР°РµРјСЃСЏ РїСЂРѕС‚РёРІ С‡Р°СЃРѕРІРѕР№ СЃС‚СЂРµР»РєРё
 	switch (clockwise_) {
 	case false: s += '\''; break;
 	default: break;
@@ -87,16 +87,16 @@ std::string Move::to_string() const {
 	return s;
 }
 
-// Метод доступа к полю direction_ класса Move
+// РњРµС‚РѕРґ РґРѕСЃС‚СѓРїР° Рє РїРѕР»СЋ direction_ РєР»Р°СЃСЃР° Move
 Move::Direction const& Move::direction() const { return direction_; }
 
-// Метод доступа к полю clockwise_ класса Move
+// РњРµС‚РѕРґ РґРѕСЃС‚СѓРїР° Рє РїРѕР»СЋ clockwise_ РєР»Р°СЃСЃР° Move
 bool Move::clockwise() const { return clockwise_; }
 
-// Метод доступа к полю times_ класса Move
+// РњРµС‚РѕРґ РґРѕСЃС‚СѓРїР° Рє РїРѕР»СЋ times_ РєР»Р°СЃСЃР° Move
 uint8_t Move::times() const { return times_; }
 
-// Оператор ввода кода поворота из потока
+// РћРїРµСЂР°С‚РѕСЂ РІРІРѕРґР° РєРѕРґР° РїРѕРІРѕСЂРѕС‚Р° РёР· РїРѕС‚РѕРєР°
 std::istream& operator>>(std::istream& is, Move& m) {
 	std::string input;
 	is >> input;
@@ -104,50 +104,50 @@ std::istream& operator>>(std::istream& is, Move& m) {
 	return is;
 }
 
-// Оператор вывода кода поворота в поток
+// РћРїРµСЂР°С‚РѕСЂ РІС‹РІРѕРґР° РєРѕРґР° РїРѕРІРѕСЂРѕС‚Р° РІ РїРѕС‚РѕРє
 std::ostream& operator<<(std::ostream& os, Move const& m) {
 	os << m.to_string();
 	return os;
 }
 
-// Конструктор класса MoveSequence от вектора элементов класса Move
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° MoveSequence РѕС‚ РІРµРєС‚РѕСЂР° СЌР»РµРјРµРЅС‚РѕРІ РєР»Р°СЃСЃР° Move
 MoveSequence::MoveSequence(std::vector<Move> const& moves) : moves_(moves) {}
 
-// Конструктор класса MoveSequence от строки, задающей последовательность поворотов
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° MoveSequence РѕС‚ СЃС‚СЂРѕРєРё, Р·Р°РґР°СЋС‰РµР№ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚СЊ РїРѕРІРѕСЂРѕС‚РѕРІ
 MoveSequence::MoveSequence(std::string const& scramble) : moves_() {
 	try {
-		// Регулярное выражение с возможными кодами из нотации
+		// Р РµРіСѓР»СЏСЂРЅРѕРµ РІС‹СЂР°Р¶РµРЅРёРµ СЃ РІРѕР·РјРѕР¶РЅС‹РјРё РєРѕРґР°РјРё РёР· РЅРѕС‚Р°С†РёРё
 		std::regex command_template("([UuDdLlRrFfBbxXyYzZeEsSmM])([12])?(')?");
 		std::sregex_iterator rit(scramble.begin(), scramble.end(), command_template);
 		std::sregex_iterator rend;
-		// Собираем последовательность поворотов
+		// РЎРѕР±РёСЂР°РµРј РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚СЊ РїРѕРІРѕСЂРѕС‚РѕРІ
 		while (rit != rend) {
 			moves_.push_back(Move(std::string((*rit)[0])));
 			++rit;
 		}
 	}
-	// Обработка ошибок при обработке последовательности
+	// РћР±СЂР°Р±РѕС‚РєР° РѕС€РёР±РѕРє РїСЂРё РѕР±СЂР°Р±РѕС‚РєРµ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚Рё
 	catch (std::exception const& e) {
 		std::cerr << "Error while parsing scramble: " << e.what();
 		moves_.clear();
 	}
 }
 
-// Конструктор копирования класса MoveSequence
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::MoveSequence(MoveSequence const& other) : moves_(other.moves_) {}
 
-// Конструктор перемещения класса MoveSequence
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРµСЂРµРјРµС‰РµРЅРёСЏ РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::MoveSequence(MoveSequence&& other) noexcept {
 	swap(other);
 }
 
-// Метод swap класса MoveSequence
+// РњРµС‚РѕРґ swap РєР»Р°СЃСЃР° MoveSequence
 void MoveSequence::swap(MoveSequence& other) {
 	using std::swap;
 	swap(moves_, other.moves_);
 }
 
-// Оператор присваивания класса MoveSequence
+// РћРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° MoveSequence
 MoveSequence& MoveSequence::operator=(MoveSequence const& other) {
 	if (this != &other) {
 		moves_ = other.moves_;
@@ -155,33 +155,33 @@ MoveSequence& MoveSequence::operator=(MoveSequence const& other) {
 	return *this;
 }
 
-// Перемещающий оператор присваивания класса MoveSequence
+// РџРµСЂРµРјРµС‰Р°СЋС‰РёР№ РѕРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° MoveSequence
 MoveSequence& MoveSequence::operator=(MoveSequence&& other) noexcept {
 	swap(other);
 	return *this;
 }
 
-// Метод доступа к полю moves_ класса MoveSequence
+// РњРµС‚РѕРґ РґРѕСЃС‚СѓРїР° Рє РїРѕР»СЋ moves_ РєР»Р°СЃСЃР° MoveSequence
 std::vector<Move> const& MoveSequence::get_scramble() const {
 	return moves_;
 }
 
-// Метод доступа к полю moves_ класса MoveSequence
+// РњРµС‚РѕРґ РґРѕСЃС‚СѓРїР° Рє РїРѕР»СЋ moves_ РєР»Р°СЃСЃР° MoveSequence
 std::vector<Move>& MoveSequence::get_scramble() {
 	return moves_;
 }
 
-// Метод доступа к полю moves_ класса MoveSequence
+// РњРµС‚РѕРґ РґРѕСЃС‚СѓРїР° Рє РїРѕР»СЋ moves_ РєР»Р°СЃСЃР° MoveSequence
 Move const& MoveSequence::operator[](size_t i) const {
 	return moves_[i];
 }
 
-// Метод доступа к полю moves_ класса MoveSequence
+// РњРµС‚РѕРґ РґРѕСЃС‚СѓРїР° Рє РїРѕР»СЋ moves_ РєР»Р°СЃСЃР° MoveSequence
 Move& MoveSequence::operator[](size_t i) {
 	return moves_[i];
 }
 
-// Перевод последовательности команд в строковый формат
+// РџРµСЂРµРІРѕРґ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚Рё РєРѕРјР°РЅРґ РІ СЃС‚СЂРѕРєРѕРІС‹Р№ С„РѕСЂРјР°С‚
 std::string MoveSequence::to_string() const {
 	std::string s;
 	for (auto const& move : moves_) {
@@ -190,94 +190,94 @@ std::string MoveSequence::to_string() const {
 	return s;
 }
 
-// Получение количества поворотов в последовательности
+// РџРѕР»СѓС‡РµРЅРёРµ РєРѕР»РёС‡РµСЃС‚РІР° РїРѕРІРѕСЂРѕС‚РѕРІ РІ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚Рё
 size_t MoveSequence::size() const {
 	return moves_.size();
 }
 
-// Оператор += класса MoveSequence для сложения с другой последовательностью
+// РћРїРµСЂР°С‚РѕСЂ += РєР»Р°СЃСЃР° MoveSequence РґР»СЏ СЃР»РѕР¶РµРЅРёСЏ СЃ РґСЂСѓРіРѕР№ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚СЊСЋ
 MoveSequence& MoveSequence::operator+=(MoveSequence const& rhs) {
 	moves_.insert(moves_.end(), rhs.moves_.begin(), rhs.moves_.end());
 	return *this;
 }
 
-// Оператор += класса MoveSequence для добавления одного поворота
+// РћРїРµСЂР°С‚РѕСЂ += РєР»Р°СЃСЃР° MoveSequence РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ РѕРґРЅРѕРіРѕ РїРѕРІРѕСЂРѕС‚Р°
 MoveSequence& MoveSequence::operator+=(Move const& rhs) {
 	moves_.push_back(rhs);
 	return *this;
 }
 
-// Итератор begin класса MoveSequence
+// РС‚РµСЂР°С‚РѕСЂ begin РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::iterator MoveSequence::begin() {
 	return moves_.begin();
 }
-// Итератор begin класса MoveSequence
+// РС‚РµСЂР°С‚РѕСЂ begin РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::const_iterator MoveSequence::begin() const {
 	return moves_.begin();
 }
-// Итератор cbegin класса MoveSequence
+// РС‚РµСЂР°С‚РѕСЂ cbegin РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::const_iterator MoveSequence::cbegin() const {
 	return moves_.cbegin();
 }
-// Итератор end класса MoveSequence
+// РС‚РµСЂР°С‚РѕСЂ end РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::iterator MoveSequence::end() {
 	return moves_.end();
 }
-// Итератор end класса MoveSequence
+// РС‚РµСЂР°С‚РѕСЂ end РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::const_iterator MoveSequence::end() const {
 	return moves_.end();
 }
-// Итератор cend класса MoveSequence
+// РС‚РµСЂР°С‚РѕСЂ cend РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::const_iterator MoveSequence::cend() const {
 	return moves_.cend();
 }
-// Итератор rbegin класса MoveSequence
+// РС‚РµСЂР°С‚РѕСЂ rbegin РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::reverse_iterator MoveSequence::rbegin() {
 	return moves_.rbegin();
 }
-// Итератор rbegin класса MoveSequence
+// РС‚РµСЂР°С‚РѕСЂ rbegin РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::const_reverse_iterator MoveSequence::rbegin() const {
 	return moves_.rbegin();
 }
-// Итератор crbegin класса MoveSequence
+// РС‚РµСЂР°С‚РѕСЂ crbegin РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::const_reverse_iterator MoveSequence::crbegin() const {
 	return moves_.crbegin();
 }
-// Итератор rend класса MoveSequence
+// РС‚РµСЂР°С‚РѕСЂ rend РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::reverse_iterator MoveSequence::rend() {
 	return moves_.rend();
 }
-// Итератор rend класса MoveSequence
+// РС‚РµСЂР°С‚РѕСЂ rend РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::const_reverse_iterator MoveSequence::rend() const {
 	return moves_.rend();
 }
-// Итератор crend класса MoveSequence
+// РС‚РµСЂР°С‚РѕСЂ crend РєР»Р°СЃСЃР° MoveSequence
 MoveSequence::const_reverse_iterator MoveSequence::crend() const {
 	return moves_.crend();
 }
 
-// Сложение двух последовательностей
+// РЎР»РѕР¶РµРЅРёРµ РґРІСѓС… РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚РµР№
 const MoveSequence operator+(MoveSequence lhs, MoveSequence const& rhs) {
 	return lhs += rhs;
 }
 
-// Сложение последовательности с отдельным поворотом
+// РЎР»РѕР¶РµРЅРёРµ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚Рё СЃ РѕС‚РґРµР»СЊРЅС‹Рј РїРѕРІРѕСЂРѕС‚РѕРј
 const MoveSequence operator+(MoveSequence lhs, Move const& rhs) {
 	return lhs += rhs;
 }
 
-// Сложение последовательности с отдельным поворотом
+// РЎР»РѕР¶РµРЅРёРµ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚Рё СЃ РѕС‚РґРµР»СЊРЅС‹Рј РїРѕРІРѕСЂРѕС‚РѕРј
 const MoveSequence operator+(Move const& lhs, MoveSequence rhs) {
 	return rhs += lhs;
 }
 
-// Оператор вывода в поток последовательности поворотов
+// РћРїРµСЂР°С‚РѕСЂ РІС‹РІРѕРґР° РІ РїРѕС‚РѕРє РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚Рё РїРѕРІРѕСЂРѕС‚РѕРІ
 std::ostream& operator<<(std::ostream& os, MoveSequence const& m) {
 	os << m.to_string();
 	return os;
 }
 
-// Оператор ввода из потока последовательности поворотов
+// РћРїРµСЂР°С‚РѕСЂ РІРІРѕРґР° РёР· РїРѕС‚РѕРєР° РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚Рё РїРѕРІРѕСЂРѕС‚РѕРІ
 std::istream& operator>>(std::istream& is, MoveSequence& m) {
 	std::string input;
 	while (is.good()) {

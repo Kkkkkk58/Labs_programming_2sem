@@ -4,14 +4,14 @@
 #include <vector>
 #include "Cube.hpp"
 
-// Класс-валидатор кубика
+// РљР»Р°СЃСЃ-РІР°Р»РёРґР°С‚РѕСЂ РєСѓР±РёРєР°
 class CubeValidator {
 public:
 	CubeValidator(RubiksCube const&);
 	void report();
 private:
-	RubiksCube cube_;		// Экземпляр куба для проверки
-	static std::unordered_map<Position::Positions, Position::Positions> opposite_colours;  // Хеш-таблица противоположных цветов
+	RubiksCube cube_;		// Р­РєР·РµРјРїР»СЏСЂ РєСѓР±Р° РґР»СЏ РїСЂРѕРІРµСЂРєРё
+	static std::unordered_map<Position::Positions, Position::Positions> opposite_colours;  // РҐРµС€-С‚Р°Р±Р»РёС†Р° РїСЂРѕС‚РёРІРѕРїРѕР»РѕР¶РЅС‹С… С†РІРµС‚РѕРІ
 	bool correct_centers() const;
 	bool correct_count() const;
 	bool corners_invariant() const;

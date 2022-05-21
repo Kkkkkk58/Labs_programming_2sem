@@ -1,28 +1,28 @@
 #include "Position.hpp"
 
-// Конструктор по умолчанию класса CornerPosition
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РєР»Р°СЃСЃР° CornerPosition
 CornerPosition::CornerPosition() : bits_() {}
 
-// Конструктор класса CornerPosition от трех элементов enum class Positions
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° CornerPosition РѕС‚ С‚СЂРµС… СЌР»РµРјРµРЅС‚РѕРІ enum class Positions
 CornerPosition::CornerPosition(Positions const& a, Positions const& b, Positions const& c)
-	// Побитово складываем три "цвета"
+	// РџРѕР±РёС‚РѕРІРѕ СЃРєР»Р°РґС‹РІР°РµРј С‚СЂРё "С†РІРµС‚Р°"
 	: bits_((static_cast<uint16_t>(a) << (COLOURS_COUNT * 2)) | (static_cast<uint16_t>(b) << COLOURS_COUNT) | static_cast<uint8_t>(c)) {}
 
-// Конструктор копирования класса CornerPosition
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РєР»Р°СЃСЃР° CornerPosition
 CornerPosition::CornerPosition(CornerPosition const& other) : bits_(other.bits_) {}
 
-// Метод swap класса CornerPosition
+// РњРµС‚РѕРґ swap РєР»Р°СЃСЃР° CornerPosition
 void CornerPosition::swap(CornerPosition& other) {
 	using std::swap;
 	swap(bits_, other.bits_);
 }
 
-// Конструктор перемещения класса CornerPosition
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРµСЂРµРјРµС‰РµРЅРёСЏ РєР»Р°СЃСЃР° CornerPosition
 CornerPosition::CornerPosition(CornerPosition&& other) noexcept {
 	swap(other);
 }
 
-// Оператор присваивания класса CornerPosition
+// РћРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° CornerPosition
 CornerPosition& CornerPosition::operator=(CornerPosition const& other) {
 	if (this != &other) {
 		bits_ = other.bits_;
@@ -30,67 +30,67 @@ CornerPosition& CornerPosition::operator=(CornerPosition const& other) {
 	return *this;
 }
 
-// Перемещающий оператор присваивания класса CornerPosition
+// РџРµСЂРµРјРµС‰Р°СЋС‰РёР№ РѕРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° CornerPosition
 CornerPosition& CornerPosition::operator=(CornerPosition&& other) noexcept {
 	swap(other);
 	return *this;
 }
 
-// Метод swap_bits для изменения относительного порядка битов в битсете для класса CornerPosition
+// РњРµС‚РѕРґ swap_bits РґР»СЏ РёР·РјРµРЅРµРЅРёСЏ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕРіРѕ РїРѕСЂСЏРґРєР° Р±РёС‚РѕРІ РІ Р±РёС‚СЃРµС‚Рµ РґР»СЏ РєР»Р°СЃСЃР° CornerPosition
 void CornerPosition::swap_bits(uint8_t a, uint8_t b) {
 	if (a < b) {
 		std::swap(a, b);
 	}
-	// Битовая маска для первого цвета
+	// Р‘РёС‚РѕРІР°СЏ РјР°СЃРєР° РґР»СЏ РїРµСЂРІРѕРіРѕ С†РІРµС‚Р°
 	std::bitset<COLOURS_COUNT * 3> first_bit_mask((0b111111 << ((2 - a) * COLOURS_COUNT)));
-	// Битовая маска для второго цвета
+	// Р‘РёС‚РѕРІР°СЏ РјР°СЃРєР° РґР»СЏ РІС‚РѕСЂРѕРіРѕ С†РІРµС‚Р°
 	std::bitset<COLOURS_COUNT * 3> second_bit_mask((0b111111 << ((2 - b) * COLOURS_COUNT)));
 
-	// Обмен значениями первого и последнего цвета
+	// РћР±РјРµРЅ Р·РЅР°С‡РµРЅРёСЏРјРё РїРµСЂРІРѕРіРѕ Рё РїРѕСЃР»РµРґРЅРµРіРѕ С†РІРµС‚Р°
 	if ((a | b) == 0b10) {
 		uint8_t sixbits_avail = 1;
-		// Маска для цвета, остающегося на месте
+		// РњР°СЃРєР° РґР»СЏ С†РІРµС‚Р°, РѕСЃС‚Р°СЋС‰РµРіРѕСЃСЏ РЅР° РјРµСЃС‚Рµ
 		std::bitset<COLOURS_COUNT * 3> third_bit_mask = 0b111111 << (sixbits_avail * COLOURS_COUNT);
 		bits_ = ((bits_ & first_bit_mask) << COLOURS_COUNT * 2) | ((bits_ & second_bit_mask) >> COLOURS_COUNT * 2) | (bits_ & third_bit_mask);
 	}
 	else {
 		uint8_t sixbits_avail = ((a | b) == 0b1) ? 0 : 2;
-		// Маска для цвета, остающегося на месте
+		// РњР°СЃРєР° РґР»СЏ С†РІРµС‚Р°, РѕСЃС‚Р°СЋС‰РµРіРѕСЃСЏ РЅР° РјРµСЃС‚Рµ
 		std::bitset<COLOURS_COUNT * 3> third_bit_mask = 0b111111 << (sixbits_avail * COLOURS_COUNT);
 		bits_ = ((bits_ & first_bit_mask) << COLOURS_COUNT) | ((bits_ & second_bit_mask) >> COLOURS_COUNT) | (bits_ & third_bit_mask);
 	}
 }
 
-// Оператор доступа к цвету по его номеру 
+// РћРїРµСЂР°С‚РѕСЂ РґРѕСЃС‚СѓРїР° Рє С†РІРµС‚Сѓ РїРѕ РµРіРѕ РЅРѕРјРµСЂСѓ 
 Position::Positions CornerPosition::operator[](uint8_t i) const {
 	std::bitset<COLOURS_COUNT * 3> bit_mask(0b111111);
 	return static_cast<Positions>(((bits_ >> (COLOURS_COUNT * (2 - i))) & bit_mask).to_ulong());
 }
 
 
-// Конструктор по умолчанию класса EdgePosition
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РєР»Р°СЃСЃР° EdgePosition
 EdgePosition::EdgePosition() : bits_() {}
 
-// Конструктор класса EdgePosition от двух элементов enum class Position
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° EdgePosition РѕС‚ РґРІСѓС… СЌР»РµРјРµРЅС‚РѕРІ enum class Position
 EdgePosition::EdgePosition(Positions const& a, Positions const& b)
-	// Выполняем побитовое сложение
+	// Р’С‹РїРѕР»РЅСЏРµРј РїРѕР±РёС‚РѕРІРѕРµ СЃР»РѕР¶РµРЅРёРµ
 	: bits_((static_cast<uint16_t>(a) << COLOURS_COUNT) | static_cast<uint8_t>(b)) {}
 
-// Конструктор копирования класса EdgePosition
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РєР»Р°СЃСЃР° EdgePosition
 EdgePosition::EdgePosition(EdgePosition const& other) : bits_(other.bits_) {}
 
-// Метод swap класса EdgePosition
+// РњРµС‚РѕРґ swap РєР»Р°СЃСЃР° EdgePosition
 void EdgePosition::swap(EdgePosition& other) {
 	using std::swap;
 	swap(bits_, other.bits_);
 }
 
-// Конструктор перемещения класса EdgePosition
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРµСЂРµРјРµС‰РµРЅРёСЏ РєР»Р°СЃСЃР° EdgePosition
 EdgePosition::EdgePosition(EdgePosition&& other) noexcept {
 	swap(other);
 }
 
-// Оператор присваивания класса EdgePosition
+// РћРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° EdgePosition
 EdgePosition& EdgePosition::operator=(EdgePosition const& other) {
 	if (this != &other) {
 		bits_ = other.bits_;
@@ -98,18 +98,18 @@ EdgePosition& EdgePosition::operator=(EdgePosition const& other) {
 	return *this;
 }
 
-// Перемещающий оператор присваивания класса EdgePosition
+// РџРµСЂРµРјРµС‰Р°СЋС‰РёР№ РѕРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° EdgePosition
 EdgePosition& EdgePosition::operator=(EdgePosition&& other) noexcept {
 	swap(other);
 	return *this;
 }
 
-// Метод swap_bits для изменения относительного порядка битов в битсете для класса EdgePosition
+// РњРµС‚РѕРґ swap_bits РґР»СЏ РёР·РјРµРЅРµРЅРёСЏ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕРіРѕ РїРѕСЂСЏРґРєР° Р±РёС‚РѕРІ РІ Р±РёС‚СЃРµС‚Рµ РґР»СЏ РєР»Р°СЃСЃР° EdgePosition
 void EdgePosition::swap_bits(uint8_t, uint8_t) {
 	bits_ = (bits_ << COLOURS_COUNT) | (bits_ >> COLOURS_COUNT);
 }
 
-// Оператор доступа к цвету по его номеру 
+// РћРїРµСЂР°С‚РѕСЂ РґРѕСЃС‚СѓРїР° Рє С†РІРµС‚Сѓ РїРѕ РµРіРѕ РЅРѕРјРµСЂСѓ 
 Position::Positions EdgePosition::operator[](uint8_t i) const {
 	std::bitset<COLOURS_COUNT * 2> bit_mask(0b111111);
 	return static_cast<Positions>(((bits_ >> (COLOURS_COUNT * (1 - i))) & bit_mask).to_ulong());

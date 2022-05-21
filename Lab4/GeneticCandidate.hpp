@@ -2,7 +2,7 @@
 #define GENETIC_CANDIDATE_HPP
 #include "Cube.hpp"
 
-// Класс члена популяции для генетического алгоритма
+// РљР»Р°СЃСЃ С‡Р»РµРЅР° РїРѕРїСѓР»СЏС†РёРё РґР»СЏ РіРµРЅРµС‚РёС‡РµСЃРєРѕРіРѕ Р°Р»РіРѕСЂРёС‚РјР°
 class Candidate {
 public:
 	explicit Candidate(RubiksCube const&);
@@ -17,10 +17,10 @@ public:
 	size_t fitness();
 	RubiksCube const& get_cube() const;
 private:
-	RubiksCube cube_;				// Состояние куба, представляемое данным кандидатом
-	std::vector<uint8_t> moves_;	// Закодированная последовательность мутаций, произошедших с кандидатом
-	bool updated_;					// Статус обновления для ленивого пересчета параметра fitness
-	size_t curr_fitness_;			// Поле fitness, характеризующее, насколько кандидат годен к отбору
+	RubiksCube cube_;				// РЎРѕСЃС‚РѕСЏРЅРёРµ РєСѓР±Р°, РїСЂРµРґСЃС‚Р°РІР»СЏРµРјРѕРµ РґР°РЅРЅС‹Рј РєР°РЅРґРёРґР°С‚РѕРј
+	std::vector<uint8_t> moves_;	// Р—Р°РєРѕРґРёСЂРѕРІР°РЅРЅР°СЏ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚СЊ РјСѓС‚Р°С†РёР№, РїСЂРѕРёР·РѕС€РµРґС€РёС… СЃ РєР°РЅРґРёРґР°С‚РѕРј
+	bool updated_;					// РЎС‚Р°С‚СѓСЃ РѕР±РЅРѕРІР»РµРЅРёСЏ РґР»СЏ Р»РµРЅРёРІРѕРіРѕ РїРµСЂРµСЃС‡РµС‚Р° РїР°СЂР°РјРµС‚СЂР° fitness
+	size_t curr_fitness_;			// РџРѕР»Рµ fitness, С…Р°СЂР°РєС‚РµСЂРёР·СѓСЋС‰РµРµ, РЅР°СЃРєРѕР»СЊРєРѕ РєР°РЅРґРёРґР°С‚ РіРѕРґРµРЅ Рє РѕС‚Р±РѕСЂСѓ
 	size_t wrong_stickers() const;
 	size_t check(RubiksCubeHelper::CornersIndexing el, RubiksCubeHelper::CentersIndexing a,
 		RubiksCubeHelper::CentersIndexing b, RubiksCubeHelper::CentersIndexing c) const;

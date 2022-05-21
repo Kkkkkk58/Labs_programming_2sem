@@ -3,10 +3,10 @@
 #include "CubeExceptions.hpp"
 #include <algorithm>
 
-// Конструкторк класса CubeValidator от кубика
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° CubeValidator РѕС‚ РєСѓР±РёРєР°
 CubeValidator::CubeValidator(RubiksCube const& cube) : cube_(cube) {}
 
-// Выполнение проверки
+// Р’С‹РїРѕР»РЅРµРЅРёРµ РїСЂРѕРІРµСЂРєРё
 void CubeValidator::report() {
 	if (!correct_centers() || !correct_count()) {
 		throw InvalidState("Incorrect stickering");
@@ -22,14 +22,14 @@ void CubeValidator::report() {
 	}
 }
 
-// Проверка на корректность расположения центров относительно друг друга
+// РџСЂРѕРІРµСЂРєР° РЅР° РєРѕСЂСЂРµРєС‚РЅРѕСЃС‚СЊ СЂР°СЃРїРѕР»РѕР¶РµРЅРёСЏ С†РµРЅС‚СЂРѕРІ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РґСЂСѓРі РґСЂСѓРіР°
 bool CubeValidator::correct_centers() const {
 	using namespace RubiksCubeHelper;
 	return (cube_.face(DOWN) == opposite_colours[cube_.face(UP)] && cube_.face(LEFT) == opposite_colours[cube_.face(RIGHT)]
 		&& cube_.face(BACK) == opposite_colours[cube_.face(FRONT)]);
 }
 
-// Проверка на корректное число стикеров каждого цвета
+// РџСЂРѕРІРµСЂРєР° РЅР° РєРѕСЂСЂРµРєС‚РЅРѕРµ С‡РёСЃР»Рѕ СЃС‚РёРєРµСЂРѕРІ РєР°Р¶РґРѕРіРѕ С†РІРµС‚Р°
 bool CubeValidator::correct_count() const {
 	std::vector<uint8_t> stickers_cnt(COLOURS_COUNT);
 	using namespace RubiksCubeHelper;
@@ -43,11 +43,11 @@ bool CubeValidator::correct_count() const {
 			stickers_cnt[index(cube_.corner(static_cast<CornersIndexing>(i))[j])] += 1;
 		}
 	}
-	// Не считаем центральные -> всех должно быть по 8
+	// РќРµ СЃС‡РёС‚Р°РµРј С†РµРЅС‚СЂР°Р»СЊРЅС‹Рµ -> РІСЃРµС… РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ РїРѕ 8
 	return std::all_of(stickers_cnt.begin(), stickers_cnt.end(), [](uint8_t num) {return num == 8; });
 }
 
-// Проверка выполнения инварианта состояния углов
+// РџСЂРѕРІРµСЂРєР° РІС‹РїРѕР»РЅРµРЅРёСЏ РёРЅРІР°СЂРёР°РЅС‚Р° СЃРѕСЃС‚РѕСЏРЅРёСЏ СѓРіР»РѕРІ
 bool CubeValidator::corners_invariant() const {
 	using namespace RubiksCubeHelper;
 	uint8_t twist_cnt = 0;
@@ -61,37 +61,37 @@ bool CubeValidator::corners_invariant() const {
 		
 		if (cube_.corner(static_cast<CornersIndexing>(i))[1] == up_col
 			|| cube_.corner(static_cast<CornersIndexing>(i))[1] == down_col) {
-			// Если угол повернут по часовой стрелке
+			// Р•СЃР»Рё СѓРіРѕР» РїРѕРІРµСЂРЅСѓС‚ РїРѕ С‡Р°СЃРѕРІРѕР№ СЃС‚СЂРµР»РєРµ
 			if (i == UP_BACK_LEFT || i == UP_FRONT_RIGHT || i == DOWN_FRONT_LEFT || i == DOWN_BACK_RIGHT) {
 				twist_cnt += 1;
 			}
-			// Против часовой
+			// РџСЂРѕС‚РёРІ С‡Р°СЃРѕРІРѕР№
 			else {
 				twist_cnt += 2;
 			}
 		}
 		else {
-			// Если угол повернут по часовой стрелке
+			// Р•СЃР»Рё СѓРіРѕР» РїРѕРІРµСЂРЅСѓС‚ РїРѕ С‡Р°СЃРѕРІРѕР№ СЃС‚СЂРµР»РєРµ
 			if (i == UP_FRONT_LEFT || i == UP_BACK_RIGHT || i == DOWN_FRONT_RIGHT || i == DOWN_BACK_LEFT) {
 				twist_cnt += 1;
 			}
-			// Против часовой
+			// РџСЂРѕС‚РёРІ С‡Р°СЃРѕРІРѕР№
 			else {
 				twist_cnt += 2;
 			}
 		}
 	}
-	// Согласно инварианту, это число должно делиться на 3
+	// РЎРѕРіР»Р°СЃРЅРѕ РёРЅРІР°СЂРёР°РЅС‚Сѓ, СЌС‚Рѕ С‡РёСЃР»Рѕ РґРѕР»Р¶РЅРѕ РґРµР»РёС‚СЊСЃСЏ РЅР° 3
 	return twist_cnt % 3 == 0;
 }
 
-// Проверка выполнения инварианта состояния ребер
+// РџСЂРѕРІРµСЂРєР° РІС‹РїРѕР»РЅРµРЅРёСЏ РёРЅРІР°СЂРёР°РЅС‚Р° СЃРѕСЃС‚РѕСЏРЅРёСЏ СЂРµР±РµСЂ
 bool CubeValidator::edges_invariant() const {
 	using namespace RubiksCubeHelper;
 	uint8_t good_edges_cnt = 0;
 	Position::Positions down_col = cube_.face(DOWN), up_col = opposite_colours[down_col],
 		front_col = cube_.face(FRONT), back_col = opposite_colours[front_col];
-	// Ведем подсчет "хороших" ребер
+	// Р’РµРґРµРј РїРѕРґСЃС‡РµС‚ "С…РѕСЂРѕС€РёС…" СЂРµР±РµСЂ
 	for (uint8_t i = UP_BACK; i <= DOWN_FRONT; ++i) {
 		if (cube_.edge(static_cast<EdgesIndexing>(i))[0] == up_col
 			|| cube_.edge(static_cast<EdgesIndexing>(i))[0] == down_col) {
@@ -104,32 +104,32 @@ bool CubeValidator::edges_invariant() const {
 			++good_edges_cnt;
 		}
 	}
-	// Количество таких ребер должно быть четно
+	// РљРѕР»РёС‡РµСЃС‚РІРѕ С‚Р°РєРёС… СЂРµР±РµСЂ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ С‡РµС‚РЅРѕ
 	return good_edges_cnt % 2 == 0;
 }
 
-// Проверка инварианта перестановок
+// РџСЂРѕРІРµСЂРєР° РёРЅРІР°СЂРёР°РЅС‚Р° РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє
 bool CubeValidator::permutations_invariant() const {
 	std::vector<Colour> centers = cube_.face_colours();
-	// Количества перестановок углов и ребер совпадают по четности
+	// РљРѕР»РёС‡РµСЃС‚РІР° РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє СѓРіР»РѕРІ Рё СЂРµР±РµСЂ СЃРѕРІРїР°РґР°СЋС‚ РїРѕ С‡РµС‚РЅРѕСЃС‚Рё
 	return (edges_perm(centers) + corners_perm(centers)) % 2 == 0;
 }
 
-// Получение количества перестановок ребер
+// РџРѕР»СѓС‡РµРЅРёРµ РєРѕР»РёС‡РµСЃС‚РІР° РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє СЂРµР±РµСЂ
 size_t CubeValidator::edges_perm(std::vector<Colour> const& centers) const {
 	using namespace RubiksCubeHelper;
 	std::vector<std::vector<Colour>> edges(EDGES_COUNT);
 	for (uint8_t i = UP_BACK; i <= DOWN_FRONT; ++i) {
 		edges[i] = cube_.edge_colours(static_cast<EdgesIndexing>(i));
 	}
-	// Для ребер определены места, на которые они должны встать
+	// Р”Р»СЏ СЂРµР±РµСЂ РѕРїСЂРµРґРµР»РµРЅС‹ РјРµСЃС‚Р°, РЅР° РєРѕС‚РѕСЂС‹Рµ РѕРЅРё РґРѕР»Р¶РЅС‹ РІСЃС‚Р°С‚СЊ
 	const std::vector<std::vector<Colour>> destination = {
 		{centers[UP], centers[BACK]}, {centers[UP], centers[RIGHT]}, {centers[UP], centers[FRONT]}, {centers[UP], centers[LEFT]},
 		{centers[FRONT], centers[LEFT]}, {centers[BACK], centers[LEFT]}, {centers[BACK], centers[RIGHT]}, {centers[FRONT], centers[RIGHT]},
 		{centers[DOWN], centers[LEFT]}, {centers[DOWN], centers[BACK]}, {centers[DOWN], centers[RIGHT]}, {centers[DOWN], centers[FRONT]}
 	};
 	std::vector<uint8_t> permutation(EDGES_COUNT);
-	// Рассматриваем реберные кубики в текущем состянии и определяем, в какое состояние они должны перейти
+	// Р Р°СЃСЃРјР°С‚СЂРёРІР°РµРј СЂРµР±РµСЂРЅС‹Рµ РєСѓР±РёРєРё РІ С‚РµРєСѓС‰РµРј СЃРѕСЃС‚СЏРЅРёРё Рё РѕРїСЂРµРґРµР»СЏРµРј, РІ РєР°РєРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ РѕРЅРё РґРѕР»Р¶РЅС‹ РїРµСЂРµР№С‚Рё
 	for (uint8_t i = 0; i < EDGES_COUNT; ++i) {
 		for (uint8_t j = 0; j < EDGES_COUNT; ++j) {
 			if (std::is_permutation(edges[i].begin(), edges[i].end(), destination[j].begin())) {
@@ -138,7 +138,7 @@ size_t CubeValidator::edges_perm(std::vector<Colour> const& centers) const {
 			}
 		}
 	}
-	// Подсчитываем количество инверсий в массиве перестановки - возможное количество свопов
+	// РџРѕРґСЃС‡РёС‚С‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ РёРЅРІРµСЂСЃРёР№ РІ РјР°СЃСЃРёРІРµ РїРµСЂРµСЃС‚Р°РЅРѕРІРєРё - РІРѕР·РјРѕР¶РЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ СЃРІРѕРїРѕРІ
 	size_t inversion_count = 0;
 	for (uint8_t i = 0; i < EDGES_COUNT - 1; ++i) {
 		for (uint8_t j = i + 1; j < EDGES_COUNT; ++j) {
@@ -150,14 +150,14 @@ size_t CubeValidator::edges_perm(std::vector<Colour> const& centers) const {
 	return inversion_count;
 }
 
-// Подсчет количества перестановок углов
+// РџРѕРґСЃС‡РµС‚ РєРѕР»РёС‡РµСЃС‚РІР° РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє СѓРіР»РѕРІ
 size_t CubeValidator::corners_perm(std::vector<Colour> const& centers) const {
 	using namespace RubiksCubeHelper;
 	std::vector<std::vector<Colour>> corners(CORNERS_COUNT);
 	for (uint8_t i = UP_BACK_LEFT; i <= DOWN_FRONT_RIGHT; ++i) {
 		corners[i] = cube_.corner_colours(static_cast<CornersIndexing>(i));
 	}
-	// Для углов определены места, на которые они должны встать
+	// Р”Р»СЏ СѓРіР»РѕРІ РѕРїСЂРµРґРµР»РµРЅС‹ РјРµСЃС‚Р°, РЅР° РєРѕС‚РѕСЂС‹Рµ РѕРЅРё РґРѕР»Р¶РЅС‹ РІСЃС‚Р°С‚СЊ
 	const std::vector<std::vector<Colour>> destination = {
 		{centers[UP], centers[BACK], centers[LEFT]}, {centers[UP], centers[BACK], centers[RIGHT]},
 		{centers[UP], centers[FRONT], centers[RIGHT]}, {centers[UP], centers[FRONT], centers[LEFT]},
@@ -165,7 +165,7 @@ size_t CubeValidator::corners_perm(std::vector<Colour> const& centers) const {
 		{centers[DOWN], centers[BACK], centers[RIGHT]}, {centers[DOWN], centers[FRONT], centers[RIGHT]}
 	};
 	std::vector<uint8_t> permutation(CORNERS_COUNT);
-	// Рассматриваем угловые кубики в текущем состянии и определяем, в какое состояние они должны перейти
+	// Р Р°СЃСЃРјР°С‚СЂРёРІР°РµРј СѓРіР»РѕРІС‹Рµ РєСѓР±РёРєРё РІ С‚РµРєСѓС‰РµРј СЃРѕСЃС‚СЏРЅРёРё Рё РѕРїСЂРµРґРµР»СЏРµРј, РІ РєР°РєРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ РѕРЅРё РґРѕР»Р¶РЅС‹ РїРµСЂРµР№С‚Рё
 	for (uint8_t i = 0; i < CORNERS_COUNT; ++i) {
 		for (uint8_t j = 0; j < CORNERS_COUNT; ++j) {
 			if (std::is_permutation(corners[i].begin(), corners[i].end(), destination[j].begin())) {
@@ -174,7 +174,7 @@ size_t CubeValidator::corners_perm(std::vector<Colour> const& centers) const {
 			}
 		}
 	}
-	// Подсчитываем количество инверсий в массиве перестановки - возможное количество свопов
+	// РџРѕРґСЃС‡РёС‚С‹РІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ РёРЅРІРµСЂСЃРёР№ РІ РјР°СЃСЃРёРІРµ РїРµСЂРµСЃС‚Р°РЅРѕРІРєРё - РІРѕР·РјРѕР¶РЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ СЃРІРѕРїРѕРІ
 	size_t inversion_count = 0;
 	for (uint8_t i = 0; i < CORNERS_COUNT - 1; ++i) {
 		for (uint8_t j = i + 1; j < CORNERS_COUNT; ++j) {
@@ -186,7 +186,7 @@ size_t CubeValidator::corners_perm(std::vector<Colour> const& centers) const {
 	return inversion_count;
 }
 
-// Определение хеш-таблицы противоположных цветов
+// РћРїСЂРµРґРµР»РµРЅРёРµ С…РµС€-С‚Р°Р±Р»РёС†С‹ РїСЂРѕС‚РёРІРѕРїРѕР»РѕР¶РЅС‹С… С†РІРµС‚РѕРІ
 std::unordered_map<Position::Positions, Position::Positions> CubeValidator::opposite_colours = {
 	{Position::Positions::YELLOW, Position::Positions::WHITE}, {Position::Positions::WHITE, Position::Positions::YELLOW},
 	{Position::Positions::ORANGE, Position::Positions::RED}, {Position::Positions::RED, Position::Positions::ORANGE},

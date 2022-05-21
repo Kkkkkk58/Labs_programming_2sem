@@ -4,7 +4,7 @@
 #include <string>
 #include <exception>
 
-// Базовый класс для исключений текущего проекта
+// Р‘Р°Р·РѕРІС‹Р№ РєР»Р°СЃСЃ РґР»СЏ РёСЃРєР»СЋС‡РµРЅРёР№ С‚РµРєСѓС‰РµРіРѕ РїСЂРѕРµРєС‚Р°
 class CubeException : public std::exception {
 public:
 	CubeException() {}
@@ -16,7 +16,7 @@ private:
 	std::string error_;
 };
 
-// Исключение "Неопределенный цвет"
+// РСЃРєР»СЋС‡РµРЅРёРµ "РќРµРѕРїСЂРµРґРµР»РµРЅРЅС‹Р№ С†РІРµС‚"
 class UnknownColour : public CubeException {
 public:
 	UnknownColour(std::string const& err) : CubeException(), error_("UnknownColour: " + err) {}
@@ -27,7 +27,7 @@ private:
 	std::string error_;
 };
 
-// Исключение "Неопределенный поворот"
+// РСЃРєР»СЋС‡РµРЅРёРµ "РќРµРѕРїСЂРµРґРµР»РµРЅРЅС‹Р№ РїРѕРІРѕСЂРѕС‚"
 class UnknownMove : public CubeException {
 public:
 	UnknownMove(std::string const& err) : CubeException(), error_("UnknownMove: " + err) {}
@@ -38,7 +38,7 @@ private:
 	std::string error_;
 };
 
-// Исключение "Некорректное состояние кубика"
+// РСЃРєР»СЋС‡РµРЅРёРµ "РќРµРєРѕСЂСЂРµРєС‚РЅРѕРµ СЃРѕСЃС‚РѕСЏРЅРёРµ РєСѓР±РёРєР°"
 class InvalidState : public CubeException {
 public:
 	InvalidState(std::string const& err) : CubeException(), error_("Invalid state: " + err) {}
@@ -50,7 +50,7 @@ private:
 	std::string error_;
 };
 
-// Исключение "Некорректный предоставленный файл"
+// РСЃРєР»СЋС‡РµРЅРёРµ "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РїСЂРµРґРѕСЃС‚Р°РІР»РµРЅРЅС‹Р№ С„Р°Р№Р»"
 class InvalidFile : public CubeException {
 public:
 	InvalidFile(std::string const& err) : CubeException(), error_("Invalid file: " + err) {}

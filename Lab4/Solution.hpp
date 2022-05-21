@@ -2,7 +2,7 @@
 #define SOLUTION_HPP
 #include "Moves.hpp"
 
-// Общий интерфейс для классов-"решателей"
+// РћР±С‰РёР№ РёРЅС‚РµСЂС„РµР№СЃ РґР»СЏ РєР»Р°СЃСЃРѕРІ-"СЂРµС€Р°С‚РµР»РµР№"
 class ISolution {
 public:
 	virtual ~ISolution() {}

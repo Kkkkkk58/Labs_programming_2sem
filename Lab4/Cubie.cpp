@@ -1,24 +1,24 @@
 #include "Cubie.hpp"
 
-// Конструктор класса CenterCubie от последовательности цветов
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° CenterCubie РѕС‚ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚Рё С†РІРµС‚РѕРІ
 CenterCubie::CenterCubie(std::vector<Colour> const& colours)
 	: Cubie(), colours_(colours) {}
 
-// Конструктор копирования класса CenterCubie
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РєР»Р°СЃСЃР° CenterCubie
 CenterCubie::CenterCubie(CenterCubie const& other) : colours_(other.colours_) {}
 
-// Метод swap класса CenterCubie
+// РњРµС‚РѕРґ swap РєР»Р°СЃСЃР° CenterCubie
 void CenterCubie::swap(CenterCubie& other) {
 	using std::swap;
 	swap(colours_, other.colours_);
 }
 
-// Конструктор перемещения класса CenterCubie
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРµСЂРµРјРµС‰РµРЅРёСЏ РєР»Р°СЃСЃР° CenterCubie
 CenterCubie::CenterCubie(CenterCubie&& other) noexcept {
 	swap(other);
 }
 
-// Оператор присваивания класса CenterCubie
+// РћРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° CenterCubie
 CenterCubie& CenterCubie::operator=(CenterCubie const& other) {
 	if (this != &other) {
 		colours_ = other.colours_;
@@ -26,51 +26,51 @@ CenterCubie& CenterCubie::operator=(CenterCubie const& other) {
 	return *this;
 }
 
-// Перемещающий оператор присваивания класса CenterCubie
+// РџРµСЂРµРјРµС‰Р°СЋС‰РёР№ РѕРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° CenterCubie
 CenterCubie& CenterCubie::operator=(CenterCubie&& other) noexcept {
 	swap(other);
 	return *this;
 }
 
-// Получение доступа к конкретному цвету кубика
+// РџРѕР»СѓС‡РµРЅРёРµ РґРѕСЃС‚СѓРїР° Рє РєРѕРЅРєСЂРµС‚РЅРѕРјСѓ С†РІРµС‚Сѓ РєСѓР±РёРєР°
 Position::Positions CenterCubie::operator[](uint8_t i) const {
 	return colours_[i];
 }
-// Получение доступа к конкретному цвету кубика
+// РџРѕР»СѓС‡РµРЅРёРµ РґРѕСЃС‚СѓРїР° Рє РєРѕРЅРєСЂРµС‚РЅРѕРјСѓ С†РІРµС‚Сѓ РєСѓР±РёРєР°
 Colour& CenterCubie::operator[](uint8_t i) {
 	return colours_[i];
 }
 
-// Получение всех цветов
+// РџРѕР»СѓС‡РµРЅРёРµ РІСЃРµС… С†РІРµС‚РѕРІ
 std::vector<Colour> const& CenterCubie::get_colours() const {
 	return colours_;
 }
-// Получение всех цветов
+// РџРѕР»СѓС‡РµРЅРёРµ РІСЃРµС… С†РІРµС‚РѕРІ
 std::vector<Colour>& CenterCubie::get_colours() {
 	return colours_;
 }
 
 
 
-// Конструктор класса EdgeCubie от EdgePosition
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° EdgeCubie РѕС‚ EdgePosition
 EdgeCubie::EdgeCubie(EdgePosition const& orientation)
 	: Cubie(), orientation_(orientation) {}
 
-// Конструктор копирования класса EdgeCubie
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РєР»Р°СЃСЃР° EdgeCubie
 EdgeCubie::EdgeCubie(EdgeCubie const& other) : orientation_(other.orientation_) {}
 
-// Метод swap класса EdgeCubie
+// РњРµС‚РѕРґ swap РєР»Р°СЃСЃР° EdgeCubie
 void EdgeCubie::swap(EdgeCubie& other) {
 	using std::swap;
 	swap(orientation_, other.orientation_);
 }
 
-// Конструктор перемещения класса EdgeCubie
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРµСЂРµРјРµС‰РµРЅРёСЏ РєР»Р°СЃСЃР° EdgeCubie
 EdgeCubie::EdgeCubie(EdgeCubie&& other) noexcept {
 	swap(other);
 }
 
-// Оператор присваивания класса EdgeCubie
+// РћРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° EdgeCubie
 EdgeCubie& EdgeCubie::operator=(EdgeCubie const& other) {
 	if (this != &other) {
 		orientation_ = other.orientation_;
@@ -78,28 +78,28 @@ EdgeCubie& EdgeCubie::operator=(EdgeCubie const& other) {
 	return *this;
 };
 
-// Перемещающий оператор присваивания класса EdgeCubie
+// РџРµСЂРµРјРµС‰Р°СЋС‰РёР№ РѕРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° EdgeCubie
 EdgeCubie& EdgeCubie::operator=(EdgeCubie&& other) noexcept {
 	swap(other);
 	return *this;
 }
 
-// Получение доступа к полю orientation_ класса EdgeCubie
+// РџРѕР»СѓС‡РµРЅРёРµ РґРѕСЃС‚СѓРїР° Рє РїРѕР»СЋ orientation_ РєР»Р°СЃСЃР° EdgeCubie
 EdgePosition const& EdgeCubie::get_orientation() const {
 	return orientation_;
 }
 
-// Получение доступа к определнному цвету
+// РџРѕР»СѓС‡РµРЅРёРµ РґРѕСЃС‚СѓРїР° Рє РѕРїСЂРµРґРµР»РЅРЅРѕРјСѓ С†РІРµС‚Сѓ
 Position::Positions EdgeCubie::operator[](uint8_t i) const {
 	return orientation_[i];
 }
 
-// Получение вектора цветов
+// РџРѕР»СѓС‡РµРЅРёРµ РІРµРєС‚РѕСЂР° С†РІРµС‚РѕРІ
 std::vector<Colour> EdgeCubie::get_colours() const {
 	return { orientation_[0], orientation_[1] };
 }
 
-// Вращение реберного кубика
+// Р’СЂР°С‰РµРЅРёРµ СЂРµР±РµСЂРЅРѕРіРѕ РєСѓР±РёРєР°
 void EdgeCubie::rotate(Move const& move) {
 	if (move.times() != 2) {
 		switch (move.direction()) {
@@ -114,25 +114,25 @@ void EdgeCubie::rotate(Move const& move) {
 }
 
 
-// Конструктор класса CornerCubie от CornerPosition
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° CornerCubie РѕС‚ CornerPosition
 CornerCubie::CornerCubie(CornerPosition const& orientation)
 	: Cubie(), orientation_(orientation) {}
 
-// Конструктор копирования класса CornerPosition
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РєР»Р°СЃСЃР° CornerPosition
 CornerCubie::CornerCubie(CornerCubie const& other) : orientation_(other.orientation_) {}
 
-// Метод swap класса CornerPosition
+// РњРµС‚РѕРґ swap РєР»Р°СЃСЃР° CornerPosition
 void CornerCubie::swap(CornerCubie& other) {
 	using std::swap;
 	swap(orientation_, other.orientation_);
 }
 
-// Конструктор перемещения класса CornerPosition
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРµСЂРµРјРµС‰РµРЅРёСЏ РєР»Р°СЃСЃР° CornerPosition
 CornerCubie::CornerCubie(CornerCubie&& other) noexcept {
 	swap(other);
 }
 
-// Оператор присваивания класса CornerPosition
+// РћРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° CornerPosition
 CornerCubie& CornerCubie::operator=(CornerCubie const& other) {
 	if (this != &other) {
 		orientation_ = other.orientation_;
@@ -140,23 +140,23 @@ CornerCubie& CornerCubie::operator=(CornerCubie const& other) {
 	return *this;
 }
 
-// Перемещающий оператор присваивания класса CornerPosition
+// РџРµСЂРµРјРµС‰Р°СЋС‰РёР№ РѕРїРµСЂР°С‚РѕСЂ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ РєР»Р°СЃСЃР° CornerPosition
 CornerCubie& CornerCubie::operator=(CornerCubie&& other) noexcept {
 	swap(other);
 	return *this;
 }
 
-// Получение доступа к полю orientation_ класса CornerPosition
+// РџРѕР»СѓС‡РµРЅРёРµ РґРѕСЃС‚СѓРїР° Рє РїРѕР»СЋ orientation_ РєР»Р°СЃСЃР° CornerPosition
 CornerPosition const& CornerCubie::get_orientation() const {
 	return orientation_;
 }
 
-// Получение конкретного цвета
+// РџРѕР»СѓС‡РµРЅРёРµ РєРѕРЅРєСЂРµС‚РЅРѕРіРѕ С†РІРµС‚Р°
 Position::Positions CornerCubie::operator[](uint8_t i) const {
 	return orientation_[i];
 }
 
-// Вращение углового кубика
+// Р’СЂР°С‰РµРЅРёРµ СѓРіР»РѕРІРѕРіРѕ РєСѓР±РёРєР°
 void CornerCubie::rotate(Move const& move) {
 	if (move.times() != 2) {
 		switch (move.direction()) {
@@ -174,7 +174,7 @@ void CornerCubie::rotate(Move const& move) {
 	}
 }
 
-// Получение всех цветов
+// РџРѕР»СѓС‡РµРЅРёРµ РІСЃРµС… С†РІРµС‚РѕРІ
 std::vector<Colour> CornerCubie::get_colours() const {
 	return { orientation_[0], orientation_[1], orientation_[2] };
 }
