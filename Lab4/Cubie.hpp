@@ -5,6 +5,7 @@
 #include "Position.hpp"
 #include "Moves.hpp"
 
+// »нтерфейс маленького кубика
 class Cubie {
 public:
 	virtual ~Cubie() {}
@@ -12,9 +13,10 @@ public:
 	virtual void rotate(Move const&) = 0;
 };
 
-
+//  рестовина - центральный кубик
 class CenterCubie : public Cubie {
 public:
+	// —оответствующие грани
 	enum Faces : uint8_t {
 		UP, LEFT, FRONT, RIGHT, BACK, DOWN
 	};
@@ -28,19 +30,19 @@ public:
 	Colour& operator[](uint8_t);
 	std::vector<Colour> const& get_colours() const;
 	std::vector<Colour>& get_colours();
-	void rotate(Move const&) override;
+	void rotate(Move const&) override {}
 private:
-	std::vector<Colour> colours_;
+	std::vector<Colour> colours_;	// ÷вета крестовины в заданном пор€дке
 	void rotate_x(uint8_t, bool);
 	void rotate_y(uint8_t, bool);
 	void rotate_z(uint8_t, bool);
 	using C = Colour::Colours;
 };
 
-
+// –еберный кубик
 class EdgeCubie : public Cubie {
 public:
-	explicit EdgeCubie(EdgePosition const& = EdgePosition(Position::Positions::WHITE, Position::Positions::BLUE));
+	explicit EdgeCubie(EdgePosition const& = EdgePosition(Position::Positions::BLUE, Position::Positions::YELLOW));
 	EdgeCubie(EdgeCubie const&);
 	void swap(EdgeCubie&);
 	EdgeCubie(EdgeCubie&&) noexcept;
@@ -51,10 +53,10 @@ public:
 	std::vector<Colour> get_colours() const;
 	void rotate(Move const&) override;
 private:
-	EdgePosition orientation_;
+	EdgePosition orientation_;		// ÷вета кубика в относительной ориентации
 };
  
-
+// ”гловой кубик
 class CornerCubie : public Cubie {
 public:
 	explicit CornerCubie(CornerPosition const& = CornerPosition(Position::Positions::WHITE, \
@@ -69,7 +71,7 @@ public:
 	void rotate(Move const&);
 	std::vector<Colour> get_colours() const;
 private:
-	CornerPosition orientation_;
+	CornerPosition orientation_;		// ÷вета кубика в относительной ориентации
 };
 
 #endif

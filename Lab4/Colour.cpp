@@ -2,9 +2,10 @@
 #include <Windows.h>
 #include "CubeExceptions.hpp"
 
-
+// Конструктор класса Colour от перечисляемого типа
 Colour::Colour(Colours colour) : colour_(colour) {}
 
+// Конструктор класса Colour от внутреннего типа для цветов
 Colour::Colour(Position::Positions const& pos) : colour_(Colours::WHITE) {
 	switch (pos) {
 	case Position::Positions::WHITE:
@@ -29,6 +30,7 @@ Colour::Colour(Position::Positions const& pos) : colour_(Colours::WHITE) {
 	}
 }
 
+// Конструктор класса Colour от символа
 Colour::Colour(char colour) {
 	switch (colour) {
 	case 'W': case 'w':
@@ -53,15 +55,19 @@ Colour::Colour(char colour) {
 	}
 }
 
+// Конструктор копирования класса Colour
 Colour::Colour(Colour const& other) : colour_(other.colour_) {}
 
+// метод swap класса Colour
 void Colour::swap(Colour& other) {
 	using std::swap;
 	swap(colour_, other.colour_);
 }
 
+// Конструктор перемещения класса Colour
 Colour::Colour(Colour&& other) noexcept : colour_(std::move(other.colour_)) {}
 
+// Оператор присваивания класса Colour
 Colour& Colour::operator=(Colour const& other) {
 	if (this != &other) {
 		colour_ = other.colour_;
@@ -69,19 +75,23 @@ Colour& Colour::operator=(Colour const& other) {
 	return *this;
 }
 
+// Перемещающий оператор присваивания класса Colour
 Colour& Colour::operator=(Colour&& other) noexcept {
 	swap(other);
 	return *this;
 }
 
+// Оператор сравнения класса Colour
 bool Colour::operator==(Colour const& other) const {
 	return colour_ == other.colour_;
 }
 
+// Оператор сравнения класса Colour
 bool Colour::operator!=(Colour const& other) const {
 	return !(*this == other);
 }
 
+// Приведение к перечислению позиций -> переход к внутренней структуре
 Colour::operator Position::Positions() const {
 	switch (colour_) {
 	case Colours::WHITE: return Position::Positions::WHITE;
@@ -93,6 +103,7 @@ Colour::operator Position::Positions() const {
 	}
 }
 
+// Приведение к символу
 Colour::operator char() const {
 	switch (colour_) {
 	case Colours::WHITE: return 'W';
@@ -105,27 +116,7 @@ Colour::operator char() const {
 }
 
 
-uint8_t index(Colour const& col) {
-	if (col == Colour::Colours::WHITE) {
-		return 0;
-	}
-	if (col == Colour::Colours::BLUE) {
-		return 1;
-	}
-	if (col == Colour::Colours::GREEN) {
-		return 3;
-	}
-	if (col == Colour::Colours::ORANGE) {
-		return 5;
-	}
-	if (col == Colour::Colours::RED) {
-		return 2;
-	}
-	else {
-		return 4;
-	}
-}
-
+// Вывод в поток
 std::ostream& operator<<(std::ostream& os, Position::Positions const& colour) {
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 	switch (colour) {
@@ -160,10 +151,32 @@ std::ostream& operator<<(std::ostream& os, Position::Positions const& colour) {
 	return os;
 }
 
-
+// Ввод из потока
 std::istream& operator>>(std::istream& is, Colour& colour) {
 	char input;
 	is >> input;
 	colour = input;
 	return is;
+}
+
+// Получение относительного индекса цвета
+uint8_t index(Colour const& col) {
+	if (col == Colour::Colours::WHITE) {
+		return 0;
+	}
+	if (col == Colour::Colours::BLUE) {
+		return 1;
+	}
+	if (col == Colour::Colours::GREEN) {
+		return 3;
+	}
+	if (col == Colour::Colours::ORANGE) {
+		return 5;
+	}
+	if (col == Colour::Colours::RED) {
+		return 2;
+	}
+	else {
+		return 4;
+	}
 }

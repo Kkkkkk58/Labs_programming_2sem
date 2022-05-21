@@ -3,6 +3,7 @@
 #include <vector>
 #include "Moves.hpp"
 
+// Основные последовательности ходов, используемые в качестве мутаций в генетическом алгоритме
 const std::vector<MoveSequence> mutations_sequences = {
 	MoveSequence("F' L' B' R' U' R U' B L F R U R' U"),
 	MoveSequence("F R B L U L' U B' R' F' L' U' L U'"),

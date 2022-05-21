@@ -6,13 +6,16 @@
 #include <algorithm>
 #include <random>
 
+// Конструктор класса RubiksCube по умолчанию
 RubiksCube::RubiksCube()
 	: center_(), corners_(std::vector<CornerCubie>(CORNERS_COUNT)), edges_(std::vector<EdgeCubie>(EDGES_COUNT)) {
 	default_init();
 }
 
+// Конструктор класса RubiksCube от заданных кубиков
 RubiksCube::RubiksCube(CenterCubie const& center, std::vector<CornerCubie> const& corners, std::vector<EdgeCubie> const& edges)
 	: center_(center), corners_(corners), edges_(edges) {
+	// Валидация
 	try {
 		validate();
 	}
@@ -22,6 +25,7 @@ RubiksCube::RubiksCube(CenterCubie const& center, std::vector<CornerCubie> const
 	}
 }
 
+// Кщнструктор класса RubiksCube от развертки
 RubiksCube::RubiksCube(std::string const& colour_map)
 	: center_(), corners_(std::vector<CornerCubie>(CORNERS_COUNT)), edges_(std::vector<EdgeCubie>(EDGES_COUNT)) {
 	try {
@@ -49,37 +53,47 @@ RubiksCube::RubiksCube(std::string const& colour_map)
 	}
 }
 
+// Чтение состояния кубика из файла
 void RubiksCube::read_state(std::string const& filename, FileInputType const& fit) {
 	std::ifstream fin(filename);
+	// Если файл не открылся
 	if (!fin.is_open()) {
 		throw InvalidFile(filename);
 	}
 	std::stringstream file_content;
 	file_content << fin.rdbuf();
+	// Читаем развертку
 	if (fit == FileInputType::SWEEP) {
 		*this = RubiksCube(file_content.str());
 	}
+	// Читаем скрембл
 	else {
 		setup(file_content.str());
 	}
 }
 
+// Сохранение текущего состояния кубика в файл
 std::string RubiksCube::save_state(std::string filename) const {
+	// Если имя не предоставлено
 	if (filename.empty()) {
-		filename = create_filename();
+		filename = RubiksCubeHelper::create_filename();
 	}
 	std::ofstream fout(filename);
+	// Печатаем развертку, если с файлом все в порядке
 	if (fout.is_open()) {
 		fout << sweep();
 	}
 	else {
 		throw InvalidFile(filename);
 	}
+
 	return filename;
 }
 
+// Конструктор копирования класса RubiksCube
 RubiksCube::RubiksCube(RubiksCube const& other) : center_(other.center_), corners_(other.corners_), edges_(other.edges_) {}
 
+// Метод swap класса RubiksCube
 void RubiksCube::swap(RubiksCube& other) {
 	using std::swap;
 	swap(center_, other.center_);
@@ -87,10 +101,12 @@ void RubiksCube::swap(RubiksCube& other) {
 	swap(edges_, other.edges_);
 }
 
+// Перемещающий конструктор класса RubiksCube
 RubiksCube::RubiksCube(RubiksCube&& other) noexcept {
 	swap(other);
 }
 
+// Оператор присваивания класса RubiksCube
 RubiksCube& RubiksCube::operator=(RubiksCube const& other) {
 	if (this != &other) {
 		center_ = other.center_;
@@ -100,21 +116,21 @@ RubiksCube& RubiksCube::operator=(RubiksCube const& other) {
 	return *this;
 }
 
+// Перемещающий оператор присваивания класса RubiksCube
 RubiksCube& RubiksCube::operator=(RubiksCube&& other) noexcept {
 	swap(other);
 	return *this;
 }
 
-bool RubiksCube::is_solved() const {
-	return up_solved() && left_solved() && front_solved();
-}
 
+// Применение последовательности поворотов к кубику
 void RubiksCube::setup(MoveSequence const& moves) {
-	for (size_t i = 0; i < moves.size(); ++i) {
-		rotate(moves[i]);
+	for (Move const& move : moves) {
+		rotate(move);
 	}
 }
 
+// Применение одного поворота к кубику
 void RubiksCube::rotate(Move const& move) {
 	using namespace RubiksCubeHelper;
 	switch (move.direction()) {
@@ -173,6 +189,7 @@ void RubiksCube::rotate(Move const& move) {
 	}
 }
 
+// Получение развертки кубика
 std::string RubiksCube::sweep() const {
 	std::string sweep;
 	using namespace RubiksCubeHelper;
@@ -191,6 +208,7 @@ std::string RubiksCube::sweep() const {
 			edges_[DOWN_RIGHT][0], corners_[DOWN_BACK_LEFT][0], edges_[DOWN_BACK][0], corners_[DOWN_BACK_RIGHT][0]
 	};
 	std::vector<Colour> raw_colours = to_colours(colours_sequence);
+	// Записываем верхнюю грань
 	for (size_t i = 0; i < 3; ++i) {
 		sweep.push_back('\t');
 		for (size_t j = 0; j < 3; ++j) {
@@ -199,6 +217,7 @@ std::string RubiksCube::sweep() const {
 		}
 		sweep.push_back('\n');
 	}
+	// Записываем L,R,F,B грани
 	for (size_t i = 0; i < 3; ++i) {
 		for (size_t j = 0; j < 12; ++j) {
 			sweep.push_back(raw_colours[9 + i * 12 + j]);
@@ -209,6 +228,7 @@ std::string RubiksCube::sweep() const {
 		}
 		sweep.push_back('\n');
 	}
+	// Записываем нижнюю грань
 	for (size_t i = 0; i < 3; ++i) {
 		sweep.push_back('\t');
 		for (size_t j = 0; j < 3; ++j) {
@@ -220,27 +240,34 @@ std::string RubiksCube::sweep() const {
 	return sweep;
 }
 
+// Получение конкретного цветового представления
 Position::Positions RubiksCube::face(RubiksCubeHelper::CentersIndexing i) const {
 	return center_[i];
 }
 
+// Получение всех цветов центра
 std::vector<Colour> RubiksCube::face_colours() const {
 	return center_.get_colours();
 }
 
+// Получение ориентации углового кубика
 CornerPosition const& RubiksCube::corner(RubiksCubeHelper::CornersIndexing i) const {
 	return corners_[i].get_orientation();
 }
+// Получение цветов углового кубика
 std::vector<Colour> RubiksCube::corner_colours(RubiksCubeHelper::CornersIndexing i) const {
 	return corners_[i].get_colours();
 }
+// Получение ориентации реберного кубика
 EdgePosition const& RubiksCube::edge(RubiksCubeHelper::EdgesIndexing i) const {
 	return edges_[i].get_orientation();
 }
+// Получение цветов реберного кубика
 std::vector<Colour> RubiksCube::edge_colours(RubiksCubeHelper::EdgesIndexing i) const {
 	return edges_[i].get_colours();
 }
 
+// Инициализация кубика 
 void RubiksCube::default_init() {
 	using P = Position::Positions;
 	using CP = CornerPosition;
@@ -256,49 +283,16 @@ void RubiksCube::default_init() {
 			   EC(EP(P::YELLOW, P::ORANGE)), EC(EP(P::YELLOW, P::BLUE)), EC(EP(P::YELLOW, P::RED)), EC(EP(P::YELLOW, P::GREEN)) };
 }
 
-bool RubiksCube::up_solved() const {
-	using namespace RubiksCubeHelper;
-	return std::all_of(corners_.begin() + UP_BACK_LEFT, corners_.begin() + DOWN_FRONT_LEFT,
-		[&](CornerCubie const& corner) { return corner[0] == center_[0]; })
-		&& std::all_of(edges_.begin() + UP_BACK, edges_.begin() + FRONT_LEFT,
-			[&](EdgeCubie const& edge) { return edge[0] == center_[0]; });
-}
-
-bool RubiksCube::left_solved() const {
-	using namespace RubiksCubeHelper;
-	Position::Positions left_colour = center_[1];
-	return corners_[DOWN_BACK_LEFT][2] == left_colour && corners_[DOWN_FRONT_LEFT][2] == left_colour
-		&& corners_[UP_BACK_LEFT][2] == left_colour && corners_[UP_FRONT_LEFT][2] == left_colour
-		&& edges_[BACK_LEFT][1] == left_colour && edges_[DOWN_LEFT][1] == left_colour
-		&& edges_[FRONT_LEFT][1] == left_colour && edges_[UP_LEFT][1] == left_colour;
-}
-
-
-bool RubiksCube::front_solved() const {
-	using namespace RubiksCubeHelper;
-	Position::Positions front_colour = center_[2];
-	return corners_[DOWN_FRONT_LEFT][1] == front_colour && corners_[DOWN_FRONT_RIGHT][1] == front_colour
-		&& corners_[UP_FRONT_LEFT][1] == front_colour && corners_[UP_FRONT_RIGHT][1] == front_colour
-		&& edges_[DOWN_FRONT][1] == front_colour && edges_[FRONT_LEFT][0] == front_colour
-		&& edges_[FRONT_RIGHT][0] == front_colour && edges_[UP_FRONT][1] == front_colour;
-}
-
+// Проверка кубика на корректность
 void RubiksCube::validate() {
 	CubeValidator validator(*this);
 	validator.report();
 }
 
-std::string RubiksCube::create_filename() const {
-	std::time_t t = std::time(0);
-	std::tm now;
-	localtime_s(&now, &t);
-	char buffer[256];
-	std::strftime(buffer, 256, "%F_%H-%M-%S", &now);
-	return "CUBE_" + std::string(buffer) + ".cube";
-}
-
+// Описание движения угловых кубиков
 void RubiksCube::perform_rotation(RubiksCubeHelper::CornersIndexing a, RubiksCubeHelper::CornersIndexing b, \
 	RubiksCubeHelper::CornersIndexing c, RubiksCubeHelper::CornersIndexing d, Move const& move) {
+	// Движение кубиков по циклу
 	if (move.times() == 2) {
 		std::swap(corners_[a], corners_[c]);
 		std::swap(corners_[b], corners_[d]);
@@ -314,14 +308,17 @@ void RubiksCube::perform_rotation(RubiksCubeHelper::CornersIndexing a, RubiksCub
 		std::swap(corners_[b], corners_[c]);
 		std::swap(corners_[c], corners_[d]);
 	}
+	// Смена ориентации кубиков
 	corners_[a].rotate(move);
 	corners_[b].rotate(move);
 	corners_[c].rotate(move);
 	corners_[d].rotate(move);
 }
 
+// Описание движения реберных кубиков
 void RubiksCube::perform_rotation(RubiksCubeHelper::EdgesIndexing a, RubiksCubeHelper::EdgesIndexing b, \
 	RubiksCubeHelper::EdgesIndexing c, RubiksCubeHelper::EdgesIndexing d, Move const& move) {
+	// Движение кубиков по циклу
 	if (move.times() == 2) {
 		std::swap(edges_[a], edges_[c]);
 		std::swap(edges_[b], edges_[d]);
@@ -337,14 +334,17 @@ void RubiksCube::perform_rotation(RubiksCubeHelper::EdgesIndexing a, RubiksCubeH
 		std::swap(edges_[b], edges_[c]);
 		std::swap(edges_[c], edges_[d]);
 	}
+	// Смена ориентации кубиков
 	edges_[a].rotate(move);
 	edges_[b].rotate(move);
 	edges_[c].rotate(move);
 	edges_[d].rotate(move);
 }
 
+// Описание движения центральной крестовины
 void RubiksCube::perform_rotation(RubiksCubeHelper::CentersIndexing a, RubiksCubeHelper::CentersIndexing b, \
 	RubiksCubeHelper::CentersIndexing c, RubiksCubeHelper::CentersIndexing d, Move const& move) {
+	// Смена ориентации центра
 	if (move.times() == 2) {
 		std::swap(center_[a], center_[c]);
 		std::swap(center_[b], center_[d]);
@@ -362,6 +362,7 @@ void RubiksCube::perform_rotation(RubiksCubeHelper::CentersIndexing a, RubiksCub
 	}
 }
 
+// Перегрузка оператора вывода в поток для кубика Рубика
 std::ostream& operator<<(std::ostream& os, RubiksCube const& cube) {
 	std::string sweep_base = cube.sweep();
 	for (char c : sweep_base) {
@@ -375,6 +376,7 @@ std::ostream& operator<<(std::ostream& os, RubiksCube const& cube) {
 	return os;
 }
 
+// Перегрузка оператора ввода из потока для кубика Рубика (чтение развертки)
 std::istream& operator>>(std::istream& is, RubiksCube& cube) {
 	std::string s;
 	while (is.good()) {
@@ -386,6 +388,7 @@ std::istream& operator>>(std::istream& is, RubiksCube& cube) {
 	return is;
 }
 
+// Генерация рандомного корректного состояния кубика
 RubiksCube random_cube() {
 	std::random_device device;
 	std::mt19937 generator(device());
@@ -393,14 +396,19 @@ RubiksCube random_cube() {
 	size_t steps = generator() % 40;
 	RubiksCube cube;
 	MoveSequence s;
+	// Генерируем скрембл
 	for (size_t i = 0; i < steps; ++i) {
+		// Выбираем вращающуюся грань(грани)
 		char dir_index = generator() % 12;
+		// Количество поворотов
 		uint8_t times = generator() % 2 + 1;
+		// Направление вращения
 		bool clockwise = generator() % 2;
 		Move m(static_cast<Move::Direction>(dir_index), clockwise, times);
 		s += m;
-		cube.rotate(Move(static_cast<Move::Direction>(dir_index), clockwise, times));
+		cube.rotate(m);
 	}
+	// Вывод полученного скрембла
 	std::cout << s.to_string() << "\n";
 	return cube;
 }

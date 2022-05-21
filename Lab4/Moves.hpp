@@ -4,8 +4,10 @@
 #include <string>
 #include <vector>
 
+//  ласс, предоставл€ющий информацию об одном повороте
 class Move {
 public:
+	//  оды дл€ поворотов граней из стандартной нотации
 	enum class Direction : char {
 		U, D, L, R, F, B, X, Y, Z, M, E, S
 	};
@@ -16,9 +18,9 @@ public:
 	bool clockwise() const;
 	uint8_t times() const;
 private:
-	Direction direction_;
-	bool clockwise_;
-	uint8_t times_;
+	Direction direction_;	//  од поворачиваемой(-ых) грани(-ей)
+	bool clockwise_;		// Ќаправление поворота - true == по часовой стрелке, false == против часовой
+	uint8_t times_;			//  оличество раз (в стандартной нотации от 1 до 2)
 };
 
 
@@ -26,12 +28,12 @@ std::istream& operator>>(std::istream&, Move&);
 
 std::ostream& operator<<(std::ostream& , Move const&);
 
-
+//  онтейнер - последовательность поворотов
 class MoveSequence {
 public:
-	using iterator = std::vector<Move>::iterator;
-	using const_iterator = std::vector<Move>::const_iterator;
-	using reverse_iterator = std::vector<Move>::reverse_iterator;
+	using iterator				 = std::vector<Move>::iterator;
+	using const_iterator		 = std::vector<Move>::const_iterator;
+	using reverse_iterator		 = std::vector<Move>::reverse_iterator;
 	using const_reverse_iterator = std::vector<Move>::const_reverse_iterator;
 
 	explicit MoveSequence(std::vector<Move> const& = std::vector<Move>());
@@ -50,6 +52,7 @@ public:
 	size_t size() const;
 	MoveSequence& operator+=(MoveSequence const&);
 	MoveSequence& operator+=(Move const&);
+
 	iterator begin();
 	const_iterator begin() const;
 	const_iterator cbegin() const;
@@ -63,7 +66,7 @@ public:
 	const_reverse_iterator rend() const;
 	const_reverse_iterator crend() const;
 private:
-	std::vector<Move> moves_;
+	std::vector<Move> moves_;		// ¬ектор поворотов
 };
 
 const MoveSequence operator+(MoveSequence, MoveSequence const&);

@@ -7,12 +7,13 @@
 #include "Cubie.hpp"
 #include "RubiksCubeHelper.hpp"
 
-
+// Класс, описывающий состояние кубика Рубика
 class RubiksCube {
 public:
 	RubiksCube();
 	RubiksCube(CenterCubie const&, std::vector<CornerCubie> const&, std::vector<EdgeCubie> const&);
 	explicit RubiksCube(std::string const&);
+	// Перечисление для определения типа ввода из файла
 	enum class FileInputType : bool {
 		SWEEP,
 		SCRAMBLE
@@ -25,7 +26,6 @@ public:
 	RubiksCube& operator=(RubiksCube const&);
 	RubiksCube& operator=(RubiksCube&&) noexcept;
 	~RubiksCube() = default;
-	bool is_solved() const;
 	void setup(MoveSequence const&);
 
 	void rotate(Move const&);
@@ -43,11 +43,7 @@ private:
 	std::vector<EdgeCubie> edges_;
 
 	void default_init();
-	bool up_solved() const;
-	bool left_solved() const;
-	bool front_solved() const;
 	void validate();
-	std::string create_filename() const;
 	void perform_rotation(RubiksCubeHelper::CornersIndexing, RubiksCubeHelper::CornersIndexing, \
 		RubiksCubeHelper::CornersIndexing, RubiksCubeHelper::CornersIndexing d, Move const&);
 	void perform_rotation(RubiksCubeHelper::EdgesIndexing, RubiksCubeHelper::EdgesIndexing, \

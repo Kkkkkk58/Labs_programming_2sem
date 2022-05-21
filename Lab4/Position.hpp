@@ -6,8 +6,10 @@
 #include <bitset>
 #include "Constants.hpp"
 
+// Интерфейс для классов, описывающих внутреннее устройство маленьких кубиков
 class Position {
 public:
+	// Внутреннее представление цвета - степенями двойки -> взаимно не перескаются -> можно использовать побитовые операции
 	enum class Positions : uint8_t {
 		WHITE = 0b1, BLUE = 0b10, RED = 0b100, GREEN = 0b1000, YELLOW = 0b10000, ORANGE = 0b100000
 	};
@@ -16,7 +18,7 @@ public:
 	virtual ~Position() {}
 };
 
-
+// Позиция углового кубика
 class CornerPosition : public Position {
 public:
 	CornerPosition();
@@ -29,10 +31,11 @@ public:
 	void swap_bits(uint8_t, uint8_t) override;
 	Positions operator[](uint8_t i) const override;
 private:
-	std::bitset<COLOURS_COUNT * 3> bits_;
+	std::bitset<COLOURS_COUNT * 3> bits_;		// Битсет, содержащий три цвета в порядке U/D -> F/B -> L/R
 };
 
 
+// Позиция реберного кубика
 class EdgePosition : public Position {
 public:
 	EdgePosition();
@@ -45,7 +48,8 @@ public:
 	void swap_bits(uint8_t, uint8_t) override;
 	Positions operator[](uint8_t i) const override;
 private:
-	std::bitset<COLOURS_COUNT * 2> bits_;
+	std::bitset<COLOURS_COUNT * 2> bits_;	// Битсет, содержащий цвета в порядке U/D -> L/R/F/B - для верхнего и нижнего слоя
+											// и в порядке F/B -> L/R для среднего слоя
 };
 
 

@@ -2,6 +2,7 @@
 #define USER_INTERACTION_HPP
 #include "Cube.hpp"
 
+// Класс, описывающий режим взаимодействия с пользователем - консольный интерфейс
 class UserInteraction {
 public:
 	UserInteraction() {}
