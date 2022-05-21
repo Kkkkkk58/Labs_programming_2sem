@@ -29,6 +29,9 @@ void UserInteraction::mainloop() const {
 			case 'r': case 'R':
 				on_read();
 				break;
+			case 'i': case 'I':
+				on_input();
+				break;
 			case 'e': case 'E':
 				alive = false;
 				break;
@@ -72,6 +75,7 @@ void UserInteraction::on_options() const {
 		"- Generate random valid cube (G)\n"
 		"- Read the state of the cube from file (given either by a scramble or by a sweep) (R)\n"
 		"   ** It also checks whether the state is correct or not according to the Fundamental Theorem of Cubology **\n"
+		"- Take the cube's state from input (I)\n"
 		"- Save current state in a file\n"
 		"- Generate default cube (D)\n"
 		"- Perform rotations of the cube\n"
@@ -109,6 +113,13 @@ void UserInteraction::on_read() const {
 		on_wrong_command();
 		return;
 	}
+	on_cube_interaction(cube);
+}
+
+void UserInteraction::on_input() const {
+	std::cout << "Enter the sweep of the cube: ";
+	RubiksCube cube;
+	std::cin >> cube;
 	on_cube_interaction(cube);
 }
 
