@@ -9,6 +9,8 @@
 class UserInteraction {
 public:
 	UserInteraction() {}
+	UserInteraction(UserInteraction const& other) = delete;
+	UserInteraction& operator=(UserInteraction const& other) = delete;
 	~UserInteraction() { on_closing(); }
 	void mainloop() const;
 private:

@@ -107,7 +107,7 @@ void UserInteraction::on_read() const {
 	on_cube_interaction(cube);
 }
 
-void UserInteraction::on_save(RubiksCube const& cube, std::string const& filename = "") const {
+void UserInteraction::on_save(RubiksCube const& cube, std::string const& filename) const {
 	std::cout << "Saving current state in the file named " << cube.save_state(filename) << "\nDone!\n";
 }
 
