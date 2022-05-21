@@ -1,4 +1,9 @@
 ﻿#include "UserInteraction.hpp"
+#include "GeneticAlgorithm.hpp"
+#include <io.h>
+#include <conio.h>
+#include <fcntl.h>
+
 
 enum ARROWS {
 	UP = 72, LEFT = 75, RIGHT = 77, DOWN = 80

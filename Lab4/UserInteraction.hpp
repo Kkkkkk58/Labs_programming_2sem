@@ -1,10 +1,6 @@
 ﻿#ifndef USER_INTERACTION_HPP
 #define USER_INTERACTION_HPP
-#include <io.h>
-#include <conio.h>
-#include <fcntl.h>
 #include "Cube.hpp"
-#include "GeneticAlgorithm.hpp"
 
 class UserInteraction {
 public:
