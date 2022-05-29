@@ -5,6 +5,9 @@
 #include <memory>
 #include "FixedSizeBucket.hpp"
 
+
+
+
 template<typename T>
 class LJGSAllocator {
 public:
@@ -26,43 +29,48 @@ public:
 		for (auto const& [size, count] : chunks_info) {
 			total_size += count * size;
 			if (size >= sizeof(Chunk*)) {
-				total_size += sizeof(Chunk *);
+				total_size += sizeof(MoreOrEqThanPtrBucket);
+			}
+			else {
+				total_size += sizeof(LessThanPtrBucket);
 			}
 		}
 		try {
 			//data_ = std::make_shared<void*>(operator new(total_size));
-			data_ = operator new(total_size);
+			data_.reset(operator new(total_size));
 		}
 		catch (std::exception const& e) {
 			std::cerr << "Cringe\n" << e.what();
 			throw;
 		}
 		std::cout << total_size << "\n";
-		//char* tmp = static_cast<char*>(data_.get());
-		char* tmp = static_cast<char*>(data_);
+		char* tmp = static_cast<char*>(data_.get());
+		//char* tmp = static_cast<char*>(data_);
 		for (auto const& [size, count] : chunks_info) {
 			std::cout << size << "\n";
 			if (size < sizeof(Chunk *)) {
-				size_groups_->operator[](size) = new(static_cast<void*>(tmp)) LessThanPtrBucket(static_cast<void*>(tmp), count, size);
-				tmp += count * size;
+				size_groups_->operator[](size) = new(static_cast<void*>(tmp)) LessThanPtrBucket(static_cast<void*>(tmp + sizeof(LessThanPtrBucket)), count, size);
+				tmp += count * size + sizeof(LessThanPtrBucket);
 			}
 			else {
-				size_groups_->operator[](size) = new(static_cast<void*>(tmp)) MoreOrEqThanPtrBucket(static_cast<void*>(tmp), count, size);
-				tmp += count * size + sizeof(Chunk*);
+				size_groups_->operator[](size) = new(static_cast<void*>(tmp)) MoreOrEqThanPtrBucket(static_cast<void*>(tmp + sizeof(MoreOrEqThanPtrBucket)), count, size);
+				tmp += count * size + sizeof(MoreOrEqThanPtrBucket);
 			}
 		}
 	}
 
 	LJGSAllocator(LJGSAllocator const& other) : size_groups_(other.size_groups_), data_(other.data_) {}
+
+	template<typename V>
+	LJGSAllocator(LJGSAllocator<V> const& other) : size_groups_(other.groups()), data_(other.data()) {}
 	//~LJGSAllocator() {
 	//	delete data;
 	//}
 	pointer allocate(std::size_t n) {
-		auto it = size_groups_->lower_bound(n * sizeof(T));
-		std::cout << it->first;
-		for ( ; it != size_groups_->end(); ++it) {
+		
+		for (auto it = size_groups_->lower_bound(n * sizeof(T)); it != size_groups_->end(); ++it) {
 			std::cout << "HEEEE\n";
-			pointer ptr = it->second->do_allocate<T>();
+			pointer ptr = static_cast<T*>(it->second->alloc(sizeof(T)));
 			if (ptr != nullptr) {
 				std::cout << "Allocated " << it->first << "bytes at " << ptr << "\n";
 				return ptr;
@@ -73,24 +81,31 @@ public:
 	}
 	void deallocate(T* ptr, std::size_t n) {
 		for (auto it = size_groups_->lower_bound(n * sizeof(T)); it != size_groups_->end(); ++it) {
-			if (it->second->contains<T>(ptr)) {
-				it->second->do_deallocate<T>(ptr);
+			if (static_cast<void*>(it->second) <= static_cast<void*>(ptr)) {
+			//if (it->second->contains(static_cast<void*>(ptr))) {
+				it->second->mark_free(static_cast<void*>(ptr), sizeof(T));
 			}
 		}
 	}
 	template<typename V, typename... Args >
 	void construct(V* ptr, Args&&... args) {
-		for (auto it = size_groups_->lower_bound(sizeof(V)); it != size_groups_->end(); ++it) {
-			if (it->second->contains<T>(ptr)) {
-				it->second->do_construct<V, Args...>(ptr, std::forward<Args>(args)...);
-			}
-		}
+		std::cout << "CONSTR " << ptr << "\n";
+		new(static_cast<void*>(ptr)) V(std::forward<Args>(args)...);
+		//for (auto it = size_groups_->lower_bound(sizeof(V)); it != size_groups_->end(); ++it) {
+		//	
+		//	if (it->second->contains(static_cast<void*>(ptr))) {
+		//		
+		//		new(static_cast<void*>(ptr)) V(std::forward<Args>(args)...);
+		//		return;
+		//	}
+		//}
 	}
 	template<typename V>
 	void destroy(V* ptr) {
 		for (auto it = size_groups_->lower_bound(sizeof(V)); it != size_groups_->end(); ++it) {
-			if (it->second->contains<T>(ptr)) {
-				it->second->do_destroy<T>(ptr);
+			if (static_cast<void*>(it->second) <= static_cast<void*>(ptr)) {
+			//if (it->second->contains(static_cast<void*>(ptr))) {
+				ptr->~V();
 			}
 		}
 	}
@@ -103,23 +118,26 @@ public:
 		}
 		return size;
 	}
-	void* data() const {
+	std::shared_ptr<void>const & data() const {
 		return data_;
 	}
-
-	template<typename V>
-	operator LJGSAllocator<V>() {
-		return LJGSAllocator(size_groups_, data_);
+	std::map<std::size_t, FixedSizeBucket*>* groups() const {
+		return size_groups_;
 	}
+
+	//template<typename V>
+	//operator LJGSAllocator<V>() {
+	//	return LJGSAllocator(size_groups_, data_);
+	//}
 
 private:
 	//template<typename V> friend class LJGSAllocator;
 	std::map<std::size_t, FixedSizeBucket*> *size_groups_;
 	//std::shared_ptr<void> data_;
-	void* data_;
+	std::shared_ptr<void> data_;
 
-	LJGSAllocator(std::map<std::size_t, FixedSizeBucket*> *size_groups, void* data) 
-		: size_groups_(size_groups), data_(data) {}
+	//LJGSAllocator(std::map<std::size_t, FixedSizeBucket*> *size_groups, void* data) 
+	//	: size_groups_(size_groups), data_(data) {}
 };
 
 
@@ -127,4 +145,6 @@ template <class T, class U>
 bool operator==(LJGSAllocator<T> const& lhs, LJGSAllocator<U> const& rhs) { return lhs.data() == rhs.data(); }
 template <class T, class U>
 bool operator!=(LJGSAllocator<T> const& lhs, LJGSAllocator<U> const& rhs) { return !(lhs == rhs); }
+
+
 #endif
