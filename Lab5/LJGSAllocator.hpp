@@ -6,8 +6,6 @@
 #include "FixedSizeBucket.hpp"
 
 
-
-
 template<typename T>
 class LJGSAllocator {
 public:
@@ -36,16 +34,13 @@ public:
 			}
 		}
 		try {
-			//data_ = std::make_shared<void*>(operator new(total_size));
-			data_.reset(operator new(total_size));
+			data_.reset(::operator new(total_size));
 		}
 		catch (std::exception const& e) {
 			std::cerr << "Cringe\n" << e.what();
 			throw;
 		}
-		std::cout << total_size << "\n";
 		char* tmp = static_cast<char*>(data_.get());
-		//char* tmp = static_cast<char*>(data_);
 		for (auto const& [size, count] : chunks_info) {
 			std::cout << size << "\n";
 			if (size < sizeof(Chunk *)) {
@@ -58,20 +53,18 @@ public:
 			}
 		}
 	}
-
-	LJGSAllocator(LJGSAllocator const& other) : size_groups_(other.size_groups_), data_(other.data_) {
-		std::cout << "Usual cctor: " << data_.use_count() << "\n";
+	~LJGSAllocator() {
+		if (size_groups_.use_count() == 1) {
+			for (auto it = size_groups_->begin(); it != size_groups_->end(); ++it) {
+				it->second->~FixedSizeBucket();
+			}
+		}
 	}
+	LJGSAllocator(LJGSAllocator const& other) : size_groups_(other.size_groups_), data_(other.data_) {}
 
 	template<typename V>
-	LJGSAllocator(LJGSAllocator<V> const& other) : size_groups_(other.groups()), data_(other.data()) {
-		std::cout << "Template cctor " << data_.use_count() << "\n";
-	}
-	//~LJGSAllocator() {
-	//	if (data_.use_count() == 0) {
-	//		data_.reset();
-	//	}
-	//}
+	LJGSAllocator(LJGSAllocator<V> const& other) : size_groups_(other.groups()), data_(other.data()) {}
+
 	pointer allocate(std::size_t n) {
 		
 		for (auto it = size_groups_->lower_bound(n * sizeof(T)); it != size_groups_->end(); ++it) {
@@ -88,7 +81,6 @@ public:
 	void deallocate(T* ptr, std::size_t n) {
 		for (auto it = size_groups_->lower_bound(n * sizeof(T)); it != size_groups_->end(); ++it) {
 			if (static_cast<void*>(it->second) <= static_cast<void*>(ptr)) {
-			//if (it->second->contains(static_cast<void*>(ptr))) {
 				it->second->mark_free(static_cast<void*>(ptr), sizeof(T));
 			}
 		}
@@ -97,20 +89,12 @@ public:
 	void construct(V* ptr, Args&&... args) {
 		std::cout << "CONSTR " << ptr << "\n";
 		new(static_cast<void*>(ptr)) V(std::forward<Args>(args)...);
-		//for (auto it = size_groups_->lower_bound(sizeof(V)); it != size_groups_->end(); ++it) {
-		//	
-		//	if (it->second->contains(static_cast<void*>(ptr))) {
-		//		
-		//		new(static_cast<void*>(ptr)) V(std::forward<Args>(args)...);
-		//		return;
-		//	}
-		//}
 	}
+
 	template<typename V>
 	void destroy(V* ptr) {
 		for (auto it = size_groups_->lower_bound(sizeof(V)); it != size_groups_->end(); ++it) {
 			if (static_cast<void*>(it->second) <= static_cast<void*>(ptr)) {
-			//if (it->second->contains(static_cast<void*>(ptr))) {
 				ptr->~V();
 			}
 		}
@@ -124,26 +108,16 @@ public:
 		}
 		return size;
 	}
-	std::shared_ptr<void>const & data() const {
+	std::shared_ptr<void>const& data() const {
 		return data_;
 	}
-	std::map<std::size_t, FixedSizeBucket*>* groups() const {
+	std::shared_ptr<std::map<std::size_t, FixedSizeBucket*>> const& groups() const {
 		return size_groups_;
 	}
 
-	//template<typename V>
-	//operator LJGSAllocator<V>() {
-	//	return LJGSAllocator(size_groups_, data_);
-	//}
-
 private:
-	//template<typename V> friend class LJGSAllocator;
-	std::map<std::size_t, FixedSizeBucket*> *size_groups_;
-	//std::shared_ptr<void> data_;
+	std::shared_ptr<std::map<std::size_t, FixedSizeBucket*>> size_groups_;
 	std::shared_ptr<void> data_;
-
-	//LJGSAllocator(std::map<std::size_t, FixedSizeBucket*> *size_groups, void* data) 
-	//	: size_groups_(size_groups), data_(data) {}
 };
 
 
