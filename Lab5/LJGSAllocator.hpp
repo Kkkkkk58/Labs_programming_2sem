@@ -1,130 +1,163 @@
 #ifndef LJGS_ALLOCATOR_HPP
 #define LJGS_ALLOCATOR_HPP
-#include <unordered_map>
 #include <map>
-#include <memory>
 #include "FixedSizeBucket.hpp"
 
-
+// Шаблонный класс аллокатора
 template<typename T>
 class LJGSAllocator {
 public:
-	using value_type = T;
-	using size_type = unsigned long long;
-	using difference_type = long long;
-	using pointer = T*;
-	using const_pointer = const T*;
-	using void_pointer = void*;
-	using const_void_pointer = const void*;
+	using value_type							 = T;
+	using size_type								 = unsigned long long;
+	using difference_type						 = long long;
+	using pointer								 = T*;
+	using const_pointer							 = const T*;
+	using void_pointer							 = void*;
+	using const_void_pointer					 = const void*;
+	using is_always_equal                        = std::false_type;
+	using propagate_on_container_copy_assignment = std::false_type;
+	using propagate_on_container_move_assignment = std::false_type;
+	using propagate_on_container_swap            = std::false_type;
 	template <typename V>
 	struct rebind {
 		using other = LJGSAllocator<V>;
 	};
-	explicit LJGSAllocator(std::map<size_t, size_t> const& chunks_info) 
+
+	// Конструктор класса от мапы, ключами которой являются размеры кусочков, а значениями - их количества
+	explicit LJGSAllocator(std::map<std::size_t, std::size_t> const& chunks_info) 
 	: size_groups_(new std::map<std::size_t, FixedSizeBucket*>()) {
 		size_type total_size = 0;
-		
+		// Перебираем пары размеров и количеств кусочков и добавляем величину в размер общего пула
 		for (auto const& [size, count] : chunks_info) {
 			total_size += count * size;
+			// Если размер кусочка не меньше размера указателя
 			if (size >= sizeof(Chunk*)) {
-				total_size += sizeof(MoreOrEqThanPtrBucket);
+				// Будем использовать соответствующую EqOrMoreThanPtrBucket стратегию
+				total_size += sizeof(EqOrMoreThanPtrBucket);
 			}
+			// Иначе
 			else {
+				// Пользуемся классом LessThanPtrBucket
 				total_size += sizeof(LessThanPtrBucket);
 			}
 		}
+		// Пробуем выделить требуемое количество байт
 		try {
 			data_.reset(::operator new(total_size));
 		}
+		// Если не вышло - перебрасываем исключение
 		catch (std::exception const& e) {
-			std::cerr << "Cringe\n" << e.what();
+			std::cerr << e.what();
 			throw;
 		}
+		// Указатель, по которому будут размещаться объекты в памяти
 		char* tmp = static_cast<char*>(data_.get());
+		// Располагаем кусочки по выделенным местам
 		for (auto const& [size, count] : chunks_info) {
-			std::cout << size << "\n";
+			// Размещение кусочков, размер которых меньше размера указателя
 			if (size < sizeof(Chunk *)) {
-				size_groups_->operator[](size) = new(static_cast<void*>(tmp)) LessThanPtrBucket(static_cast<void*>(tmp + sizeof(LessThanPtrBucket)), count, size);
+				size_groups_->operator[](size) = new(static_cast<void*>(tmp)) \
+					LessThanPtrBucket(static_cast<void*>(tmp + sizeof(LessThanPtrBucket)), count, size);
 				tmp += count * size + sizeof(LessThanPtrBucket);
 			}
+			// Размещение кусочков, размер которых не меньше размера указателя
 			else {
-				size_groups_->operator[](size) = new(static_cast<void*>(tmp)) MoreOrEqThanPtrBucket(static_cast<void*>(tmp + sizeof(MoreOrEqThanPtrBucket)), count, size);
-				tmp += count * size + sizeof(MoreOrEqThanPtrBucket);
+				size_groups_->operator[](size) = new(static_cast<void*>(tmp)) \
+					EqOrMoreThanPtrBucket(static_cast<void*>(tmp + sizeof(EqOrMoreThanPtrBucket)), count, size);
+				tmp += count * size + sizeof(EqOrMoreThanPtrBucket);
 			}
 		}
 	}
+
+	// Деструктор класса LJGSAllocator
 	~LJGSAllocator() {
+		// Если данный аллокатор - последний из указывающих на конкретную область памяти
 		if (size_groups_.use_count() == 1) {
+			// Вызываем деструкторы вместилищ чанков
 			for (auto it = size_groups_->begin(); it != size_groups_->end(); ++it) {
 				it->second->~FixedSizeBucket();
 			}
 		}
 	}
-	LJGSAllocator(LJGSAllocator const& other) : size_groups_(other.size_groups_), data_(other.data_) {}
 
+	// Конструктор копирования класса LJGSAllocator, не бросающий исключения
+	LJGSAllocator(LJGSAllocator const& other) noexcept : size_groups_(other.size_groups_), data_(other.data_) {}
+
+	// Конструктор копирования класса LJGSAllocator от аллокатора другого типа, не бросающий исключения
 	template<typename V>
-	LJGSAllocator(LJGSAllocator<V> const& other) : size_groups_(other.groups()), data_(other.data()) {}
+	LJGSAllocator(LJGSAllocator<V> const& other) noexcept : size_groups_(other.groups()), data_(other.data()) {}
 
+	// Метод allocate, предоставляющий место для n подряд идущих элементов типа T в динамической памяти
 	pointer allocate(std::size_t n) {
-		
+		// Просматриваем доступные блоки, начиная с наименьшего из тех, которые могут вместить эти элементы
 		for (auto it = size_groups_->lower_bound(n * sizeof(T)); it != size_groups_->end(); ++it) {
-			std::cout << "HEEEE\n";
+
 			pointer ptr = static_cast<T*>(it->second->alloc(sizeof(T)));
+			// Если внутренний alloc возвращает указатель, отличный от nullptr - место нашлось
 			if (ptr != nullptr) {
-				std::cout << "Allocated " << it->first << "bytes at " << ptr << "\n";
 				return ptr;
 			}
 		}
-		std::cout << "Didn't manage to find " << n * sizeof(T) << "block\n";
+		// Если среди блоков не найдено место
+		std::cerr << "Didn't manage to find " << n * sizeof(T) << " block\n";
 		throw std::bad_alloc();
 	}
+
+	// Метод deallocate, освобождающее место, ранее предоставленное по указателю ptr из текущего хранилища
 	void deallocate(T* ptr, std::size_t n) {
+		// Ищем блок, которому мог принадлежать такой указатель, начиная с блоков размера >= n * sizeof(T)
 		for (auto it = size_groups_->lower_bound(n * sizeof(T)); it != size_groups_->end(); ++it) {
 			if (static_cast<void*>(it->second) <= static_cast<void*>(ptr)) {
 				it->second->mark_free(static_cast<void*>(ptr), sizeof(T));
 			}
 		}
 	}
+
+	// Метод construct, создающий объект по выданному указателю
 	template<typename V, typename... Args >
 	void construct(V* ptr, Args&&... args) {
-		std::cout << "CONSTR " << ptr << "\n";
+		// Placement new + Perfect forwarding
 		new(static_cast<void*>(ptr)) V(std::forward<Args>(args)...);
 	}
 
+	// Метод destroy, вызывающий деструктор объекта, содержащегося по указателю
 	template<typename V>
 	void destroy(V* ptr) {
-		for (auto it = size_groups_->lower_bound(sizeof(V)); it != size_groups_->end(); ++it) {
-			if (static_cast<void*>(it->second) <= static_cast<void*>(ptr)) {
-				ptr->~V();
-			}
-		}
+		ptr->~V();
 	}
+
+	// Метод max_size, возвращающий размер наибольшего чанка в байтах
 	size_type max_size() const {
-		size_type size = 0;
 		if (!size_groups_->empty()) {
-			for (auto it = size_groups_->begin(); it != size_groups_->end(); ++it) {
-				size = std::max(it->first, size);
-			}
+			return size_groups_->rbegin()->first;
 		}
-		return size;
+		return 0;
 	}
-	std::shared_ptr<void>const& data() const {
+
+	// Метод доступа к полю data_
+	std::shared_ptr<void> const& data() const {
 		return data_;
 	}
+	
+	// Метод доступа к полю size_groups_
 	std::shared_ptr<std::map<std::size_t, FixedSizeBucket*>> const& groups() const {
 		return size_groups_;
 	}
 
 private:
+	// Указатель на мапу, ключами которой являются размеры блоков, а соответсвующими значениями - указатели на эти блоки
 	std::shared_ptr<std::map<std::size_t, FixedSizeBucket*>> size_groups_;
+	// Указатель на выделенный блок памяти
 	std::shared_ptr<void> data_;
 };
 
+// Оператор сравнения аллокаторов (равны, если имеют доступ к одному и тому же блоку памяти)
+template <class T, class U>
+bool operator==(LJGSAllocator<T> const& lhs, LJGSAllocator<U> const& rhs) noexcept { return lhs.data() == rhs.data(); }
 
+// Оператор сравнения аллокаторов (не равны, если работают с разными блоками памяти)
 template <class T, class U>
-bool operator==(LJGSAllocator<T> const& lhs, LJGSAllocator<U> const& rhs) { return lhs.data() == rhs.data(); }
-template <class T, class U>
-bool operator!=(LJGSAllocator<T> const& lhs, LJGSAllocator<U> const& rhs) { return !(lhs == rhs); }
+bool operator!=(LJGSAllocator<T> const& lhs, LJGSAllocator<U> const& rhs) noexcept { return !(lhs == rhs); }
 
 
 #endif
