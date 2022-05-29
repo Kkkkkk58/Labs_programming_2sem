@@ -59,12 +59,18 @@ public:
 		}
 	}
 
-	LJGSAllocator(LJGSAllocator const& other) : size_groups_(other.size_groups_), data_(other.data_) {}
+	LJGSAllocator(LJGSAllocator const& other) : size_groups_(other.size_groups_), data_(other.data_) {
+		std::cout << "Usual cctor: " << data_.use_count() << "\n";
+	}
 
 	template<typename V>
-	LJGSAllocator(LJGSAllocator<V> const& other) : size_groups_(other.groups()), data_(other.data()) {}
+	LJGSAllocator(LJGSAllocator<V> const& other) : size_groups_(other.groups()), data_(other.data()) {
+		std::cout << "Template cctor " << data_.use_count() << "\n";
+	}
 	//~LJGSAllocator() {
-	//	delete data;
+	//	if (data_.use_count() == 0) {
+	//		data_.reset();
+	//	}
 	//}
 	pointer allocate(std::size_t n) {
 		
