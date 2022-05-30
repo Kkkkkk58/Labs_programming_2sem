@@ -15,9 +15,9 @@ public:
 	using void_pointer							 = void*;
 	using const_void_pointer					 = const void*;
 	using is_always_equal                        = std::false_type;
-	using propagate_on_container_copy_assignment = std::false_type;
-	using propagate_on_container_move_assignment = std::false_type;
-	using propagate_on_container_swap            = std::false_type;
+	using propagate_on_container_copy_assignment = std::true_type;
+	using propagate_on_container_move_assignment = std::true_type;
+	using propagate_on_container_swap            = std::true_type;
 	template <typename V>
 	struct rebind {
 		using other = LJGSAllocator<V>;
@@ -73,10 +73,7 @@ public:
 	~LJGSAllocator() {
 		// Если данный аллокатор - последний из указывающих на конкретную область памяти
 		if (size_groups_.use_count() == 1) {
-			// Вызываем деструкторы вместилищ чанков
-			for (auto it = size_groups_->begin(); it != size_groups_->end(); ++it) {
-				it->second->~FixedSizeBucket();
-			}
+			destroy_blocks();
 		}
 	}
 
@@ -86,6 +83,64 @@ public:
 	// Конструктор копирования класса LJGSAllocator от аллокатора другого типа, не бросающий исключения
 	template<typename V>
 	LJGSAllocator(LJGSAllocator<V> const& other) noexcept : size_groups_(other.groups()), data_(other.data()) {}
+
+	// Конструктор перемещения класса LJGSAllocator, не бросающий исключения
+	LJGSAllocator(LJGSAllocator&& other) noexcept
+		: size_groups_(std::move(other.size_groups_)), data_(std::move(other.data_)) {}
+
+	// Конструктор перемещения класса LJGSAllocator от аллокатора другого типа, не бросающий исключения
+	template<typename V>
+	LJGSAllocator(LJGSAllocator&& other) noexcept
+		: size_groups_(std::move(other.groups())), data_(std::move(other.data())) {}
+
+	// Оператор присваивания класса LJGSAllocator
+	LJGSAllocator& operator=(LJGSAllocator const& other) noexcept {
+		if (*this != other) {
+			destroy_blocks();
+			size_groups_ = other.size_groups_;
+			data_ = other.data_;
+		}
+		return *this;
+	}
+
+	// Оператор присваивания класса LJGSAllocator от аллокатора другого типа
+	template<typename V>
+	LJGSAllocator& operator=(LJGSAllocator<V> const& other) noexcept {
+		if (*this != other) {
+			destroy_blocks();
+			size_groups_ = other.groups();
+			data_ = other.data();
+		}
+		return *this;
+	}
+
+	// Перемещающий оператор присваивания класса LJGSAllocator
+	LJGSAllocator& operator=(LJGSAllocator &&other) noexcept {
+		if (*this != other) {
+			destroy_blocks();
+			size_groups_ = std::move(other.size_groups_);
+			data_ = std::move(other.data_);
+		}
+		return *this;
+	}
+
+	// Перемещающий оператор присваивания класса LJGSAllocator от аллокатора другого типа
+	template<typename V>
+	LJGSAllocator& operator=(LJGSAllocator<V> && other) noexcept {
+		if (*this != other) {
+			destroy_blocks();
+			size_groups_ = std::move(other.groups());
+			data_ = std::move(other.data());
+		}
+		return *this;
+	}
+
+	// Метод swap класса LJGSAllocator
+	void swap(LJGSAllocator& other) noexcept {
+		using std::swap;
+		swap(size_groups_, other.size_groups_);
+		swap(data_, other.data_);
+	}
 
 	// Метод allocate, предоставляющий место для n подряд идущих элементов типа T в динамической памяти
 	pointer allocate(std::size_t n) {
@@ -149,6 +204,13 @@ private:
 	std::shared_ptr<std::map<std::size_t, FixedSizeBucket*>> size_groups_;
 	// Указатель на выделенный блок памяти
 	std::shared_ptr<void> data_;
+	// Метод destroy_blocks
+	void destroy_blocks() {
+		// Вызываем деструкторы вместилищ чанков
+		for (auto it = size_groups_->begin(); it != size_groups_->end(); ++it) {
+			it->second->~FixedSizeBucket();
+		}
+	}
 };
 
 // Оператор сравнения аллокаторов (равны, если имеют доступ к одному и тому же блоку памяти)
