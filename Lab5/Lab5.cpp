@@ -37,7 +37,6 @@ BENCHMARK(BM_CustomSingleAllocation)->Range(8, 8 << 10)->Complexity(benchmark::o
 void RegularVectorCreate(std::size_t size) {
     std::allocator<int> a;
     std::vector<int, std::allocator<int>> v(size, a);
-    //benchmark::DoNotOptimize(v.data());
     std::vector<int, std::allocator<int>> k(v);
 }
 
@@ -91,7 +90,6 @@ void CustomVectorPushBack(std::size_t size, benchmark::State &state) {
     }
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-
     state.SetIterationTime(elapsed_seconds.count());
 }
 
@@ -101,7 +99,6 @@ static void BM_CustomVectorPushBack(benchmark::State& state) {
     state.SetComplexityN(state.range(0));
 }
 
-BENCHMARK(BM_CustomVectorPushBack)->RangeMultiplier(2)->Range(8, 1024)->Complexity(benchmark::oN);
-
+BENCHMARK(BM_CustomVectorPushBack)->RangeMultiplier(2)->Range(8, 1024)->Complexity(benchmark::oN)->UseManualTime();
 
 BENCHMARK_MAIN();
